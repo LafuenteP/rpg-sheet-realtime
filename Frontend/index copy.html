@@ -219,6 +219,45 @@ body {
     opacity: 1;
 }
 
+/* ===== BANNER DE AÇÕES ===== */
+.acoes-antecedentes-row {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.acoes-banner {
+    background: url("assets/acoes.png") no-repeat center center;
+    background-size: contain;
+    width: 55%;
+    height: clamp(150px, 20vh, 260px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5% 16% 5% 15%;
+    flex-shrink: 0;
+    margin-left: 6%;
+
+}
+
+.acoes-banner input {
+    width: 60px;
+    border: none;
+    background: transparent;
+    font-size: clamp(2.3rem, 3.9vw, 3.3rem);
+    font-family: 'Rye', serif;
+    text-align: center;
+    color: var(--ink);
+    pointer-events: none;
+    -moz-appearance: textfield;
+}
+
+.acoes-banner input::-webkit-outer-spin-button,
+.acoes-banner input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 /* ===== MODAL DE CONDIÇÃO ===== */
 .modal-overlay {
     position: fixed;
@@ -242,7 +281,7 @@ body {
 }
 
 .modal-condicao {
-    background: url("assets/paper-bg.jpg") no-repeat center;
+    background: url("assets/fundodor.png") no-repeat center;
     background-size: cover;
     padding: 30px 40px;
     border: 4px solid #2b1b12;
@@ -317,6 +356,61 @@ body {
     opacity: .7;
 }
 
+/* ===== ANTECEDENTES ===== */
+.antecedentes-section {
+    flex: 1;
+}
+
+.antecedentes-section h3 {
+    font-family: 'Rye';
+    color: var(--ink);
+    margin: 0 62px 10px 0;
+    font-size: clamp(1.2rem, 1.8vw, 1.6rem);
+    text-align: center;
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 5px;
+    max-width: 400px;
+    margin: 0;
+    margin-right: auto;
+    margin-left: -20px;
+}
+
+.skill-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.skill-item label {
+    font-family: 'Rye';
+    font-size: clamp(0.9rem, 1.4vw, 1.2rem);
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.skill-item input {
+    width: 40px;
+    border: none;
+    background: transparent;
+    font-size: clamp(1.2rem, 1.6vw, 1.5rem);
+    font-family: 'Rye', serif;
+    text-align: center;
+    color: var(--ink);
+}
+
+.skill-item::after {
+    content: '';
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    background: url('assets/halteres.png') no-repeat center;
+    background-size: contain;
+}
+
 </style>
 </head>
 
@@ -381,6 +475,52 @@ body {
                     <img src="assets/fist.png" onerror="this.src='assets/skull.png'">
                     <img src="assets/fist.png" onerror="this.src='assets/skull.png'">
                     <img src="assets/fist.png" onerror="this.src='assets/skull.png'">
+                </div>
+            </div>
+        </div>
+        
+        <div class="acoes-antecedentes-row">
+            <div class="acoes-banner">
+                <input id="movimento" type="number" min="0" value="2">
+                <input id="combate" type="number" min="0" value="1">
+            </div>
+
+            <div class="antecedentes-section">
+                <h3>ANTECEDENTES:</h3>
+                <div class="skills-grid">
+                    <div class="skill-item">
+                        <label>ATENÇÃO:</label>
+                        <input type="number" id="atencao" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>MEDICINA:</label>
+                        <input type="number" id="medicina" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>MONTARIA:</label>
+                        <input type="number" id="montaria" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>NEGÓCIOS:</label>
+                        <input type="number" id="negocios" value="0">
+                    </div>
+
+                    <div class="skill-item">
+                        <label>ROUBO:</label>
+                        <input type="number" id="roubo" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>SUOR:</label>
+                        <input type="number" id="suor" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>TRADIÇÃO:</label>
+                        <input type="number" id="tradicao" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>VIOLÊNCIA:</label>
+                        <input type="number" id="violencia" value="0">
+                    </div>
                 </div>
             </div>
         </div>
@@ -482,8 +622,17 @@ function setupVitals() {
     const forcaInput = document.getElementById('forca');
     forcaInput.addEventListener('input', gerarCaveirasVida);
     
+    // Configura listeners para VEL e COR atualizarem ações
+    const velInput = document.getElementById('vel');
+    const corInput = document.getElementById('cor');
+    velInput.addEventListener('input', atualizarAcoes);
+    corInput.addEventListener('input', atualizarAcoes);
+    
     // Gera caveiras iniciais
     gerarCaveirasVida();
+    
+    // Atualiza ações iniciais
+    atualizarAcoes();
 
     // Configura Dor
     const fists = document.querySelectorAll('.dor-track img');
@@ -502,6 +651,15 @@ function setupVitals() {
 // Regenera caveiras quando preencher a tela com dados do banco
 function atualizarVidaAposCarregar() {
     gerarCaveirasVida();
+}
+
+// Atualiza ações baseado em VEL e COR
+function atualizarAcoes() {
+    const vel = parseInt(document.getElementById('vel').value) || 0;
+    const cor = parseInt(document.getElementById('cor').value) || 0;
+    
+    document.getElementById('movimento').value = 1 + vel;
+    document.getElementById('combate').value = 1 + cor;
 }
 
 // 2. Atualiza só o visual (CSS classes)
@@ -533,6 +691,7 @@ function preencherTela(atributos) {
     
     // Regenera caveiras baseado no FOR carregado
     gerarCaveirasVida();
+    atualizarAcoes();
     atualizarVisual();
     
     document.getElementById('status').innerText = '• Sincronizado •';

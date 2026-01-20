@@ -3,140 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ficha RPG Realtime</title>
-    <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; background: #222; color: #fff; }
-        .card { background: #333; padding: 20px; border-radius: 8px; border: 1px solid #444; }
-        input { padding: 8px; border-radius: 4px; border: 1px solid #555; background: #111; color: #fff; width: 60px;}
-        label { display: inline-block; width: 100px; }
-        .row { margin-bottom: 10px; }
-        button { padding: 10px 20px; background: #27ae60; color: white; border: none; cursor: pointer; }
-        button:hover { background: #219150; }
-        #status { font-size: 0.8rem; color: #aaa; margin-bottom: 1rem;}
-        .blink { animation: blinker 1s linear; }
-        @keyframes blinker { 50% { opacity: 0; } }
-    </style>
+    <title>Ficha: A Última Dose</title>
     
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-    <h1>Ficha do Ray</h1>
-    <div id="status">Conectando...</div>
+    <div class="sheet">
+  
+        <div class="sheet-left">
+            <div class="portrait-frame">
+            <img src="assets/personagem.png" alt="Personagem">
+            </div>
 
-    <div class="card">
-        <div class="row">
-            <label>Força:</label>
-            <input type="number" id="for" value="0">
+            <div class="name-banner">
+            <h1>Trinity</h1>
+            </div>
         </div>
-        <div class="row">
-            <label>Vigor:</label>
-            <input type="number" id="vig" value="0">
+
+        <div class="sheet-right">
+
+            <div class="wanted-strip">
+            <span>WANTED</span>
+            <span>Dead or Alive</span>
+            </div>
+
+            <div class="attributes">
+            <!-- FIS / VEL / INT / COR -->
+            </div>
+
+            <div class="tracks">
+            <!-- Vida / Dor com ícones -->
+            </div>
+
+            <div class="skills">
+            <!-- Cards de habilidades -->
+            </div>
+
         </div>
-        <div class="row">
-            <label>Agilidade:</label>
-            <input type="number" id="agi" value="0">
-        </div>
-        <hr>
-        <div class="row">
-            <label>Vida Atual:</label>
-            <input type="number" id="vida" value="0">
-        </div>
-        
-        <br>
-        <button onclick="salvarFicha()">💾 Salvar Alterações</button>
+
     </div>
 
+    <div class="track vida">
+        <img src="assets/skull.png">
+        <img src="assets/skull.png">
+        <img src="assets/skull.png">
+    </div>
+
+
+
     <script>
-    // ================= CONFIGURAÇÃO =================
-    // COLOQUE SUAS CHAVES AQUI NOVAMENTE
+        // ================= CONFIGURAÇÃO =================
         const SUPABASE_URL = 'https://jhktbogzlbjazfeddwla.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impoa3Rib2d6bGJqYXpmZWRkd2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzMDA5MTEsImV4cCI6MjA4Mzg3NjkxMX0.7Om5p6w4GB6lOYBODigGuTOWWd3bq6uPBssw4cvFsUg';
-    
-        // CORREÇÃO: Vamos chamar de 'client' para não dar conflito com a biblioteca
+        
         const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
         const NOME_PERSONAGEM = 'Trinity';
 
-    // ================= LÓGICA DE NEGÓCIO =================
-
-    // 1. Função para buscar os dados iniciais
+        // ================= LÓGICA =================
         async function buscarDados() {
-            console.log("Buscando dados...");
-        
-        // CORREÇÃO: Usando 'client' ao invés de 'supabase'
             const { data, error } = await client
                 .from('Fichas')
                 .select('*')
                 .eq('nome_personagem', NOME_PERSONAGEM)
                 .single();
 
-            if (error) {
-                console.error('Erro:', error);
-                document.getElementById('status').innerText = 'Erro: ' + error.message;
-                return;
-            }
-
-            if (data) {
-                console.log("Dados recebidos:", data);
-                atualizarTela(data.atributos);
-            }
+            if (data) atualizarTela(data.atributos);
+            else if (error) console.error(error);
         }
 
-        // 2. Atualiza a tela (Igual ao anterior)
+        function atualizarVida(valor) {
+            const skulls = document.querySelectorAll('.vida img');
+            skulls.forEach((s, i) => {
+                s.classList.toggle('ativo', i < valor);
+            });
+        }
+
+
         function atualizarTela(atributos) {
             document.getElementById('for').value = atributos.for || 0;
             document.getElementById('vig').value = atributos.vig || 0;
             document.getElementById('agi').value = atributos.agi || 0;
             document.getElementById('vida').value = atributos.vida || 0;
-        
-            document.getElementById('status').innerText = 'Sincronizado via Realtime!';
-            document.getElementById('status').style.color = '#27ae60';
-        
-            // Piscar a tela pra avisar que mudou (Feedback visual)
-            document.body.style.opacity = 0.5;
-            setTimeout(() => document.body.style.opacity = 1, 200);
+            
+            document.getElementById('status').innerText = '• Sincronizado •';
+            
+            const container = document.getElementById('ficha-container');
+            container.classList.remove('flash-update');
+            void container.offsetWidth; 
+            container.classList.add('flash-update');
         }
 
-        // 3. Realtime Subscription
-        const channel = client // CORREÇÃO: client
-            .channel('mudancas-ficha') 
-            .on(
-                'postgres_changes', 
-                { event: 'UPDATE', schema: 'public', table: 'Fichas' }, 
-                (payload) => {
-                    console.log('Mudança no banco!', payload);
-                    const novosAtributos = payload.new.atributos;
-                
-                    if(payload.new.nome_personagem === NOME_PERSONAGEM) {
-                        atualizarTela(novosAtributos);
-                    }
+        client
+            .channel('sala-western')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Fichas' }, 
+            (payload) => {
+                if(payload.new.nome_personagem === NOME_PERSONAGEM) {
+                    atualizarTela(payload.new.atributos);
                 }
-            )
+            })
             .subscribe();
 
-        // 4. Função de Salvar
         async function salvarFicha() {
-            console.log("Salvando...");
+            document.getElementById('status').innerText = 'Enviando...';
+            
             const novosAtributos = {
                 for: parseInt(document.getElementById('for').value),
                 vig: parseInt(document.getElementById('vig').value),
                 agi: parseInt(document.getElementById('agi').value),
                 vida: parseInt(document.getElementById('vida').value)
             };
-            const { error } = await client // CORREÇÃO: client
+
+            const { error } = await client
                 .from('Fichas')
                 .update({ atributos: novosAtributos })
                 .eq('nome_personagem', NOME_PERSONAGEM);
 
-            if (error) {
-                alert('Erro ao salvar: ' + error.message);
-            } else {
-                console.log("Salvo com sucesso!");
+            if (!error) {
+                document.getElementById('status').innerText = 'Registrado!';
+                setTimeout(() => document.getElementById('status').innerText = '• Sincronizado •', 2000);
             }
         }
 
-        // Inicia
         buscarDados();
     </script>
 </body>

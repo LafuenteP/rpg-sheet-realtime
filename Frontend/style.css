@@ -1,0 +1,222 @@
+/* Variáveis de Cores e Tema */
+:root {
+    --paper-bg: #e6dccf;
+    --ink-color: #3e2723;
+    --accent-red: #8a2be2; 
+    --wood-dark: #2a1b12;
+    --wood-light: #5d4037;
+}
+
+body {
+    background-color: #1a1512;
+    background-image: radial-gradient(#2a1b12 1px, transparent 1px);
+    background-size: 20px 20px;
+    font-family: 'Courier Prime', monospace;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    color: var(--ink-color);
+}
+
+.sheet-container {
+    background-color: var(--paper-bg);
+    width: 100%;
+    max-width: 500px;
+    padding: 30px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    border: 2px solid var(--ink-color);
+    position: relative;
+}
+
+.sheet {
+    display: grid;
+    grid-template-columns: 40% 60%;
+    max-width: 1100px;
+    background: url("assets/paper-texture.jpg");
+    background-size: cover;
+    padding: 30px;
+    gap: 20px;
+}
+
+.sheet-left {
+    position: relative;
+}
+
+.portrait-frame {
+    background: url("assets/portrait-frame.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding: 40px;
+}
+
+.portrait-frame img {
+    width: 100%;
+    display: block;
+}
+
+.name-banner {
+    background: url("assets/name-banner.png") no-repeat center;
+    background-size: contain;
+    padding: 25px;
+    text-align: center;
+}
+
+.name-banner h1 {
+    font-family: 'Rye';
+    margin: 0;
+}
+
+
+/* Efeito de borda dupla estilo Western */
+.sheet-container::before {
+    content: '';
+    position: absolute;
+    top: 6px; left: 6px; right: 6px; bottom: 6px;
+    border: 2px solid var(--ink-color);
+    pointer-events: none;
+}
+
+h1 {
+    font-family: 'Rye', serif;
+    text-align: center;
+    font-size: 2.5rem;
+    margin-top: 0;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-bottom: 2px solid var(--ink-color);
+    padding-bottom: 10px;
+}
+
+.wanted-label {
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+    opacity: 0.8;
+}
+
+/* Grid de Atributos */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.stat-box label {
+    display: block;
+    font-family: 'Rye', serif;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.stat-box input {
+    width: 60px;
+    font-family: 'Courier Prime', monospace;
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-align: center;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid var(--ink-color);
+    color: var(--ink-color);
+    outline: none;
+}
+
+.stat-box input:focus {
+    border-color: #b71c1c;
+}
+
+
+.attribute-card input {
+    border: none;
+    background: transparent;
+    font-size: 2rem;
+    text-align: center;
+    pointer-events: none; /* parece impresso */
+}
+
+
+
+/* Área de Vida */
+.hp-section {
+    background: rgba(0,0,0,0.05);
+    padding: 15px;
+    border: 2px dashed var(--ink-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.track img {
+    opacity: 0.2;
+}
+
+.track img.ativo {
+    opacity: 1;
+}
+
+
+.hp-section label {
+    font-family: 'Rye', serif;
+    font-size: 1.5rem;
+}
+
+.hp-section input {
+    font-size: 2.5rem;
+    width: 80px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid #b71c1c;
+    text-align: right;
+    color: #b71c1c;
+    font-weight: bold;
+}
+
+/* Botão Salvar */
+.save-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--wood-light);
+    color: #e6dccf;
+    font-family: 'Rye', serif;
+    font-size: 1.2rem;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: background 0.2s;
+    position: relative;
+    z-index: 2;
+}
+
+.save-btn:hover {
+    background: var(--wood-dark);
+}
+
+.save-btn:active {
+    transform: scale(0.98);
+}
+
+/* Status e Animações */
+#status {
+    text-align: center;
+    font-size: 0.8rem;
+    margin-top: 15px;
+    color: #5d4037;
+    font-style: italic;
+}
+
+.flash-update {
+    animation: highlight 1s ease-out;
+}
+
+@keyframes highlight {
+    0% { background-color: rgba(183, 28, 28, 0.3); }
+    100% { background-color: transparent; }
+}

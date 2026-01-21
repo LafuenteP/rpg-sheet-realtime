@@ -204,6 +204,45 @@
             .mount-header { flex-direction: column; align-items: center; text-align: center; }
             .mount-photo-frame { margin: 0 auto; }
             .content-grid { grid-template-columns: 1fr; }
+            
+            .western-nav {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .western-nav a {
+                font-size: 0.85rem;
+                padding: 5px 8px;
+            }
+        }
+        
+        /* Celulares pequenos */
+        @media (max-width: 480px) {
+            .mount-sheet {
+                width: 98%;
+                padding: 15px;
+                margin-top: 15px;
+            }
+            
+            .title-block h1 {
+                font-size: 1.5rem;
+            }
+            
+            .mount-photo-frame {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .stat-input {
+                font-size: 1.5rem;
+                width: 50px;
+            }
+            
+            .western-nav a {
+                font-size: 0.85rem;
+                padding: 5px 8px;
+            }
         }
 
         #status { text-align: center; margin-top: 20px; opacity: 0.6; }

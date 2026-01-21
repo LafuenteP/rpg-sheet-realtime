@@ -166,6 +166,124 @@
         }
         .library-item:hover { background: #333; color: var(--gold); }
 
+        /* =========================================
+           RESPONSIVIDADE MOBILE
+           ========================================= */
+        
+        /* Celulares */
+        @media (max-width: 768px) {
+            .wood-plaque {
+                width: 95%;
+                padding: 20px 15px;
+                margin-top: 20px;
+            }
+            
+            .header-row {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .btn-create {
+                width: 100%;
+            }
+            
+            .skill-card h3 {
+                font-size: 1.1rem;
+                flex-wrap: wrap;
+            }
+            
+            .skill-card p {
+                font-size: 0.9rem;
+            }
+            
+            .creator-box {
+                width: 95%;
+                padding: 20px 15px;
+            }
+            
+            .western-nav {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .western-nav a {
+                font-size: 0.85rem;
+                padding: 5px 8px;
+            }
+        }
+        
+        /* Celulares pequenos */
+        @media (max-width: 480px) {
+            .wood-plaque {
+                width: 98%;
+                padding: 15px 10px;
+                margin-top: 15px;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+            
+            .category-title {
+                font-size: 0.9rem;
+                margin: 20px 0 10px 0;
+            }
+            
+            .skill-card {
+                padding: 12px 10px;
+            }
+            
+            .skill-card h3 {
+                font-size: 1rem;
+            }
+            
+            .skill-type-badge {
+                font-size: 0.5rem;
+            }
+            
+            .skill-card p {
+                font-size: 0.85rem;
+            }
+            
+            .mini-table {
+                font-size: 0.8rem;
+            }
+            
+            .btn-create {
+                font-size: 0.9rem;
+                padding: 8px 12px;
+            }
+            
+            .creator-box h2 {
+                font-size: 1.2rem;
+            }
+            
+            .form-group label {
+                font-size: 0.8rem;
+            }
+            
+            .creator-box input, .creator-box textarea, .creator-box select {
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+            
+            .btn-confirm, .btn-cancel {
+                font-size: 0.9rem;
+                padding: 10px;
+            }
+            
+            .western-nav a {
+                font-size: 0.85rem;
+                padding: 5px 8px;
+            }
+        }
+
     </style>
 </head>
 <body>

@@ -1039,7 +1039,16 @@ function setupAutoSave() {
     inputs.forEach(input => {
         // Quando mudar e sair do campo, salva
         input.addEventListener('change', () => {
-            if(input.id === 'forca' || input.id === 'vel' || input.id === 'cor') {
+            // Validação de atributos (FOR, VEL, INT, COR)
+            if(['forca', 'vel', 'int', 'cor'].includes(input.id)) {
+                let valor = parseInt(input.value) || 0;
+                if(valor > 4) {
+                    alert('Valor máximo permitido é 4!');
+                    input.value = 4;
+                } else if(valor < 0) {
+                    alert('Valor mínimo permitido é 0!');
+                    input.value = 0;
+                }
                 gerarCaveirasVida();
                 atualizarAcoes();
             }

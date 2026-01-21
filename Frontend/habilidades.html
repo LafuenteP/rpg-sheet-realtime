@@ -8,182 +8,163 @@
     <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="biblioteca.js"></script>
 
     <style>
         :root {
             --ink: #2b1b12;
             --wood-dark: #3b2e22;
-            --wood-light: #5a4633;
             --gold: #ffcc80;
-            --paper-text: #e6dccf;
+            --red-combat: #b71c1c;
+            --yellow-job: #fdd835;
         }
 
         body {
-            margin: 0;
-            background-color: #1a1411;
-            /* Fundo de mesa escura */
+            margin: 0; background-color: #1a1411;
             background-image: repeating-linear-gradient(45deg, #1a1411 0px, #140f0d 2px, #1a1411 4px);
-            font-family: 'Courier Prime', monospace;
-            color: var(--paper-text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            font-family: 'Courier Prime', monospace; color: #e6dccf;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
 
-        /* ===== MENU DE NAVEGAÇÃO ===== */
+        /* MENU NAVEGAÇÃO */
         .western-nav {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            padding: 15px;
-            background: rgba(43, 27, 18, 0.95);
-            border-bottom: 2px solid #5d4037;
-            width: 100%;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: flex; justify-content: center; gap: 15px; padding: 15px;
+            background: rgba(43, 27, 18, 0.95); border-bottom: 2px solid #5d4037;
+            width: 100%; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-
         .western-nav a {
-            color: #aaa;
-            text-decoration: none;
-            font-family: 'Rye', serif;
-            font-size: 1rem;
-            padding: 5px 10px;
-            border: 1px solid transparent;
-            transition: all 0.2s;
-            text-transform: uppercase;
+            color: #aaa; text-decoration: none; font-family: 'Rye'; font-size: 1rem;
+            padding: 5px 10px; text-transform: uppercase; transition: 0.2s;
         }
+        .western-nav a:hover, .western-nav a.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
 
-        .western-nav a:hover {
-            color: var(--gold);
-            border-color: var(--gold);
-        }
-
-        .western-nav a.active {
-            color: var(--gold);
-            border-bottom: 2px solid var(--gold);
-        }
-
-        /* ===== PLACA DE MADEIRA (CONTAINER) ===== */
+        /* PLACA PRINCIPAL */
         .wood-plaque {
-            margin-top: 40px;
-            width: 90%;
-            max-width: 600px;
+            margin-top: 40px; width: 90%; max-width: 800px;
             background-color: var(--wood-dark);
-            /* Textura de madeira via CSS */
-            background-image: 
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(0deg, #3b2e22, #2a1f18);
+            background-image: linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(0deg, #3b2e22, #2a1f18);
             background-size: 20px 100%, 100% 100%;
-            
-            border: 6px solid #150f0b;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 
-                inset 0 0 30px rgba(0,0,0,0.9), /* Sombra interna */
-                0 10px 20px rgba(0,0,0,0.7);    /* Sombra externa */
-            position: relative;
+            border: 6px solid #150f0b; border-radius: 12px; padding: 30px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.9), 0 10px 20px rgba(0,0,0,0.7);
+            position: relative; margin-bottom: 50px;
         }
 
-        /* Pregos nos cantos */
-        .wood-plaque::before, .wood-plaque::after {
-            content: '';
-            position: absolute;
-            width: 12px; height: 12px;
-            background: #111;
-            border-radius: 50%;
-            box-shadow: 0 1px 0 rgba(255,255,255,0.1);
-            top: 10px;
-        }
-        .wood-plaque::before { left: 10px; }
-        .wood-plaque::after { right: 10px; }
-
-        /* Cabeçalho */
         .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid rgba(255,204,128, 0.2);
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid rgba(255,204,128, 0.2); padding-bottom: 15px; margin-bottom: 20px;
         }
+        h1 { font-family: 'Rye'; margin: 0; color: var(--gold); text-shadow: 2px 2px 0 #000; font-size: 1.8rem; }
 
-        h1 {
-            font-family: 'Rye', serif;
-            margin: 0;
-            color: var(--gold);
-            text-shadow: 2px 2px 0 #000;
-            font-size: 1.8rem;
+        .btn-create {
+            background: #2e7d32; color: #fff; border: 2px solid #1b5e20;
+            font-family: 'Rye'; cursor: pointer; padding: 8px 16px;
+            font-size: 1rem; box-shadow: 2px 2px 0 #000; text-transform: uppercase;
         }
+        .btn-create:hover { background: #388e3c; }
 
-        /* Botão Adicionar */
-        .btn-add {
-            background: #5d4037;
-            border: 2px solid #2a1f18;
-            color: var(--gold);
-            font-family: 'Rye', serif;
-            cursor: pointer;
-            padding: 8px 16px;
-            font-size: 1rem;
-            box-shadow: 2px 2px 0 #000;
-            transition: transform 0.1s;
+        /* LISTAS */
+        .category-title {
+            font-family: 'Rye'; color: #aaa; text-align: center;
+            border-bottom: 1px dashed #555; margin: 30px 0 15px 0; padding-bottom: 5px;
+            text-transform: uppercase; letter-spacing: 2px;
         }
-        .btn-add:active { transform: translateY(2px); box-shadow: none; }
-
-        /* Lista de Habilidades */
-        .skill-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
+        .skill-list { display: flex; flex-direction: column; gap: 15px; }
+        
         .skill-card {
-            background: rgba(0, 0, 0, 0.25);
-            padding: 15px;
-            border-radius: 4px;
-            border-left: 4px solid var(--gold);
-            position: relative;
-            transition: background 0.2s;
+            background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 4px;
+            border-left: 5px solid #555; position: relative;
         }
-        .skill-card:hover { background: rgba(0, 0, 0, 0.35); }
+        .skill-card.combate { border-left-color: var(--red-combat); }
+        .skill-card.profissao { border-left-color: var(--yellow-job); }
 
         .skill-card h3 {
-            font-family: 'Rye', serif;
-            margin: 0 0 5px 0;
-            color: #ddd;
-            font-size: 1.2rem;
+            font-family: 'Rye'; margin: 0 0 10px 0; color: #ddd; font-size: 1.3rem;
+            display: flex; align-items: center; gap: 10px;
         }
-
-        .skill-card p {
-            margin: 0;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            opacity: 0.8;
+        .skill-type-badge {
+            font-size: 0.6rem; background: rgba(255,255,255,0.1); padding: 2px 6px;
+            border-radius: 4px; font-family: sans-serif; text-transform: uppercase; letter-spacing: 1px;
         }
+        .skill-card p { margin: 0; font-size: 0.95rem; line-height: 1.5; opacity: 0.9; text-align: justify;}
 
         .btn-delete {
-            position: absolute;
-            top: 10px; right: 10px;
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1.2rem;
+            position: absolute; top: 10px; right: 10px; background: none; border: none;
+            color: #666; cursor: pointer; font-weight: bold; font-size: 1.2rem;
         }
         .btn-delete:hover { color: #ff5555; }
 
-        /* Status */
-        #status {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.8rem;
-            opacity: 0.6;
-            font-style: italic;
+        /* TABELAS RENDERIZADAS */
+        .mini-table {
+            width: 100%; border-collapse: collapse; margin-top: 10px;
+            font-family: 'Courier Prime'; font-size: 0.9rem;
+            background: rgba(255,255,255,0.05);
         }
+        .mini-table th { text-align: left; background: #222; color: var(--gold); padding: 5px; border-bottom: 1px solid #555; }
+        .mini-table td { padding: 5px; border-bottom: 1px solid #444; color: #ccc; }
+        .mini-table tr:last-child td { border-bottom: none; }
+
+        /* ===== MODAL CRIADOR ===== */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 200; display: none;
+            justify-content: center; align-items: flex-start; overflow-y: auto; padding-top: 50px;
+        }
+        
+        /* Modal Content */
+        .creator-box {
+            background: #1a1411; border: 2px solid var(--gold); width: 95%; max-width: 500px;
+            padding: 25px; box-shadow: 0 0 50px rgba(0,0,0,1); display: flex; flex-direction: column; gap: 15px;
+            position: relative;
+        }
+        .creator-box h2 { font-family: 'Rye'; color: var(--gold); margin: 0 0 10px 0; text-align: center; }
+
+        /* Botão Biblioteca dentro do Modal */
+        .btn-library-small {
+            background: #444; color: var(--gold); border: 1px solid var(--gold);
+            padding: 5px 10px; cursor: pointer; font-family: 'Rye'; font-size: 0.8rem;
+            align-self: flex-end; margin-bottom: 10px;
+        }
+        .btn-library-small:hover { background: #555; }
+
+        /* Campos */
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-family: 'Rye'; font-size: 0.9rem; color: #aaa; }
+        
+        .creator-box input[type="text"], .creator-box textarea, .creator-box select {
+            background: #222; border: 1px solid #444; color: #e6dccf;
+            padding: 10px; font-family: 'Courier Prime'; font-size: 1rem; outline: none;
+        }
+        .creator-box input:focus, .creator-box textarea:focus { border-color: var(--gold); }
+        .creator-box textarea { resize: vertical; min-height: 80px; }
+
+        /* Área da Tabela Dinâmica */
+        .table-builder {
+            border: 1px dashed #555; padding: 10px; margin-top: 10px; display: none;
+        }
+        .table-builder.show { display: block; }
+        
+        .table-row-input { display: flex; gap: 5px; margin-bottom: 5px; }
+        .input-col-1 { width: 30%; }
+        .input-col-2 { width: 70%; }
+        
+        .btn-small-add {
+            background: #333; color: #aaa; border: 1px solid #555; cursor: pointer; padding: 5px; width: 100%;
+        }
+        .btn-small-add:hover { background: #444; color: #fff; }
+
+        .form-actions { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-confirm { flex: 1; background: var(--gold); color: #000; border: none; padding: 12px; font-family: 'Rye'; cursor: pointer; font-size: 1rem;}
+        .btn-cancel { flex: 1; background: #333; color: #fff; border: none; padding: 12px; font-family: 'Rye'; cursor: pointer; font-size: 1rem;}
+
+        /* LISTA DA BIBLIOTECA (SUB-MODAL) */
+        .library-list-container {
+            display: none; flex-direction: column; gap: 5px; margin-bottom: 15px;
+            max-height: 200px; overflow-y: auto; border: 1px solid #444; padding: 5px;
+        }
+        .library-item {
+            padding: 8px; background: #222; cursor: pointer; display: flex; justify-content: space-between;
+        }
+        .library-item:hover { background: #333; color: var(--gold); }
 
     </style>
 </head>
@@ -199,130 +180,266 @@
     <div class="wood-plaque">
         <div class="header-row">
             <h1>Habilidades</h1>
-            <button class="btn-add" onclick="adicionarHabilidade()">+ Nova</button>
+            <button class="btn-create" onclick="abrirCriador()">+ Nova Habilidade</button>
         </div>
 
-        <div id="lista-skills" class="skill-list">
-            <p style="text-align:center; opacity:0.5;">Carregando habilidades...</p>
-        </div>
+        <div class="category-title">Combate</div>
+        <div id="lista-combate" class="skill-list"></div>
 
-        <div id="status">Conectando...</div>
+        <div class="category-title">Profissão</div>
+        <div id="lista-profissao" class="skill-list"></div>
+
+        <div class="category-title">Outros</div>
+        <div id="lista-outros" class="skill-list"></div>
+
+        <div id="status" style="text-align:center; margin-top:20px; opacity:0.6;">...</div>
+    </div>
+
+    <div class="modal-overlay" id="modal-creator">
+        <div class="creator-box">
+            <h2>Nova Habilidade</h2>
+            
+            <button class="btn-library-small" onclick="toggleLibrary()">📚 Pegar da Biblioteca</button>
+            
+            <div id="library-options" class="library-list-container">
+                </div>
+
+            <div class="form-group">
+                <label>Tipo</label>
+                <select id="new-type">
+                    <option value="combate">Combate (Vermelho)</option>
+                    <option value="profissao">Profissão (Amarelo)</option>
+                    <option value="outros">Outro (Cinza)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Nome da Habilidade</label>
+                <input type="text" id="new-title" placeholder="Ex: Tiro Certeiro">
+            </div>
+
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="new-desc" placeholder="Descreva o efeito..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox" id="check-table" onchange="toggleTableBuilder()">
+                    Adicionar Tabela de Evolução?
+                </label>
+            </div>
+
+            <div class="table-builder" id="table-builder-area">
+                <p style="margin-top:0; font-size:0.8rem; color:#888;">Adicione as linhas da tabela (Ex: Nível 1 - +1 Dano)</p>
+                <div id="table-rows-container">
+                    </div>
+                <button type="button" class="btn-small-add" onclick="addTableRowInput()">+ Adicionar Linha</button>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="fecharCriador()">Cancelar</button>
+                <button class="btn-confirm" onclick="salvarNovaHabilidade()">Criar</button>
+            </div>
+        </div>
     </div>
 
     <script>
+        // CONFIG GLOBAL
+        let fichaCache = {};
 
-        // Cache local para manipularmos o JSON inteiro sem perder dados
-        let fichaCache = {}; 
-
-        // 1. Buscar Dados Iniciais
-        async function carregarDados() {
-            const { data, error } = await client
-                .from('Fichas')
-                .select('atributos') // Pega o JSON inteiro
-                .eq('nome_personagem', NOME_PERSONAGEM)
-                .single();
-
+        // === DADOS DA BIBLIOTECA ===
+        // 1. CARREGAR
+        async function carregar() {
+            const { data } = await client.from('Fichas').select('atributos').eq('nome_personagem', NOME_PERSONAGEM).single();
             if (data) {
                 fichaCache = data.atributos || {};
-                // Se não existir o array habilidades ainda, cria vazio
                 if (!fichaCache.habilidades) fichaCache.habilidades = [];
-                
-                renderizar(fichaCache.habilidades);
-                statusMsg('• Sincronizado •');
-            } else if (error) {
-                console.error(error);
-                statusMsg('Erro ao carregar');
+                renderizar();
             }
         }
 
-        // 2. Renderizar na Tela
-        function renderizar(lista) {
-            const container = document.getElementById('lista-skills');
-            container.innerHTML = '';
+        // 2. RENDERIZAR
+        function renderizar() {
+            const containerCombate = document.getElementById('lista-combate');
+            const containerProfissao = document.getElementById('lista-profissao');
+            const containerOutros = document.getElementById('lista-outros');
+            
+            containerCombate.innerHTML = '';
+            containerProfissao.innerHTML = '';
+            containerOutros.innerHTML = '';
 
-            if (lista.length === 0) {
-                container.innerHTML = '<p style="text-align:center; opacity:0.5;">Nenhuma habilidade registrada.</p>';
-                return;
-            }
+            const lista = fichaCache.habilidades || [];
 
             lista.forEach((skill, index) => {
                 const card = document.createElement('div');
-                card.className = 'skill-card';
+                const tipo = skill.tipo || 'outros';
+                card.className = `skill-card ${tipo}`;
+                
                 card.innerHTML = `
-                    <h3>${skill.titulo}</h3>
+                    <h3>
+                        ${skill.titulo} 
+                        <span class="skill-type-badge">${tipo}</span>
+                    </h3>
                     <p>${skill.descricao}</p>
-                    <button class="btn-delete" onclick="remover(${index})" title="Apagar">×</button>
+                    <button class="btn-delete" onclick="remover(${index})">×</button>
                 `;
-                container.appendChild(card);
+
+                if(tipo === 'combate') containerCombate.appendChild(card);
+                else if (tipo === 'profissao') containerProfissao.appendChild(card);
+                else containerOutros.appendChild(card);
             });
         }
 
-        // 3. Adicionar Habilidade (Prompt Simples)
-        async function adicionarHabilidade() {
-            const titulo = prompt("Nome da Habilidade:");
-            if (!titulo) return; // Cancelou
-
-            const descricao = prompt("Descrição do efeito:");
-            if (!descricao) return; // Cancelou
-
-            // Adiciona ao array local
-            fichaCache.habilidades.push({ titulo, descricao });
+        // 3. LÓGICA DO MODAL (POP-UP)
+        function abrirCriador() {
+            // Limpa tudo
+            document.getElementById('new-title').value = '';
+            document.getElementById('new-desc').value = '';
+            document.getElementById('new-type').value = 'combate';
+            document.getElementById('check-table').checked = false;
+            document.getElementById('table-builder-area').classList.remove('show');
+            document.getElementById('table-rows-container').innerHTML = '';
+            document.getElementById('library-options').style.display = 'none'; // Esconde biblioteca
             
-            // Renderiza na hora (otimismo)
-            renderizar(fichaCache.habilidades);
-            
-            // Salva no banco
+            addTableRowInput(); 
+            document.getElementById('modal-creator').style.display = 'flex';
+        }
+
+        function fecharCriador() {
+            document.getElementById('modal-creator').style.display = 'none';
+        }
+
+        function toggleTableBuilder() {
+            const isChecked = document.getElementById('check-table').checked;
+            const builder = document.getElementById('table-builder-area');
+            if(isChecked) builder.classList.add('show');
+            else builder.classList.remove('show');
+        }
+
+        function addTableRowInput(val1 = '', val2 = '') {
+            const container = document.getElementById('table-rows-container');
+            const row = document.createElement('div');
+            row.className = 'table-row-input';
+            row.innerHTML = `
+                <input type="text" class="input-col-1" placeholder="Nível" value="${val1}">
+                <input type="text" class="input-col-2" placeholder="Efeito" value="${val2}">
+            `;
+            container.appendChild(row);
+        }
+
+        // 4. LÓGICA DA BIBLIOTECA
+        function toggleLibrary() {
+            const libContainer = document.getElementById('library-options');
+            if(libContainer.style.display === 'flex') {
+                libContainer.style.display = 'none';
+            } else {
+                libContainer.innerHTML = ''; // Limpa
+                BIBLIOTECA.forEach(skill => {
+                    const item = document.createElement('div');
+                    item.className = 'library-item';
+                    item.innerHTML = `<span>${skill.titulo}</span> <small>${skill.tipo}</small>`;
+                    item.onclick = () => preencherComBiblioteca(skill);
+                    libContainer.appendChild(item);
+                });
+                libContainer.style.display = 'flex';
+            }
+        }
+
+        function preencherComBiblioteca(skill) {
+            // Preenche os campos
+            document.getElementById('new-type').value = skill.tipo;
+            document.getElementById('new-title').value = skill.titulo;
+            document.getElementById('new-desc').value = skill.descricao;
+
+            // Se tiver tabela predefinida
+            if(skill.tabela) {
+                document.getElementById('check-table').checked = true;
+                toggleTableBuilder();
+                const container = document.getElementById('table-rows-container');
+                container.innerHTML = ''; // Limpa linhas padrão
+                skill.tabela.forEach(row => {
+                    addTableRowInput(row.col1, row.col2);
+                });
+            } else {
+                document.getElementById('check-table').checked = false;
+                toggleTableBuilder();
+            }
+
+            // Esconde a lista de novo
+            document.getElementById('library-options').style.display = 'none';
+        }
+
+        // 5. SALVAR NOVA HABILIDADE
+        async function salvarNovaHabilidade() {
+            const titulo = document.getElementById('new-title').value;
+            const descTexto = document.getElementById('new-desc').value;
+            const tipo = document.getElementById('new-type').value;
+            const temTabela = document.getElementById('check-table').checked;
+
+            if(!titulo) { alert("Dê um nome para a habilidade!"); return; }
+
+            let descricaoFinal = descTexto;
+
+            if(temTabela) {
+                let tableHTML = `<table class="mini-table"><tr><th>Condição</th><th>Efeito</th></tr>`;
+                const rows = document.querySelectorAll('#table-rows-container .table-row-input');
+                let hasData = false;
+
+                rows.forEach(row => {
+                    const col1 = row.querySelector('.input-col-1').value;
+                    const col2 = row.querySelector('.input-col-2').value;
+                    if(col1 || col2) {
+                        tableHTML += `<tr><td>${col1}</td><td>${col2}</td></tr>`;
+                        hasData = true;
+                    }
+                });
+                tableHTML += `</table>`;
+
+                if(hasData) {
+                    descricaoFinal += tableHTML;
+                }
+            }
+
+            fichaCache.habilidades.push({
+                titulo: titulo,
+                tipo: tipo,
+                descricao: descricaoFinal
+            });
+
+            fecharCriador();
+            renderizar();
             salvarNoBanco();
         }
 
-        // 4. Remover Habilidade
+        // 6. BANCO DE DADOS
         async function remover(index) {
-            if (confirm("Deseja apagar esta habilidade permanentemente?")) {
+            if(confirm("Remover habilidade?")) {
                 fichaCache.habilidades.splice(index, 1);
-                renderizar(fichaCache.habilidades);
+                renderizar();
                 salvarNoBanco();
             }
         }
 
-        // 5. Salvar no Supabase
         async function salvarNoBanco() {
-            statusMsg('Salvando...');
-            
+            document.getElementById('status').innerText = 'Salvando...';
             const { error } = await client
                 .from('Fichas')
-                .update({ atributos: fichaCache }) // Atualiza o JSON inteiro
+                .update({ atributos: fichaCache })
                 .eq('nome_personagem', NOME_PERSONAGEM);
+            
+            if(!error) document.getElementById('status').innerText = '• Sincronizado •';
+        }
 
-            if (!error) {
-                statusMsg('• Sincronizado •');
-            } else {
-                statusMsg('Erro ao salvar!');
-                console.error(error);
+        carregar();
+
+        client.channel('hab-room').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Fichas' }, 
+        (payload) => {
+            if(payload.new.nome_personagem === NOME_PERSONAGEM) {
+                fichaCache = payload.new.atributos;
+                renderizar();
             }
-        }
-
-        // 6. Atualizar texto de status
-        function statusMsg(texto) {
-            document.getElementById('status').innerText = texto;
-        }
-
-        // 7. Realtime (Escutar mudanças vindas de outras abas/pessoas)
-        client.channel('sala-habilidades')
-            .on('postgres_changes', 
-                { event: 'UPDATE', schema: 'public', table: 'Fichas' }, 
-                (payload) => {
-                    if (payload.new.nome_personagem === NOME_PERSONAGEM) {
-                        // Atualiza o cache com o que veio do servidor
-                        fichaCache = payload.new.atributos;
-                        renderizar(fichaCache.habilidades || []);
-                        statusMsg('• Atualizado Remotamente •');
-                    }
-                }
-            )
-            .subscribe();
-
-        // Inicializar
-        carregarDados();
+        }).subscribe();
 
     </script>
 </body>

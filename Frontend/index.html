@@ -7,6 +7,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 
 <style>
 :root {
@@ -474,6 +475,17 @@ body {
     background-size: contain;
 }
 
+/* ===== STATUS INDICATOR ===== */
+.status-indicator {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    color: #fff;
+    opacity: 0.7;
+    font-size: 0.8rem;
+    transition: opacity 0.3s;
+}
+
 /* =========================================
    RESPONSIVIDADE MOBILE
    ========================================= */
@@ -696,15 +708,15 @@ body {
     }
 
     .attribute-card {
-        width: 60px;
+        width: 85px;
     }
     
     .attribute-card label {
-        font-size: 0.8rem;
+        font-size: 0.95rem;
     }
     
     .attribute-card input {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
     }
 
     .track img {
@@ -718,7 +730,8 @@ body {
     }
 
     .western-nav a {
-        font-size: 0.75rem;
+        font-size: 0.85rem;
+        padding: 5px 8px;
     }
 }
 
@@ -730,6 +743,7 @@ body {
 <nav class="western-nav">
     <a href="index.html" class="active">Ficha</a>
     <a href="habilidades.html">Habilidades</a>
+    <a href="montaria.html">Montaria</a>
     <a href="inventario.html">Inventário</a>
 </nav>
 
@@ -798,8 +812,8 @@ body {
         
         <div class="acoes-antecedentes-row">
             <div class="acoes-banner">
-                <input id="movimento" type="number" min="0" value="2">
-                <input id="combate" type="number" min="0" value="1">
+                <input id="movimento" type="number" min="0" value="2" readonly>
+                <input id="combate" type="number" min="0" value="1" readonly>
             </div>
 
             <div class="antecedentes-section">
@@ -859,21 +873,11 @@ body {
         <button onclick="fecharModal()">Entendido</button>
     </div>
 </div>
+<div id="status" class="status-indicator"></div>
 
 <script>
-// --- CONFIGURAÇÃO ---
-const SUPABASE_URL = 'https://jhktbogzlbjazfeddwla.supabase.co';
-const SUPABASE_KEY = 'SUA_ANON_KEY_AQUI'; // <--- COLOQUE SUA CHAVE AQUI
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const NOME_PERSONAGEM = 'Trinity';
-
-// Estado Local
-let dadosLocais = {
-    vida: 0,
-    dor: 0
-};
-
-// Tabela de Condições (d6)
+// Variáveis Globais
+let dadosLocais = { vida: 0, dor: 0 };
 const CONDICOES = [
     { nome: 'Atordoamento', efeito: '-1 Ação de Combate na próxima rodada.' },
     { nome: 'Queda', efeito: 'Gaste um Movimento para se levantar.' },
@@ -883,38 +887,19 @@ const CONDICOES = [
     { nome: 'Desorientação', efeito: '-1 em Testes de Violência no próximo turno.' }
 ];
 
-// Função para sortear e mostrar condição
-function sortearCondicao() {
-    const d6 = Math.floor(Math.random() * 6); // 0-5
-    const condicao = CONDICOES[d6];
-    
-    document.getElementById('condicao-nome').innerText = `🎲 ${d6 + 1} - ${condicao.nome}`;
-    document.getElementById('condicao-efeito').innerText = condicao.efeito;
-    document.getElementById('modal-condicao').classList.add('show');
-}
+// Helper para pegar valor de ID
+const val = (id) => {
+    const el = document.getElementById(id);
+    return el ? (parseInt(el.value) || 0) : 0;
+};
 
-function fecharModal() {
-    document.getElementById('modal-condicao').classList.remove('show');
-}
-
-// Função para converter dor em vida
-function converterDorEmVida() {
-    if (dadosLocais.dor >= 6) {
-        dadosLocais.dor = 0; // Reseta a dor
-        dadosLocais.vida += 1; // Adiciona 1 ponto de vida (dano)
-        sortearCondicao(); // Sorteia e mostra a condição
-        atualizarVisual();
-    }
-}
-
-// 0. Gera as caveiras de vida baseado no FOR
+// 1. GERAÇÃO DE VIDA E AÇÕES
 function gerarCaveirasVida() {
-    const forcaInput = document.getElementById('forca');
-    const forca = parseInt(forcaInput.value) || 0;
-    const totalVida = 6 + forca; // 6 base + 1 por ponto de FOR
+    const forca = val('forca');
+    const totalVida = 6 + forca;
     
     const vidaTrack = document.querySelector('.vida-track');
-    vidaTrack.innerHTML = ''; // Limpa
+    vidaTrack.innerHTML = ''; 
     
     for (let i = 0; i < totalVida; i++) {
         const img = document.createElement('img');
@@ -923,100 +908,33 @@ function gerarCaveirasVida() {
             const novoValor = i + 1;
             dadosLocais.vida = (dadosLocais.vida === novoValor) ? 0 : novoValor;
             atualizarVisual();
+            salvarFicha();
         };
         vidaTrack.appendChild(img);
     }
-    
-    // Limita vida atual ao máximo permitido
-    if (dadosLocais.vida > totalVida) {
-        dadosLocais.vida = totalVida;
-    }
-    
+    if (dadosLocais.vida > totalVida) dadosLocais.vida = totalVida;
     atualizarVisual();
 }
 
-// 1. Configura os cliques nas imagens (Interatividade)
-function setupVitals() {
-    // Configura listener para FOR atualizar vida
-    const forcaInput = document.getElementById('forca');
-    forcaInput.addEventListener('input', gerarCaveirasVida);
-    
-    // Configura listeners para VEL e COR atualizarem ações
-    const velInput = document.getElementById('vel');
-    const corInput = document.getElementById('cor');
-    velInput.addEventListener('input', atualizarAcoes);
-    corInput.addEventListener('input', atualizarAcoes);
-    
-    // Gera caveiras iniciais
-    gerarCaveirasVida();
-    
-    // Atualiza ações iniciais
-    atualizarAcoes();
-
-    // Configura Dor
-    const fists = document.querySelectorAll('.dor-track img');
-    fists.forEach((img, index) => {
-        img.onclick = () => {
-            const novoValor = index + 1;
-            dadosLocais.dor = (dadosLocais.dor === novoValor) ? 0 : novoValor;
-            atualizarVisual();
-            
-            // Verifica se atingiu 6 pontos de dor
-            converterDorEmVida();
-        };
-    });
-}
-
-// Regenera caveiras quando preencher a tela com dados do banco
-function atualizarVidaAposCarregar() {
-    gerarCaveirasVida();
-}
-
-// Atualiza ações baseado em VEL e COR
 function atualizarAcoes() {
-    const vel = parseInt(document.getElementById('vel').value) || 0;
-    const cor = parseInt(document.getElementById('cor').value) || 0;
-    
+    const vel = val('vel');
+    const cor = val('cor');
     document.getElementById('movimento').value = 1 + vel;
     document.getElementById('combate').value = 1 + cor;
 }
 
-// 2. Atualiza só o visual (CSS classes)
 function atualizarVisual() {
-    // Atualiza Vida
-    const skulls = document.querySelectorAll('.vida-track img');
-    skulls.forEach((s, i) => {
+    document.querySelectorAll('.vida-track img').forEach((s, i) => {
         s.classList.toggle('active', i < dadosLocais.vida);
     });
-
-    // Atualiza Dor
-    const fists = document.querySelectorAll('.dor-track img');
-    fists.forEach((f, i) => {
+    document.querySelectorAll('.dor-track img').forEach((f, i) => {
         f.classList.toggle('active', i < dadosLocais.dor);
     });
 }
 
-// 3. Recebe dados do banco e preenche a tela
-function preencherTela(atributos) {
-    // Inputs numéricos
-    document.getElementById('forca').value = atributos.for || 0;
-    document.getElementById('int').value = atributos.int || 0;
-    document.getElementById('vel').value = atributos.vel || 0;
-    document.getElementById('cor').value = atributos.cor || 0;
+// 2. FUNÇÕES DE SUPABASE
 
-    // Vitais
-    dadosLocais.vida = atributos.vida || 0;
-    dadosLocais.dor = atributos.dor || 0; // Novo campo
-    
-    // Regenera caveiras baseado no FOR carregado
-    gerarCaveirasVida();
-    atualizarAcoes();
-    atualizarVisual();
-    
-    document.getElementById('status').innerText = '• Sincronizado •';
-}
-
-// 4. Busca Inicial
+// BUSCAR DADOS
 async function buscarDados() {
     const { data, error } = await client
         .from('Fichas')
@@ -1028,38 +946,152 @@ async function buscarDados() {
     else if (error) console.error(error);
 }
 
-// 5. Salvar
+// PREENCHER TELA
+function preencherTela(attr) {
+    if (!attr) return;
+
+    // Atributos Básicos
+    document.getElementById('forca').value = attr.for || 0;
+    document.getElementById('int').value = attr.int || 0;
+    document.getElementById('vel').value = attr.vel || 0;
+    document.getElementById('cor').value = attr.cor || 0;
+
+    // Vitais
+    dadosLocais.vida = attr.vida || 0;
+    dadosLocais.dor = attr.dor || 0;
+
+    // Antecedentes (Verifica se existe o objeto, se não põe 0)
+    const ant = attr.antecedentes || {};
+    document.getElementById('atencao').value = ant.atencao || 0;
+    document.getElementById('medicina').value = ant.medicina || 0;
+    document.getElementById('montaria').value = ant.montaria || 0;
+    document.getElementById('negocios').value = ant.negocios || 0;
+    document.getElementById('roubo').value = ant.roubo || 0;
+    document.getElementById('suor').value = ant.suor || 0;
+    document.getElementById('tradicao').value = ant.tradicao || 0;
+    document.getElementById('violencia').value = ant.violencia || 0;
+
+    // Anotações
+    document.getElementById('anotacoes').value = attr.anotacoes || '';
+
+    // Atualiza lógica derivada
+    gerarCaveirasVida();
+    atualizarAcoes();
+    atualizarVisual();
+    
+    statusMsg('• Sincronizado •');
+}
+
+// SALVAR FICHA (AGORA COMPLETO)
 async function salvarFicha() {
-    const status = document.getElementById('status');
-    status.innerText = 'Enviando...';
+    statusMsg('Salvando...');
 
     const novosAtributos = {
-        for: parseInt(document.getElementById('forca').value),
-        int: parseInt(document.getElementById('int').value),
-        vel: parseInt(document.getElementById('vel').value),
-        cor: parseInt(document.getElementById('cor').value),
+        for: val('forca'),
+        int: val('int'),
+        vel: val('vel'),
+        cor: val('cor'),
         vida: dadosLocais.vida,
-        dor: dadosLocais.dor
+        dor: dadosLocais.dor,
+        // Agrupando Antecedentes
+        antecedentes: {
+            atencao: val('atencao'),
+            medicina: val('medicina'),
+            montaria: val('montaria'),
+            negocios: val('negocios'),
+            roubo: val('roubo'),
+            suor: val('suor'),
+            tradicao: val('tradicao'),
+            violencia: val('violencia')
+        },
+        // Anotações
+        anotacoes: document.getElementById('anotacoes').value
     };
+
+    // Pega o cache atual pra não perder Habilidades/Montaria/Inventário
+    const { data: currentData } = await client
+        .from('Fichas').select('atributos').eq('nome_personagem', NOME_PERSONAGEM).single();
+        
+    let finalPayload = novosAtributos;
+    if(currentData && currentData.atributos) {
+        // Mistura o que tem no banco (Habilidades, Montaria) com o que editamos agora
+        finalPayload = { ...currentData.atributos, ...novosAtributos };
+    }
 
     const { error } = await client
         .from('Fichas')
-        .update({ atributos: novosAtributos })
+        .update({ atributos: finalPayload })
         .eq('nome_personagem', NOME_PERSONAGEM);
 
     if (!error) {
-        status.innerText = 'Registrado!';
-        setTimeout(() => status.innerText = '• Sincronizado •', 2000);
+        statusMsg('• Salvo •');
     } else {
-        status.innerText = 'Erro ao salvar!';
+        statusMsg('Erro ao salvar!');
         console.error(error);
     }
 }
 
-// Realtime
+// 3. AUTO-SAVE
+function setupAutoSave() {
+    // Pega todos os inputs numéricos e o textarea
+    const inputs = document.querySelectorAll('input[type="number"]:not([readonly]), textarea');
+    
+    inputs.forEach(input => {
+        // Quando mudar e sair do campo, salva
+        input.addEventListener('change', () => {
+            if(input.id === 'forca' || input.id === 'vel' || input.id === 'cor') {
+                gerarCaveirasVida();
+                atualizarAcoes();
+            }
+            salvarFicha();
+        });
+    });
+
+    // Configura Dor (Cliques)
+    const fists = document.querySelectorAll('.dor-track img');
+    fists.forEach((img, index) => {
+        img.onclick = () => {
+            const novoValor = index + 1;
+            dadosLocais.dor = (dadosLocais.dor === novoValor) ? 0 : novoValor;
+            atualizarVisual();
+            salvarFicha();
+            if (dadosLocais.dor >= 6) converterDorEmVida();
+        };
+    });
+}
+
+function statusMsg(msg) {
+    const el = document.getElementById('status');
+    if(el) {
+        el.innerText = msg;
+        el.style.opacity = 1;
+        setTimeout(() => el.style.opacity = 0.5, 2000);
+    }
+}
+
+// Lógica de Condição (Dor -> Vida)
+function converterDorEmVida() {
+    dadosLocais.dor = 0;
+    dadosLocais.vida += 1;
+    sortearCondicao();
+    atualizarVisual();
+    salvarFicha();
+}
+
+function sortearCondicao() {
+    const d6 = Math.floor(Math.random() * 6);
+    const condicao = CONDICOES[d6];
+    document.getElementById('condicao-nome').innerText = `🎲 ${d6 + 1} - ${condicao.nome}`;
+    document.getElementById('condicao-efeito').innerText = condicao.efeito;
+    document.getElementById('modal-condicao').classList.add('show');
+}
+function fecharModal() {
+    document.getElementById('modal-condicao').classList.remove('show');
+}
+
+// 4. REALTIME
 client.channel('sala-western')
-.on('postgres_changes',
-    { event: 'UPDATE', schema: 'public', table: 'Fichas' },
+.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Fichas' }, 
     p => {
         if(p.new.nome_personagem === NOME_PERSONAGEM) {
             preencherTela(p.new.atributos);
@@ -1067,9 +1099,10 @@ client.channel('sala-western')
     }
 ).subscribe();
 
-// Inicialização
-setupVitals();
+// INICIALIZAÇÃO
+setupAutoSave();
 buscarDados();
+
 </script>
 
 </body>

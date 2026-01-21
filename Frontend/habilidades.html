@@ -7,6 +7,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
 
     <style>
         :root {
@@ -191,7 +192,9 @@
     <nav class="western-nav">
         <a href="index.html">Ficha</a>
         <a href="habilidades.html" class="active">Habilidades</a>
-        <a href="inventario.html">Inventário</a> </nav>
+        <a href="montaria.html">Montaria</a>
+        <a href="inventario.html">Inventário</a>
+    </nav>
 
     <div class="wood-plaque">
         <div class="header-row">
@@ -207,12 +210,6 @@
     </div>
 
     <script>
-        // ================= CONFIGURAÇÃO SUPABASE =================
-        const SUPABASE_URL = 'https://jhktbogzlbjazfeddwla.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impoa3Rib2d6bGJqYXpmZWRkd2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzMDA5MTEsImV4cCI6MjA4Mzg3NjkxMX0.7Om5p6w4GB6lOYBODigGuTOWWd3bq6uPBssw4cvFsUg'; // <--- COLOCAR CHAVE AQUI
-        
-        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        const NOME_PERSONAGEM = 'Trinity';
 
         // Cache local para manipularmos o JSON inteiro sem perder dados
         let fichaCache = {}; 

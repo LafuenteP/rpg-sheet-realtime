@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montaria - Trinity</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script src="config.js"></script>
+
+    <style>
+        :root {
+            --ink: #1a1411;
+            --paper: #e6dccf;
+            --highlight: #5d4037;
+        }
+
+        body {
+            margin: 0;
+            background-color: #1a1411;
+            /* Fundo de mesa */
+            background-image: repeating-linear-gradient(45deg, #1a1411 0px, #140f0d 2px, #1a1411 4px);
+            font-family: 'Courier Prime', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* ===== MENU DE NAVEGAÇÃO (Igual aos outros) ===== */
+        .western-nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(43, 27, 18, 0.95);
+            border-bottom: 2px solid #5d4037;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .western-nav a {
+            color: #aaa; text-decoration: none; font-family: 'Rye'; text-transform: uppercase;
+            padding: 5px 10px; transition: 0.2s;
+        }
+        .western-nav a:hover { color: #ffcc80; }
+        .western-nav a.active { color: #ffcc80; border-bottom: 2px solid #ffcc80; }
+
+        /* ===== FOLHA DA MONTARIA ===== */
+        .mount-sheet {
+            margin-top: 30px;
+            margin-bottom: 50px;
+            width: 90%;
+            max-width: 800px;
+            background-color: var(--paper);
+            background-image: url('assets/montaria/bccavalo.jpg'); /* Se tiver a textura */
+            background-size: cover;
+            padding: 30px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            border: 1px solid #000;
+        }
+
+        /* CABEÇALHO */
+        .mount-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 4px solid var(--ink);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .title-block h1 {
+            font-family: 'Rye';
+            font-size: 4rem;
+            margin: 0;
+            line-height: 0.8;
+            text-transform: uppercase;
+        }
+        .title-block span { font-size: 1rem; font-weight: bold; }
+
+        .name-input-group {
+            flex-grow: 1;
+            margin-top: 10px;
+        }
+        .name-input-group label { font-family: 'Rye'; font-size: 2rem; margin-right: 10px; }
+        .name-input-group input {
+            font-family: 'Rye'; font-size: 2rem;
+            background: rgba(0,0,0,0.1); border: none; border-bottom: 3px solid var(--ink);
+            width: 100%; max-width: 300px; color: var(--ink);
+        }
+
+        /* FOTO DA MONTARIA (NOVA) */
+        .mount-photo-frame {
+            width: 150px;
+            height: 150px;
+            border: 4px solid var(--ink);
+            background: #ccc;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.3);
+            cursor: pointer; /* Para indicar que pode mudar a foto */
+        }
+        .mount-photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .mount-photo-frame:hover::after {
+            content: 'ALTERAR URL';
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.7); color: white;
+            font-size: 0.7rem; text-align: center; padding: 5px;
+        }
+
+        /* LAYOUT DUAS COLUNAS */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        /* COLUNA ESQUERDA - ATRIBUTOS */
+        .stat-box {
+            border: 3px solid var(--ink);
+            padding: 10px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.3);
+            position: relative;
+        }
+        
+        .stat-label {
+            font-family: 'Rye';
+            font-size: 2rem;
+            text-transform: uppercase;
+            background: var(--paper); /* "Corta" a borda */
+            position: absolute;
+            top: -25px; left: 10px;
+            padding: 0 10px;
+            text-shadow: 2px 2px 0 #fff;
+        }
+
+        .stat-input {
+            width: 100%;
+            font-family: 'Rye'; font-size: 2.5rem;
+            text-align: center; border: none; background: transparent;
+            color: #b71c1c; /* Vermelho destaque */
+        }
+
+        .track-section h3 {
+            font-family: 'Rye'; font-size: 1.5rem;
+            text-transform: uppercase; margin-bottom: 5px;
+            border-bottom: 2px dashed var(--ink);
+        }
+
+        .track-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .track-row img {
+            width: 40px; opacity: 0.2; cursor: pointer; transition: 0.2s;
+        }
+        .track-row img:hover { transform: scale(1.1); }
+        .track-row img.active { opacity: 1; }
+
+        /* COLUNA DIREITA - FIDELIDADE (CAIXA PRETA) */
+        .fidelity-panel {
+            background: var(--ink);
+            color: var(--paper);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.4);
+        }
+
+        .fidelity-panel h2 {
+            font-family: 'Rye'; text-align: center;
+            font-size: 2rem; margin: 0 0 20px 0;
+            border-bottom: 2px solid var(--paper);
+        }
+
+        .fidelity-list { list-style: none; padding: 0; }
+        
+        .fidelity-item {
+            display: flex; gap: 10px; align-items: center;
+            padding: 10px; border-bottom: 1px solid #444;
+            cursor: pointer; transition: 0.2s;
+        }
+        .fidelity-item:hover { background: #333; }
+        
+        .fid-num {
+            font-family: 'Rye'; font-size: 1.5rem;
+            border: 2px solid var(--paper); border-radius: 50%;
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .fid-desc { font-size: 0.9rem; line-height: 1.2; }
+
+        /* Item Ativo (Selecionado) */
+        .fidelity-item.active { background: var(--paper); color: var(--ink); }
+        .fidelity-item.active .fid-num { border-color: var(--ink); font-weight: bold; }
+
+        /* Responsividade Celular */
+        @media (max-width: 768px) {
+            .mount-header { flex-direction: column; align-items: center; text-align: center; }
+            .mount-photo-frame { margin: 0 auto; }
+            .content-grid { grid-template-columns: 1fr; }
+        }
+
+        #status { text-align: center; margin-top: 20px; opacity: 0.6; }
+
+    </style>
+</head>
+<body>
+
+    <nav class="western-nav">
+        <a href="index.html">Ficha</a>
+        <a href="habilidades.html">Habilidades</a>
+        <a href="montaria.html" class="active">Montaria</a>
+        <a href="inventario.html">Inventário</a>
+    </nav>
+
+    <div class="mount-sheet">
+        <div class="mount-header">
+            <div class="title-block">
+                <h1>MONTARIA</h1>
+                <span>Distribua 3 pontos entre os atributos.</span>
+                
+                <div class="name-input-group">
+                    <label>NOME</label>
+                    <input type="text" id="nome-montaria" placeholder="Pé de Pano" onchange="salvar()">
+                </div>
+            </div>
+
+            <div class="mount-photo-frame" onclick="mudarFoto()">
+                <img id="foto-montaria" src="assets/mount-default.png" onerror="this.src='https://placehold.co/150x150/black/white?text=FOTO'">
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="col-left">
+                <div class="stat-box">
+                    <span class="stat-label">POTÊNCIA</span>
+                    <input type="number" id="potencia" class="stat-input" value="0" onchange="salvar()">
+                </div>
+
+                <div class="stat-box">
+                    <span class="stat-label">RESISTÊNCIA</span>
+                    <input type="number" id="resistencia" class="stat-input" value="0" onchange="salvar()">
+                </div>
+
+                <div class="track-section">
+                    <h3>CÍRCULOS DE DOR</h3>
+                    <div class="track-row" id="track-dor">
+                        </div>
+                </div>
+
+                <div class="track-section">
+                    <h3>CÍRCULOS DE VIDA</h3>
+                    <div class="track-row" id="track-vida">
+                        </div>
+                    <small>+1 Vida para cada ponto de Resistência.</small>
+                </div>
+            </div>
+
+            <div class="col-right">
+                <div class="fidelity-panel">
+                    <h2>NÍVEL DE FIDELIDADE</h2>
+                    <ul class="fidelity-list" id="lista-fidelidade">
+                        <li class="fidelity-item" onclick="setFidelidade(0)">
+                            <div class="fid-num">0</div>
+                            <div class="fid-desc">Montaria estranha: sem bônus.</div>
+                        </li>
+                        <li class="fidelity-item" onclick="setFidelidade(1)">
+                            <div class="fid-num">1</div>
+                            <div class="fid-desc">Atende quando chamada pelo nome.</div>
+                        </li>
+                        <li class="fidelity-item" onclick="setFidelidade(2)">
+                            <div class="fid-num">2</div>
+                            <div class="fid-desc">Ganha +1 ponto em um atributo.</div>
+                        </li>
+                        <li class="fidelity-item" onclick="setFidelidade(3)">
+                            <div class="fid-num">3</div>
+                            <div class="fid-desc">Vem até você num raio de 500m.</div>
+                        </li>
+                        <li class="fidelity-item" onclick="setFidelidade(4)">
+                            <div class="fid-num">4</div>
+                            <div class="fid-desc">Sem penalidade para saltar obstáculos.</div>
+                        </li>
+                        <li class="fidelity-item" onclick="setFidelidade(5)">
+                            <div class="fid-num">5</div>
+                            <div class="fid-desc">Ganha +1 ponto em um atributo.</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div id="status">Sincronizando...</div>
+    </div>
+
+    <script>
+        // CONFIG GLOBAL DO config.js É CARREGADA AUTOMATICAMENTE
+        
+        let montariaData = {
+            nome: '',
+            foto: '', // URL da foto
+            potencia: 0,
+            resistencia: 0,
+            dor: 0,
+            vida: 0,
+            fidelidade: 0
+        };
+
+        // Cache do objeto completo do banco
+        let atributosCompletos = {};
+
+        // 1. CARREGAR
+        async function carregar() {
+            const { data } = await client
+                .from('Fichas')
+                .select('atributos')
+                .eq('nome_personagem', NOME_PERSONAGEM)
+                .single();
+
+            if (data) {
+                atributosCompletos = data.atributos || {};
+                
+                // Se já existir dados de montaria, usa. Se não, usa o padrão.
+                if(atributosCompletos.montaria) {
+                    montariaData = { ...montariaData, ...atributosCompletos.montaria };
+                }
+
+                atualizarTela();
+            }
+        }
+
+        // 2. ATUALIZAR TELA
+        function atualizarTela() {
+            // Inputs Texto/Num
+            document.getElementById('nome-montaria').value = montariaData.nome;
+            document.getElementById('potencia').value = montariaData.potencia;
+            document.getElementById('resistencia').value = montariaData.resistencia;
+            
+            // Foto (Se tiver URL, usa. Se não, usa default)
+            const imgEl = document.getElementById('foto-montaria');
+            if(montariaData.foto) imgEl.src = montariaData.foto;
+            
+            // Renderiza Tracks
+            renderTracks('track-dor', 6, montariaData.dor, 'dor', 'assets/fist.png');
+            renderTracks('track-vida', 6, montariaData.vida, 'vida', 'assets/skull.png');
+
+            // Renderiza Fidelidade
+            const lista = document.querySelectorAll('.fidelity-item');
+            lista.forEach((li, index) => {
+                li.classList.toggle('active', index === montariaData.fidelidade);
+            });
+
+            document.getElementById('status').innerText = '• Dados Carregados •';
+        }
+
+        // Helper para desenhar caveiras/punhos
+        function renderTracks(containerId, max, atual, tipo, iconSrc) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for(let i = 0; i < max; i++) {
+                const img = document.createElement('img');
+                img.src = iconSrc;
+                img.onerror = function() { this.src = 'assets/skull.png'; }; // Fallback
+                
+                if(i < atual) img.classList.add('active');
+                
+                // Clique para alterar valor
+                img.onclick = () => {
+                    const novoValor = i + 1;
+                    montariaData[tipo] = (montariaData[tipo] === novoValor) ? 0 : novoValor;
+                    salvar();
+                };
+                container.appendChild(img);
+            }
+        }
+
+        // 3. SETTERS E SALVAR
+        function setFidelidade(nivel) {
+            montariaData.fidelidade = nivel;
+            salvar();
+        }
+
+        function mudarFoto() {
+            const url = prompt("Cole a URL da imagem da montaria (ou deixe vazio para resetar):", montariaData.foto);
+            if(url !== null) {
+                montariaData.foto = url;
+                salvar();
+            }
+        }
+
+        async function salvar() {
+            // Atualiza objeto local com inputs
+            montariaData.nome = document.getElementById('nome-montaria').value;
+            montariaData.potencia = parseInt(document.getElementById('potencia').value);
+            montariaData.resistencia = parseInt(document.getElementById('resistencia').value);
+
+            // Atualiza o visual imediatamente
+            atualizarTela();
+            document.getElementById('status').innerText = 'Salvando...';
+
+            // Prepara para enviar
+            atributosCompletos.montaria = montariaData;
+
+            const { error } = await client
+                .from('Fichas')
+                .update({ atributos: atributosCompletos })
+                .eq('nome_personagem', NOME_PERSONAGEM);
+
+            if(!error) document.getElementById('status').innerText = '• Salvo •';
+        }
+
+        // 4. REALTIME
+        client.channel('montaria-room')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Fichas' }, 
+            (payload) => {
+                if(payload.new.nome_personagem === NOME_PERSONAGEM) {
+                    atributosCompletos = payload.new.atributos;
+                    if(atributosCompletos.montaria) {
+                        montariaData = atributosCompletos.montaria;
+                        atualizarTela();
+                    }
+                }
+            })
+            .subscribe();
+
+        // Start
+        carregar();
+
+    </script>
+</body>
+</html>

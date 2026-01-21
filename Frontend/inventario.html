@@ -5,6 +5,9 @@
 <title>Inventário — A Última Dose</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
@@ -315,6 +318,188 @@ body::before {
     border-color: #5d4037;
 }
 
+/* =========================================
+   RESPONSIVIDADE MOBILE
+   ========================================= */
+
+/* Tablets e telas médias */
+@media (max-width: 1024px) {
+    .inventory-layout {
+        flex-direction: column;
+        align-items: center;
+        margin-right: 0;
+    }
+    
+    .space-panel {
+        position: relative;
+        top: auto;
+        width: 100%;
+        max-width: 750px;
+        margin-bottom: 20px;
+    }
+    
+    .tables-column {
+        width: 100%;
+        max-width: 750px;
+    }
+}
+
+/* Celulares */
+@media (max-width: 768px) {
+    .inventory-container {
+        padding: 20px 10px;
+    }
+    
+    .inventory-layout {
+        gap: 15px;
+    }
+    
+    .space-panel {
+        padding: 15px;
+        min-width: auto;
+    }
+    
+    .space-panel h3 {
+        font-size: 1rem;
+    }
+    
+    .space-display {
+        font-size: 2rem;
+    }
+    
+    .inventory-table {
+        padding: 10px;
+    }
+    
+    .section-header {
+        font-size: 1.2rem;
+        padding: 8px 10px;
+    }
+    
+    .section-header.small {
+        font-size: 0.9rem;
+        padding: 6px 5px;
+    }
+    
+    .inventory-table td {
+        padding: 8px 10px;
+    }
+    
+    .inventory-table input {
+        font-size: 1rem;
+    }
+    
+    .col-espaco,
+    .col-arma-espaco,
+    .col-arma-dano {
+        width: 60px;
+    }
+    
+    .western-nav {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .western-nav a {
+        font-size: 0.85rem;
+        padding: 5px 8px;
+    }
+}
+
+/* Celulares pequenos */
+@media (max-width: 480px) {
+    .inventory-container {
+        padding: 15px 5px;
+    }
+    
+    .space-panel {
+        padding: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .space-panel h3 {
+        font-size: 0.9rem;
+        margin: 0;
+        width: auto;
+    }
+    
+    .space-display {
+        font-size: 1.6rem;
+        margin: 0;
+    }
+    
+    .space-label {
+        font-size: 0.75rem;
+    }
+    
+    .space-max {
+        margin-top: 0;
+    }
+    
+    .space-max input {
+        width: 40px;
+        font-size: 1rem;
+        padding: 3px;
+    }
+    
+    .inventory-table {
+        padding: 5px;
+        border-spacing: 2px;
+    }
+    
+    .section-header {
+        font-size: 0.9rem;
+        padding: 6px 5px;
+        letter-spacing: 1px;
+    }
+    
+    .section-header.small {
+        font-size: 0.7rem;
+        padding: 5px 3px;
+    }
+    
+    .inventory-table td {
+        padding: 6px 5px;
+    }
+    
+    .inventory-table input {
+        font-size: 0.85rem;
+    }
+    
+    .col-espaco,
+    .col-arma-espaco,
+    .col-arma-dano {
+        width: 45px;
+    }
+    
+    .col-expand {
+        width: 30px;
+        padding: 3px !important;
+    }
+    
+    .btn-expand {
+        width: 24px;
+        height: 24px;
+        font-size: 0.9rem;
+    }
+    
+    .desc-row textarea {
+        min-height: 50px;
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .western-nav a {
+        font-size: 0.75rem;
+        padding: 4px 6px;
+    }
+}
+
 </style>
 </head>
 
@@ -323,6 +508,7 @@ body::before {
 <nav class="western-nav">
     <a href="index.html">Ficha</a>
     <a href="habilidades.html">Habilidades</a>
+    <a href="montaria.html">Montaria</a>
     <a href="inventario.html" class="active">Inventário</a>
 </nav>
 

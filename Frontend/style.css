@@ -59,13 +59,15 @@ body {
 .name-banner {
     background: url("assets/name-banner.png") no-repeat center;
     background-size: contain;
-    padding: 25px;
+    padding: 35px 25px;
+    min-height: 50px;
     text-align: center;
 }
 
 .name-banner h1 {
     font-family: 'Rye';
     margin: 0;
+    font-size: 1.4rem;
 }
 
 
@@ -219,4 +221,32 @@ h1 {
 @keyframes highlight {
     0% { background-color: rgba(183, 28, 28, 0.3); }
     100% { background-color: transparent; }
+}
+
+/* Media Query para celulares */
+@media (max-width: 768px) {
+    .sheet {
+        position: relative;
+        background: var(--paper-bg);
+        overflow: hidden;
+    }
+    
+    .sheet::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 150%;
+        height: 150%;
+        background: url("assets/paper-texture.jpg");
+        background-size: cover;
+        background-position: center;
+        transform: translate(-50%, -50%) rotate(90deg);
+        z-index: -1;
+    }
+    
+    .name-banner {
+        padding: 40px 25px;
+        min-height: 60px;
+    }
 }

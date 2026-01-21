@@ -9,6 +9,75 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 
+<script>
+// ===== SISTEMA DE SENHA =====
+const SENHAS_FICHAS = {
+    'Josue': 'pantufa',
+    'Trinity': 'trinity123',
+    // Adicione mais personagens aqui: 'Nome': 'senha'
+};
+
+// Verifica se já está autenticado (localStorage persiste entre navegações)
+function verificarAutenticacao() {
+    const authData = localStorage.getItem('fichaAuth');
+    if (authData) {
+        try {
+            const auth = JSON.parse(authData);
+            // Verifica se o token é válido (mesmo personagem e menos de 24h)
+            if (auth.nome === NOME_PERSONAGEM && (Date.now() - auth.timestamp) < 86400000) {
+                liberarAcesso();
+                return true;
+            }
+        } catch(e) {}
+    }
+    
+    // Se não tem senha cadastrada, libera automaticamente
+    if (!SENHAS_FICHAS[NOME_PERSONAGEM]) {
+        liberarAcesso();
+        return true;
+    }
+    
+    // Mostra o nome do personagem na tela de senha
+    document.getElementById('password-char-name').textContent = `Ficha de ${NOME_PERSONAGEM}`;
+    return false;
+}
+
+function verificarSenha() {
+    const senhaDigitada = document.getElementById('password-input').value;
+    const senhaCorreta = SENHAS_FICHAS[NOME_PERSONAGEM];
+    
+    if (senhaDigitada === senhaCorreta) {
+        // Salva no localStorage com timestamp (expira em 24h)
+        localStorage.setItem('fichaAuth', JSON.stringify({
+            nome: NOME_PERSONAGEM,
+            timestamp: Date.now()
+        }));
+        liberarAcesso();
+    } else {
+        document.getElementById('password-error').classList.add('show');
+        document.getElementById('password-input').value = '';
+        document.getElementById('password-input').focus();
+    }
+}
+
+function liberarAcesso() {
+    document.body.classList.remove('locked');
+    document.getElementById('password-screen').classList.add('hidden');
+}
+
+// Permite apertar Enter para verificar senha
+document.getElementById('password-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        verificarSenha();
+    }
+});
+
+// Verifica autenticação ao carregar
+if (typeof NOME_PERSONAGEM !== 'undefined') {
+    verificarAutenticacao();
+}
+</script>
+
 <style>
 :root {
     --ink: #2b1b12;
@@ -28,6 +97,104 @@ body {
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
+}
+
+/* ===== TELA DE SENHA ===== */
+.password-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #1a1411;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.password-screen.hidden {
+    display: none;
+}
+
+.password-box {
+    background: url("assets/paper-bg.jpg") no-repeat center;
+    background-size: cover;
+    padding: 40px;
+    border: 4px solid #2b1b12;
+    box-shadow: 0 0 60px rgba(0,0,0,0.9);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.password-box h2 {
+    font-family: 'Rye';
+    color: var(--ink);
+    margin: 0 0 10px 0;
+    font-size: 1.8rem;
+}
+
+.password-box .char-name {
+    font-family: 'Rye';
+    color: #8b6914;
+    font-size: 1.4rem;
+    margin-bottom: 25px;
+}
+
+.password-box input {
+    width: 100%;
+    padding: 15px;
+    font-family: 'Courier Prime';
+    font-size: 1.2rem;
+    border: 2px solid var(--ink);
+    background: rgba(255,250,240,0.9);
+    color: var(--ink);
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.password-box input:focus {
+    outline: none;
+    border-color: #8b6914;
+}
+
+.password-box button {
+    width: 100%;
+    padding: 15px 30px;
+    font-family: 'Rye';
+    font-size: 1.1rem;
+    border: 2px solid #2b1b12;
+    background: #5d4037;
+    color: #e6dccf;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.password-box button:hover {
+    background: #6d5047;
+}
+
+.password-error {
+    color: #8b0000;
+    font-family: 'Courier Prime';
+    font-size: 0.95rem;
+    margin-top: 10px;
+    display: none;
+}
+
+.password-error.show {
+    display: block;
+}
+
+/* Esconde conteúdo enquanto não autenticado */
+body.locked .western-nav,
+body.locked .sheet,
+body.locked .floating-buttons,
+body.locked #status {
+    display: none;
 }
 
 /* ===== MENU DE NAVEGAÇÃO ===== */
@@ -1194,7 +1361,18 @@ body {
 </style>
 </head>
 
-<body>
+<body class="locked">
+
+<!-- Tela de Senha -->
+<div class="password-screen" id="password-screen">
+    <div class="password-box">
+        <h2>🔒 ACESSO RESTRITO</h2>
+        <div class="char-name" id="password-char-name">Carregando...</div>
+        <input type="password" id="password-input" placeholder="Digite a senha..." autocomplete="off">
+        <button onclick="verificarSenha()">Entrar</button>
+        <div class="password-error" id="password-error">✗ Senha incorreta!</div>
+    </div>
+</div>
 
 <nav class="western-nav">
     <a href="index.html" class="active">Ficha</a>
@@ -1214,8 +1392,8 @@ body {
             <svg viewBox="0 0 400 120">
                 <path id="curve" d="M40,83 Q200,44 360,68" fill="transparent"/>
                 <text width="400">
-                    <textPath xlink:href="#curve" startOffset="50%" text-anchor="middle" class="texto-curvado">
-                        Trinity
+                    <textPath id="nome-personagem-texto" xlink:href="#curve" startOffset="50%" text-anchor="middle" class="texto-curvado">
+                        Carregando...
                     </textPath>
                 </text>
             </svg>
@@ -1969,21 +2147,27 @@ function atualizarProgressoRedencao() {
 setupAutoSave();
 buscarDados();
 
+// Atualiza o nome no banner
+document.getElementById('nome-personagem-texto').textContent = NOME_PERSONAGEM;
+
 </script>
 
 <script>
     // Script para manter o ?nome=Fulano nos links do menu
-    const params = new URLSearchParams(window.location.search);
-    const nomeAtual = params.get('nome');
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const nomeParam = urlParams.get('nome');
 
-    if (nomeAtual) {
-        document.querySelectorAll('.western-nav a').forEach(link => {
-            // Pega o href original (ex: "inventario.html")
-            const hrefOriginal = link.getAttribute('href');
-            // Muda para "inventario.html?nome=Neo"
-            link.setAttribute('href', `${hrefOriginal}?nome=${nomeAtual}`);
-        });
-    }
+        if (nomeParam) {
+            document.querySelectorAll('.western-nav a').forEach(link => {
+                const hrefOriginal = link.getAttribute('href');
+                // Evita adicionar ?nome= se já existir
+                if (!hrefOriginal.includes('?nome=')) {
+                    link.setAttribute('href', `${hrefOriginal}?nome=${nomeParam}`);
+                }
+            });
+        }
+    })();
 </script>
 
 </body>

@@ -1,135 +1,836 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ficha: A Última Dose</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Ficha — A Última Dose</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root {
+    --ink: #2b1b12;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 20px;
+    background: #1a1411;
+    font-family: 'Courier Prime', monospace;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    align-items: center;
+}
+
+/* ===== FICHA ===== */
+.sheet {
+    display: grid;
+    grid-template-columns: 38% 62%;
+    width: min(98%, 1600px);
+    background: url("assets/paper-bg.jpg") no-repeat center;
+    background-size: cover;
+    padding: clamp(20px, 3vw, 40px);
+    gap: clamp(15px, 2vw, 25px);
+    box-shadow: 0 0 40px rgba(0,0,0,.8);
+    min-height: min(85vh, 900px);
+    max-height: 1200px;
+}
+
+/* ===== ESQUERDA ===== */
+.sheet-left {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: flex-start;
+    position: relative;
+}
+
+.portrait-frame {
+    background: url("assets/portrait-frame.png") no-repeat center;
+    background-size: contain;
+    padding: 5px;
+    padding-left: 0px;
+    width: 140%;
+}
+
+.portrait-frame img {
+    width: 100%;
+    display: block;
+}
+
+.name-banner {
+    background: url("assets/name-banner.png") no-repeat center;
+    background-size: 100% 100%;
+    width: 100%;
+    height: clamp(650px, 20vh, 200px);
+    position: absolute;
+    bottom: -190px;
+    left: 10%;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.name-banner h1 {
+    margin: 0;
+    padding-bottom: 80px;
+    font-family: 'Rye';
+    letter-spacing: 3.5px;
+    font-size: clamp(1.2rem, 3.5vw, 3.5rem);
+}
+
+/* Garante que o SVG ocupe o espaço do banner */
+.name-banner svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+/* Estilo do texto dentro do SVG */
+.texto-curvado {
+    font-family: 'Rye', serif;
+    font-size: clamp(0.5rem, 2.5vw, 2.5rem);
+    fill: #2b1b12;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+/* ===== DIREITA ===== */
+.sheet-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: clamp(10px, 2vw, 25px);
+}
+
+.wanted-strip {
+    text-align: center;
+    font-family: 'Rye';
+    letter-spacing: 3px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 10px;
+    font-size: clamp(0.8rem, 1.5vw, 1.2rem);
+}
+
+/* ===== ATRIBUTOS ===== */
+.attributes {
+    display: flex;
+    gap: clamp(1px, 0.3vw, 6px);
+    justify-content: right;
+    flex-wrap: wrap;
+}
+
+.attribute-card {
+    background: url("assets/wanted-card.png") no-repeat center;
+    background-size: contain;
+    width: clamp(40px, 10vw, 200px);
+    aspect-ratio: 3 / 4;
+    text-align: center;
+    padding-top: 5%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.attribute-card:nth-child(1) {
+    transform: rotate(-3deg);
+}
+
+.attribute-card:nth-child(2) {
+    transform: rotate(2deg);
+}
+
+.attribute-card:nth-child(3) {
+    transform: rotate(-2deg);
+}
+
+.attribute-card:nth-child(4) {
+    transform: rotate(3deg);
+}
+
+.attribute-card label {
+    display: block;
+    font-family: 'Rye';
+    font-size: clamp(1rem, 2vw, 1.6rem);
+    margin-top: -50px;
+}
+
+.attribute-card input {
+    width: 80%;
+    border: none;
+    background: transparent;
+    font-size: clamp(1.9rem, 3.3vw, 3.4rem);
+    font-family: 'Rye', serif;
+    text-align: center;
+    color: var(--ink);
+    margin-left: 10%;
+    margin-top: 30%;
+}
+
+/* ===== SEÇÃO VITAIS (VIDA E DOR) ===== */
+.vitals-section {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1px, 1.5vw, 15px);
+    padding: 0px 130px;
+    flex-shrink: 0;
+}
+
+.vital-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: clamp(8px, 1.5vw, 15px);
+    flex-wrap: nowrap;
+}
+
+.vital-row label {
+    font-family: 'Rye';
+    font-size: clamp(1.6rem, 2vw, 2.0rem);
+    color: var(--ink);
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.track {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+    align-items: center;
+    max-width: 350px;
+}
+
+.track img {
+    width: 40px;
+    min-width: 20px;
+    flex: 1 1 auto;
+    opacity: 0.2;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+.track img:hover {
+    transform: scale(1.2);
+}
+
+.track img.active {
+    opacity: 1;
+}
+
+/* ===== BANNER DE AÇÕES ===== */
+.acoes-antecedentes-row {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.acoes-banner {
+    background: url("assets/acoes.png") no-repeat center center;
+    background-size: contain;
+    width: 55%;
+    height: clamp(150px, 20vh, 260px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5% 18% 5% 18%;
+    flex-shrink: 0;
+    margin-left: 6%;
+
+}
+
+.acoes-banner input {
+    width: 60px;
+    border: none;
+    background: transparent;
+    font-size: clamp(2.3rem, 3.9vw, 3.3rem);
+    font-family: 'Rye', serif;
+    text-align: center;
+    color: var(--ink);
+    pointer-events: none;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.acoes-banner input::-webkit-outer-spin-button,
+.acoes-banner input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* ===== MODAL DE CONDIÇÃO ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-condicao {
+    background: url("assets/fundodor.png") no-repeat center;
+    background-size: cover;
+    padding: 40px 50px;
+    border: 4px solid #2b1b12;
+    box-shadow: 0 0 30px rgba(0,0,0,0.9);
+    text-align: center;
+    max-width: 500px;
+    transform: scale(0.8);
+    transition: transform 0.3s;
+}
+
+.modal-overlay.show .modal-condicao {
+    transform: scale(1);
+}
+
+.modal-condicao h2 {
+    font-family: 'Rye';
+    color: #8b0000;
+    margin: 0 0 10px 0;
+    font-size: 2.2rem;
+}
+
+.modal-condicao .condicao-nome {
+    font-family: 'Rye';
+    color: var(--ink);
+    font-size: 2rem;
+    margin: 15px 0;
+}
+
+.modal-condicao .condicao-efeito {
+    font-family: 'Courier Prime';
+    color: var(--ink);
+    font-size: 1.4rem;
+    line-height: 1.5;
+}
+
+.modal-condicao button {
+    margin-top: 20px;
+    padding: 12px 35px;
+    font-family: 'Rye';
+    font-size: 1.3rem;
+    border: none;
+    background: #5d4037;
+    color: #e6dccf;
+    cursor: pointer;
+}
+
+.modal-condicao button:hover {
+    background: #6d5047;
+}
+
+/* ===== BOX DE ANOTAÇÕES ===== */
+.anotacoes-box {
+    width: 88%;
+    margin-top: -20px;
+    margin-left: auto;
+}
+
+.anotacoes-box h4 {
+    font-family: 'Rye';
+    color: var(--ink);
+    margin: 0 0 8px 0;
+    font-size: clamp(1rem, 1.4vw, 1.3rem);
+}
+
+.anotacoes-box textarea {
+    width: 100%;
+    height: clamp(120px, 18vh, 200px);
+    padding: 10px;
+    font-family: 'Courier Prime', monospace;
+    font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+    color: var(--ink);
+    background: rgba(255, 250, 240, 1);
+    border: 2px solid var(--ink);
+    border-radius: 5px;
+    resize: none;
+}
+
+.anotacoes-box textarea::placeholder {
+    color: rgba(43, 27, 18, 1);
+    font-style: italic;
+}
+
+.anotacoes-box textarea:focus {
+    outline: none;
+    border-color: #5d4037;
+    background: rgba(255, 250, 240, 1);
+}
+
+/* ===== BOTÕES DE NAVEGAÇÃO (PLACAS) ===== */
+.nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: clamp(20px, 3vw, 100px);
+    padding-bottom: 5px;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+.nav-btn {
+    background: url("assets/fundoescolhas.png") no-repeat center;
+    background-size: 100% 100%;
+    border: none;
+    cursor: pointer;
+    width: clamp(150px, 18vw, 220px);
+    height: clamp(60px, 9vh, 100px);
+    font-family: 'Rye', serif;
+    font-size: clamp(1rem, 1.5vw, 1.4rem);
+    color: #e6dccf;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.5);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.nav-btn:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+.nav-btn:active {
+    transform: scale(0.98);
+}
+
+/* ===== ANTECEDENTES ===== */
+.antecedentes-section {
+    flex: 1;
+}
+
+.antecedentes-section h3 {
+    font-family: 'Rye';
+    color: var(--ink);
+    margin: 0 62px 10px 0;
+    font-size: clamp(1.2rem, 1.8vw, 1.6rem);
+    text-align: center;
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 5px;
+    max-width: 400px;
+    margin: 0;
+    margin-right: auto;
+    margin-left: -20px;
+}
+
+.skill-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.skill-item label {
+    font-family: 'Rye';
+    font-size: clamp(0.9rem, 1.4vw, 1.2rem);
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.skill-item input {
+    width: 40px;
+    border: none;
+    background: transparent;
+    font-size: clamp(1.2rem, 1.6vw, 1.5rem);
+    font-family: 'Rye', serif;
+    text-align: center;
+    color: var(--ink);
+}
+
+.skill-item::after {
+    content: '';
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    background: url('assets/halteres.png') no-repeat center;
+    background-size: contain;
+}
+
+</style>
 </head>
+
 <body>
 
-    <div class="sheet">
-  
-        <div class="sheet-left">
-            <div class="portrait-frame">
-            <img src="assets/personagem.png" alt="Personagem">
-            </div>
+<div class="sheet" id="ficha-container">
 
-            <div class="name-banner">
-            <h1>Trinity</h1>
+    <div class="sheet-left">
+        <div class="portrait-frame">
+            <img src="assets/portrait.png" alt="Personagem">
+        </div>
+
+        <div class="name-banner">
+            <svg viewBox="0 0 400 120">
+                <path id="curve" d="M40,83 Q200,44 360,68" fill="transparent"/>
+                <text width="400">
+                    <textPath xlink:href="#curve" startOffset="50%" text-anchor="middle" class="texto-curvado">
+                        Trinity
+                    </textPath>
+                </text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="sheet-right">
+
+        <div class="wanted-strip">WANTED — DEAD OR ALIVE</div>
+
+        <div class="attributes">
+            <div class="attribute-card">
+                <label>FOR</label>
+                <input id="forca" type="number" min="0" max="4">
+            </div>
+            <div class="attribute-card">
+                <label>VEL</label>
+                <input id="vel" type="number" min="0" max="4">
+            </div>
+            <div class="attribute-card">
+                <label>INT</label>
+                <input id="int" type="number" min="0" max="4">
+            </div>
+            <div class="attribute-card">
+                <label>COR</label>
+                <input id="cor" type="number" min="0" max="4">
             </div>
         </div>
 
-        <div class="sheet-right">
-
-            <div class="wanted-strip">
-            <span>WANTED</span>
-            <span>Dead or Alive</span>
+        <div class="vitals-section">
+            <div class="vital-row">
+                <label>Pontos de Vida:</label>
+                <div class="track vida-track">
+                    <!-- Gerado dinamicamente pelo JS -->
+                </div>
             </div>
 
-            <div class="attributes">
-            <!-- FIS / VEL / INT / COR -->
+            <div class="vital-row">
+                <label>Pontos de Dor:</label>
+                <div class="track dor-track">
+                    <img src="assets/fist.png" onerror="this.src='assets/skull.png'">
+                    <img src="assets/fist.png" onerror="this.src='assets/skull.png'">
+                    <img src="assets/fist.png" onerror="this.src='assets/skull.png'">
+                    <img src="assets/fist.png" onerror="this.src='assets/skull.png'">
+                    <img src="assets/fist.png" onerror="this.src='assets/skull.png'">
+                    <img src="assets/fist.png" onerror="this.src='assets/skull.png'">
+                </div>
             </div>
-
-            <div class="tracks">
-            <!-- Vida / Dor com ícones -->
-            </div>
-
-            <div class="skills">
-            <!-- Cards de habilidades -->
-            </div>
-
         </div>
-
-    </div>
-
-    <div class="track vida">
-        <img src="assets/skull.png">
-        <img src="assets/skull.png">
-        <img src="assets/skull.png">
-    </div>
-
-
-
-    <script>
-        // ================= CONFIGURAÇÃO =================
-        const SUPABASE_URL = 'https://jhktbogzlbjazfeddwla.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impoa3Rib2d6bGJqYXpmZWRkd2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzMDA5MTEsImV4cCI6MjA4Mzg3NjkxMX0.7Om5p6w4GB6lOYBODigGuTOWWd3bq6uPBssw4cvFsUg';
         
-        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        const NOME_PERSONAGEM = 'Trinity';
+        <div class="acoes-antecedentes-row">
+            <div class="acoes-banner">
+                <input id="movimento" type="number" min="0" value="2">
+                <input id="combate" type="number" min="0" value="1">
+            </div>
 
-        // ================= LÓGICA =================
-        async function buscarDados() {
-            const { data, error } = await client
-                .from('Fichas')
-                .select('*')
-                .eq('nome_personagem', NOME_PERSONAGEM)
-                .single();
+            <div class="antecedentes-section">
+                <h3>ANTECEDENTES:</h3>
+                <div class="skills-grid">
+                    <div class="skill-item">
+                        <label>ATENÇÃO:</label>
+                        <input type="number" id="atencao" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>MEDICINA:</label>
+                        <input type="number" id="medicina" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>MONTARIA:</label>
+                        <input type="number" id="montaria" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>NEGÓCIOS:</label>
+                        <input type="number" id="negocios" value="0">
+                    </div>
 
-            if (data) atualizarTela(data.atributos);
-            else if (error) console.error(error);
-        }
+                    <div class="skill-item">
+                        <label>ROUBO:</label>
+                        <input type="number" id="roubo" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>SUOR:</label>
+                        <input type="number" id="suor" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>TRADIÇÃO:</label>
+                        <input type="number" id="tradicao" value="0">
+                    </div>
+                    <div class="skill-item">
+                        <label>VIOLÊNCIA:</label>
+                        <input type="number" id="violencia" value="0">
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        function atualizarVida(valor) {
-            const skulls = document.querySelectorAll('.vida img');
-            skulls.forEach((s, i) => {
-                s.classList.toggle('ativo', i < valor);
-            });
-        }
+        <div class="anotacoes-box">
+            <h4>ANOTAÇÕES:</h4>
+            <textarea id="anotacoes" placeholder="Escreva suas anotações aqui..."></textarea>
+        </div>
 
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="irParaInventario()">Inventário</button>
+            <button class="nav-btn" onclick="irParaHabilidades()">Habilidades</button>
+            <button class="nav-btn" onclick="irParaMontaria()">Montaria</button>
+        </div>
 
-        function atualizarTela(atributos) {
-            document.getElementById('for').value = atributos.for || 0;
-            document.getElementById('vig').value = atributos.vig || 0;
-            document.getElementById('agi').value = atributos.agi || 0;
-            document.getElementById('vida').value = atributos.vida || 0;
+    </div>
+</div>
+
+<!-- Modal de Condição -->
+<div class="modal-overlay" id="modal-condicao">
+    <div class="modal-condicao">
+        <h2>⚠ FERIMENTO! ⚠</h2>
+        <div class="condicao-nome" id="condicao-nome"></div>
+        <div class="condicao-efeito" id="condicao-efeito"></div>
+        <button onclick="fecharModal()">Entendido</button>
+    </div>
+</div>
+
+<script>
+// --- CONFIGURAÇÃO ---
+const SUPABASE_URL = 'https://jhktbogzlbjazfeddwla.supabase.co';
+const SUPABASE_KEY = 'SUA_ANON_KEY_AQUI'; // <--- COLOQUE SUA CHAVE AQUI
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const NOME_PERSONAGEM = 'Trinity';
+
+// Estado Local
+let dadosLocais = {
+    vida: 0,
+    dor: 0
+};
+
+// Tabela de Condições (d6)
+const CONDICOES = [
+    { nome: 'Atordoamento', efeito: '-1 Ação de Combate na próxima rodada.' },
+    { nome: 'Queda', efeito: 'Gaste um Movimento para se levantar.' },
+    { nome: 'Distração', efeito: 'Não pode atacar esse mesmo alvo no próximo ataque.' },
+    { nome: 'Sangramento', efeito: '1 de dano adicional por turno até o fim do combate.' },
+    { nome: 'Intimidação', efeito: 'É preciso se afastar do atacante na próxima rodada.' },
+    { nome: 'Desorientação', efeito: '-1 em Testes de Violência no próximo turno.' }
+];
+
+// Função para sortear e mostrar condição
+function sortearCondicao() {
+    const d6 = Math.floor(Math.random() * 6); // 0-5
+    const condicao = CONDICOES[d6];
+    
+    document.getElementById('condicao-nome').innerText = `🎲 ${d6 + 1} - ${condicao.nome}`;
+    document.getElementById('condicao-efeito').innerText = condicao.efeito;
+    document.getElementById('modal-condicao').classList.add('show');
+}
+
+function fecharModal() {
+    document.getElementById('modal-condicao').classList.remove('show');
+}
+
+// Função para converter dor em vida
+function converterDorEmVida() {
+    if (dadosLocais.dor >= 6) {
+        dadosLocais.dor = 0; // Reseta a dor
+        dadosLocais.vida += 1; // Adiciona 1 ponto de vida (dano)
+        sortearCondicao(); // Sorteia e mostra a condição
+        atualizarVisual();
+    }
+}
+
+// 0. Gera as caveiras de vida baseado no FOR
+function gerarCaveirasVida() {
+    const forcaInput = document.getElementById('forca');
+    const forca = parseInt(forcaInput.value) || 0;
+    const totalVida = 6 + forca; // 6 base + 1 por ponto de FOR
+    
+    const vidaTrack = document.querySelector('.vida-track');
+    vidaTrack.innerHTML = ''; // Limpa
+    
+    for (let i = 0; i < totalVida; i++) {
+        const img = document.createElement('img');
+        img.src = 'assets/skull.png';
+        img.onclick = () => {
+            const novoValor = i + 1;
+            dadosLocais.vida = (dadosLocais.vida === novoValor) ? 0 : novoValor;
+            atualizarVisual();
+        };
+        vidaTrack.appendChild(img);
+    }
+    
+    // Limita vida atual ao máximo permitido
+    if (dadosLocais.vida > totalVida) {
+        dadosLocais.vida = totalVida;
+    }
+    
+    atualizarVisual();
+}
+
+// 1. Configura os cliques nas imagens (Interatividade)
+function setupVitals() {
+    // Configura listener para FOR atualizar vida
+    const forcaInput = document.getElementById('forca');
+    forcaInput.addEventListener('input', gerarCaveirasVida);
+    
+    // Configura listeners para VEL e COR atualizarem ações
+    const velInput = document.getElementById('vel');
+    const corInput = document.getElementById('cor');
+    velInput.addEventListener('input', atualizarAcoes);
+    corInput.addEventListener('input', atualizarAcoes);
+    
+    // Gera caveiras iniciais
+    gerarCaveirasVida();
+    
+    // Atualiza ações iniciais
+    atualizarAcoes();
+
+    // Configura Dor
+    const fists = document.querySelectorAll('.dor-track img');
+    fists.forEach((img, index) => {
+        img.onclick = () => {
+            const novoValor = index + 1;
+            dadosLocais.dor = (dadosLocais.dor === novoValor) ? 0 : novoValor;
+            atualizarVisual();
             
-            document.getElementById('status').innerText = '• Sincronizado •';
-            
-            const container = document.getElementById('ficha-container');
-            container.classList.remove('flash-update');
-            void container.offsetWidth; 
-            container.classList.add('flash-update');
+            // Verifica se atingiu 6 pontos de dor
+            converterDorEmVida();
+        };
+    });
+}
+
+// Regenera caveiras quando preencher a tela com dados do banco
+function atualizarVidaAposCarregar() {
+    gerarCaveirasVida();
+}
+
+// Atualiza ações baseado em VEL e COR
+function atualizarAcoes() {
+    const vel = parseInt(document.getElementById('vel').value) || 0;
+    const cor = parseInt(document.getElementById('cor').value) || 0;
+    
+    document.getElementById('movimento').value = 1 + vel;
+    document.getElementById('combate').value = 1 + cor;
+}
+
+// 2. Atualiza só o visual (CSS classes)
+function atualizarVisual() {
+    // Atualiza Vida
+    const skulls = document.querySelectorAll('.vida-track img');
+    skulls.forEach((s, i) => {
+        s.classList.toggle('active', i < dadosLocais.vida);
+    });
+
+    // Atualiza Dor
+    const fists = document.querySelectorAll('.dor-track img');
+    fists.forEach((f, i) => {
+        f.classList.toggle('active', i < dadosLocais.dor);
+    });
+}
+
+// 3. Recebe dados do banco e preenche a tela
+function preencherTela(atributos) {
+    // Inputs numéricos
+    document.getElementById('forca').value = atributos.for || 0;
+    document.getElementById('int').value = atributos.int || 0;
+    document.getElementById('vel').value = atributos.vel || 0;
+    document.getElementById('cor').value = atributos.cor || 0;
+
+    // Vitais
+    dadosLocais.vida = atributos.vida || 0;
+    dadosLocais.dor = atributos.dor || 0; // Novo campo
+    
+    // Regenera caveiras baseado no FOR carregado
+    gerarCaveirasVida();
+    atualizarAcoes();
+    atualizarVisual();
+    
+    document.getElementById('status').innerText = '• Sincronizado •';
+}
+
+// 4. Busca Inicial
+async function buscarDados() {
+    const { data, error } = await client
+        .from('Fichas')
+        .select('*')
+        .eq('nome_personagem', NOME_PERSONAGEM)
+        .single();
+
+    if (data) preencherTela(data.atributos);
+    else if (error) console.error(error);
+}
+
+// 5. Salvar
+async function salvarFicha() {
+    const status = document.getElementById('status');
+    status.innerText = 'Enviando...';
+
+    const novosAtributos = {
+        for: parseInt(document.getElementById('forca').value),
+        int: parseInt(document.getElementById('int').value),
+        vel: parseInt(document.getElementById('vel').value),
+        cor: parseInt(document.getElementById('cor').value),
+        vida: dadosLocais.vida,
+        dor: dadosLocais.dor
+    };
+
+    const { error } = await client
+        .from('Fichas')
+        .update({ atributos: novosAtributos })
+        .eq('nome_personagem', NOME_PERSONAGEM);
+
+    if (!error) {
+        status.innerText = 'Registrado!';
+        setTimeout(() => status.innerText = '• Sincronizado •', 2000);
+    } else {
+        status.innerText = 'Erro ao salvar!';
+        console.error(error);
+    }
+}
+
+// Realtime
+client.channel('sala-western')
+.on('postgres_changes',
+    { event: 'UPDATE', schema: 'public', table: 'Fichas' },
+    p => {
+        if(p.new.nome_personagem === NOME_PERSONAGEM) {
+            preencherTela(p.new.atributos);
         }
+    }
+).subscribe();
 
-        client
-            .channel('sala-western')
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Fichas' }, 
-            (payload) => {
-                if(payload.new.nome_personagem === NOME_PERSONAGEM) {
-                    atualizarTela(payload.new.atributos);
-                }
-            })
-            .subscribe();
+// Navegação
+function irParaInventario() {
+    window.location.href = 'inventario.html';
+}
 
-        async function salvarFicha() {
-            document.getElementById('status').innerText = 'Enviando...';
-            
-            const novosAtributos = {
-                for: parseInt(document.getElementById('for').value),
-                vig: parseInt(document.getElementById('vig').value),
-                agi: parseInt(document.getElementById('agi').value),
-                vida: parseInt(document.getElementById('vida').value)
-            };
+function irParaHabilidades() {
+    // TODO: criar página de habilidades
+}
 
-            const { error } = await client
-                .from('Fichas')
-                .update({ atributos: novosAtributos })
-                .eq('nome_personagem', NOME_PERSONAGEM);
+function irParaMontaria() {
+    // TODO: criar página de montaria
+}
 
-            if (!error) {
-                document.getElementById('status').innerText = 'Registrado!';
-                setTimeout(() => document.getElementById('status').innerText = '• Sincronizado •', 2000);
-            }
-        }
+// Inicialização
+setupVitals();
+buscarDados();
+</script>
 
-        buscarDados();
-    </script>
 </body>
 </html>

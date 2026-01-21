@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Inventário — A Última Dose</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --ink: #2b1b12;
+    --cell-bg: rgba(200, 210, 230, 0.85);
+    --header-bg: #1a1a1a;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: 'Courier Prime', monospace;
+    position: relative;
+    background: #1a1411;
+}
+
+/* Background escurecido */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("assets/inventario/backgroundinv.png") no-repeat center;
+    background-size: cover;
+    filter: brightness(0.7);
+    z-index: -1;
+}
+
+/* Container principal */
+.inventory-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+}
+
+/* Layout principal com tabela e painel lateral */
+.inventory-layout {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: 1000px;
+    margin-right: 5%;
+}
+
+.tables-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 750px;
+}
+
+/* Painel lateral de espaço */
+.space-panel {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    min-width: 130px;
+    position: sticky;
+    top: 40px;
+}
+
+.space-panel h3 {
+    font-family: 'Rye', serif;
+    color: #e6dccf;
+    font-size: 1.2rem;
+    margin: 0 0 15px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.space-display {
+    font-family: 'Rye', serif;
+    font-size: 2.5rem;
+    color: #e6dccf;
+    margin: 10px 0;
+}
+
+.space-display.over {
+    color: #ff4444;
+}
+
+.space-label {
+    font-family: 'Courier Prime', monospace;
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.space-max {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.space-max label {
+    font-family: 'Courier Prime', monospace;
+    color: #e6dccf;
+    font-size: 0.9rem;
+}
+
+.space-max input {
+    width: 50px;
+    padding: 5px;
+    border: 2px solid #5d4037;
+    background: rgba(255, 250, 240, 0.9);
+    font-family: 'Rye', serif;
+    font-size: 1.2rem;
+    text-align: center;
+    color: var(--ink);
+    border-radius: 5px;
+}
+
+/* Tabela base */
+.inventory-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 4px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+/* Cabeçalhos das seções */
+.section-header {
+    font-family: 'Rye', serif;
+    font-size: 1.8rem;
+    color: #fff;
+    text-transform: uppercase;
+    background: var(--header-bg);
+    padding: 10px 15px;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+    letter-spacing: 2px;
+}
+
+.section-header.small {
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 8px 10px;
+}
+
+/* Células */
+.inventory-table td {
+    background: rgba(200, 210, 230, 0.7);
+    padding: 12px 15px;
+    border: 2px solid #1a1a1a;
+}
+
+.inventory-table input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    font-family: 'Courier Prime', monospace;
+    font-size: 1.1rem;
+    color: var(--ink);
+    outline: none;
+}
+
+.inventory-table input::placeholder {
+    color: rgba(43, 27, 18, 0.5);
+    font-style: italic;
+}
+
+/* Coluna de espaço (itens) */
+.col-espaco {
+    width: 80px;
+    text-align: center;
+}
+
+.col-espaco input {
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Colunas armas */
+.col-arma-espaco,
+.col-arma-dano {
+    width: 80px;
+    text-align: center;
+}
+
+.col-arma-espaco input,
+.col-arma-dano input {
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Botão expandir descrição */
+.col-expand {
+    width: 40px;
+    text-align: center;
+    padding: 5px !important;
+}
+
+.btn-expand {
+    background: rgba(93, 64, 55, 0.8);
+    border: none;
+    color: #e6dccf;
+    font-size: 1.2rem;
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-expand:hover {
+    background: rgba(93, 64, 55, 1);
+    transform: scale(1.1);
+}
+
+.btn-expand.expanded {
+    background: #8b0000;
+}
+
+/* Linha de descrição */
+.item-row {
+    position: relative;
+}
+
+.desc-row {
+    display: none;
+}
+
+.desc-row.show {
+    display: table-row;
+}
+
+.desc-row td {
+    background: rgba(255, 250, 240, 0.9) !important;
+    padding: 10px 15px !important;
+}
+
+.desc-row textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 10px;
+    font-family: 'Courier Prime', monospace;
+    font-size: 1rem;
+    color: var(--ink);
+    background: transparent;
+    border: 1px dashed rgba(43, 27, 18, 0.3);
+    border-radius: 5px;
+    resize: vertical;
+    outline: none;
+}
+
+.desc-row textarea::placeholder {
+    color: rgba(43, 27, 18, 0.5);
+    font-style: italic;
+}
+
+.desc-row textarea:focus {
+    border-color: #5d4037;
+}
+
+/* Botão de voltar */
+.btn-voltar {
+    background: url("assets/fundoescolhas.png") no-repeat center;
+    background-size: 100% 100%;
+    border: none;
+    cursor: pointer;
+    width: 180px;
+    height: 70px;
+    font-family: 'Rye', serif;
+    font-size: 1.2rem;
+    color: #e6dccf;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 0.2s, filter 0.2s;
+    margin-top: 20px;
+    margin-right: 42%;
+}
+
+.btn-voltar:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+.btn-voltar:active {
+    transform: scale(0.98);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="inventory-container">
+
+    <div class="inventory-layout">
+        <div class="tables-column">
+            <!-- TABELA DE ITENS -->
+            <table class="inventory-table" id="items-table">
+                <thead>
+                    <tr>
+                        <td class="section-header" style="width: 40px;"></td>
+                        <td class="section-header">ITENS</td>
+                        <td class="section-header small">ESPAÇO</td>
+                    </tr>
+                </thead>
+                <tbody id="items-body">
+                    <!-- Linhas geradas dinamicamente -->
+                </tbody>
+            </table>
+
+            <!-- TABELA DE ARMAS -->
+            <table class="inventory-table" id="armas-table">
+                <thead>
+                    <tr>
+                        <td class="section-header" style="width: 40px;"></td>
+                        <td class="section-header">ARMAS</td>
+                        <td class="section-header small">ESPAÇO</td>
+                        <td class="section-header small">DANO</td>
+                    </tr>
+                </thead>
+                <tbody id="armas-body">
+                    <!-- Linhas geradas dinamicamente -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Painel lateral de espaço -->
+        <div class="space-panel">
+            <h3>CARGA</h3>
+            <div class="space-display" id="space-current">0</div>
+            <div class="space-label">espaços usados</div>
+            <div class="space-max">
+                <label>MAX:</label>
+                <input type="number" id="space-max" value="10" min="1">
+            </div>
+            <div class="space-label" id="space-status" style="margin-top: 15px; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <button class="btn-voltar" onclick="voltarFicha()">Voltar</button>
+
+</div>
+
+<script>
+function voltarFicha() {
+    window.location.href = 'index.html';
+}
+
+// Armazena dados dos itens e armas
+let itensData = [];
+let armasData = [];
+const NUM_ARMAS = 4;
+
+// Toggle descrição
+function toggleDescricao(btn, descRowId) {
+    const descRow = document.getElementById(descRowId);
+    descRow.classList.toggle('show');
+    btn.classList.toggle('expanded');
+    btn.textContent = descRow.classList.contains('show') ? '▲' : '▼';
+}
+
+// Gera linhas da tabela de itens baseado na carga máxima
+function gerarLinhasItens() {
+    const maxEspaco = parseInt(document.getElementById('space-max').value) || 10;
+    const tbody = document.getElementById('items-body');
+    
+    // Salva dados atuais
+    salvarDadosItens();
+    
+    // Limpa e regenera
+    tbody.innerHTML = '';
+    
+    for (let i = 0; i < maxEspaco; i++) {
+        const dadosSalvos = itensData[i] || { nome: '', espaco: '', descricao: '' };
+        
+        // Linha principal do item
+        const tr = document.createElement('tr');
+        tr.className = 'item-row';
+        tr.innerHTML = `
+            <td class="col-expand">
+                <button class="btn-expand" onclick="toggleDescricao(this, 'desc-item-${i}')">▼</button>
+            </td>
+            <td><input type="text" class="item-name" data-index="${i}" placeholder="Nome do item..." value="${escapeHtml(dadosSalvos.nome)}"></td>
+            <td class="col-espaco"><input type="number" class="item-space" data-index="${i}" min="0" step="0.5" value="${dadosSalvos.espaco}"></td>
+        `;
+        tbody.appendChild(tr);
+        
+        // Linha de descrição (oculta por padrão)
+        const descTr = document.createElement('tr');
+        descTr.className = 'desc-row';
+        descTr.id = `desc-item-${i}`;
+        descTr.innerHTML = `
+            <td colspan="3">
+                <textarea class="item-desc" data-index="${i}" placeholder="Descrição do item, efeitos especiais, origem...">${escapeHtml(dadosSalvos.descricao)}</textarea>
+            </td>
+        `;
+        tbody.appendChild(descTr);
+    }
+    
+    // Adiciona listeners nas novas linhas
+    tbody.querySelectorAll('.item-space').forEach(input => {
+        input.addEventListener('input', calcularEspaco);
+    });
+    
+    calcularEspaco();
+}
+
+// Gera linhas da tabela de armas
+function gerarLinhasArmas() {
+    const tbody = document.getElementById('armas-body');
+    
+    // Salva dados atuais
+    salvarDadosArmas();
+    
+    // Limpa e regenera
+    tbody.innerHTML = '';
+    
+    for (let i = 0; i < NUM_ARMAS; i++) {
+        const dadosSalvos = armasData[i] || { nome: '', espaco: '', dano: '', descricao: '' };
+        
+        // Linha principal da arma
+        const tr = document.createElement('tr');
+        tr.className = 'item-row';
+        tr.innerHTML = `
+            <td class="col-expand">
+                <button class="btn-expand" onclick="toggleDescricao(this, 'desc-arma-${i}')">▼</button>
+            </td>
+            <td><input type="text" class="arma-name" data-index="${i}" placeholder="Nome da arma..." value="${escapeHtml(dadosSalvos.nome)}"></td>
+            <td class="col-arma-espaco"><input type="number" class="item-space arma-space" data-index="${i}" min="0" step="0.5" value="${dadosSalvos.espaco}"></td>
+            <td class="col-arma-dano"><input type="text" class="arma-dano" data-index="${i}" placeholder="1 💀" value="${escapeHtml(dadosSalvos.dano)}"></td>
+        `;
+        tbody.appendChild(tr);
+        
+        // Linha de descrição (oculta por padrão)
+        const descTr = document.createElement('tr');
+        descTr.className = 'desc-row';
+        descTr.id = `desc-arma-${i}`;
+        descTr.innerHTML = `
+            <td colspan="4">
+                <textarea class="arma-desc" data-index="${i}" placeholder="Descrição da arma, propriedades especiais, munição...">${escapeHtml(dadosSalvos.descricao)}</textarea>
+            </td>
+        `;
+        tbody.appendChild(descTr);
+    }
+    
+    // Adiciona listeners nas armas
+    tbody.querySelectorAll('.item-space').forEach(input => {
+        input.addEventListener('input', calcularEspaco);
+    });
+}
+
+// Salva dados dos itens
+function salvarDadosItens() {
+    const tbody = document.getElementById('items-body');
+    const rows = tbody.querySelectorAll('.item-row');
+    itensData = [];
+    
+    rows.forEach((tr, i) => {
+        const nomeInput = tr.querySelector('.item-name');
+        const espacoInput = tr.querySelector('.item-space');
+        const descRow = document.getElementById(`desc-item-${i}`);
+        const descInput = descRow ? descRow.querySelector('.item-desc') : null;
+        
+        itensData[i] = {
+            nome: nomeInput ? nomeInput.value : '',
+            espaco: espacoInput ? espacoInput.value : '',
+            descricao: descInput ? descInput.value : ''
+        };
+    });
+}
+
+// Salva dados das armas
+function salvarDadosArmas() {
+    const tbody = document.getElementById('armas-body');
+    const rows = tbody.querySelectorAll('.item-row');
+    armasData = [];
+    
+    rows.forEach((tr, i) => {
+        const nomeInput = tr.querySelector('.arma-name');
+        const espacoInput = tr.querySelector('.arma-space');
+        const danoInput = tr.querySelector('.arma-dano');
+        const descRow = document.getElementById(`desc-arma-${i}`);
+        const descInput = descRow ? descRow.querySelector('.arma-desc') : null;
+        
+        armasData[i] = {
+            nome: nomeInput ? nomeInput.value : '',
+            espaco: espacoInput ? espacoInput.value : '',
+            dano: danoInput ? danoInput.value : '',
+            descricao: descInput ? descInput.value : ''
+        };
+    });
+}
+
+// Escape HTML para evitar XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Calcula espaço total usado
+function calcularEspaco() {
+    const espacos = document.querySelectorAll('.item-space');
+    let total = 0;
+    
+    espacos.forEach(input => {
+        const valor = parseInt(input.value) || 0;
+        total += valor;
+    });
+    
+    const maxEspaco = parseInt(document.getElementById('space-max').value) || 10;
+    const displayEl = document.getElementById('space-current');
+    const statusEl = document.getElementById('space-status');
+    
+    displayEl.textContent = total;
+    
+    if (total > maxEspaco) {
+        displayEl.classList.add('over');
+        statusEl.textContent = `⚠️ +${total - maxEspaco} acima!`;
+        statusEl.style.color = '#ff4444';
+    } else {
+        displayEl.classList.remove('over');
+        statusEl.textContent = `✓ ${maxEspaco - total} livres`;
+        statusEl.style.color = '#88ff88';
+    }
+}
+
+// Listener para mudar carga máxima
+document.getElementById('space-max').addEventListener('input', gerarLinhasItens);
+
+// Inicialização
+gerarLinhasItens();
+gerarLinhasArmas();
+</script>
+
+</body>
+</html>

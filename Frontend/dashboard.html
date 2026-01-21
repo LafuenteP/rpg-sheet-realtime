@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mestre — A Última Dose</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #1a1411;
+            --panel-bg: #2b221e;
+            --text-light: #e6dccf;
+            --gold: #ffcc80;
+            --red: #ff5555;
+            --green: #55ff55;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Courier Prime', monospace;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        h1 {
+            font-family: 'Rye', serif; color: var(--gold); text-align: center;
+            border-bottom: 2px solid var(--gold); padding-bottom: 10px;
+            width: 100%; max-width: 1000px;
+        }
+
+        .dashboard-grid {
+            display: grid; grid-template-columns: 1fr 350px; gap: 20px;
+            width: 100%; max-width: 1200px; margin-top: 20px;
+        }
+
+        /* PAINEL JOGADORES */
+        .players-panel {
+            background: var(--panel-bg); border: 2px solid #5d4037;
+            padding: 15px; border-radius: 8px;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; font-family: 'Rye'; color: var(--gold); border-bottom: 1px solid #555; padding: 10px; }
+        td { padding: 10px; border-bottom: 1px solid #333; }
+
+        .status-ok { color: var(--green); font-weight: bold; }
+        .status-bad { color: var(--red); font-weight: bold; }
+        .status-neutral { color: #aaa; }
+
+        /* PAINEL CONTROLES */
+        .controls-panel { display: flex; flex-direction: column; gap: 20px; }
+        .control-box {
+            background: var(--panel-bg); border: 2px solid #5d4037;
+            padding: 20px; border-radius: 8px; text-align: center;
+        }
+        .control-box h3 { font-family: 'Rye'; margin: 0 0 15px 0; color: var(--gold); }
+
+        /* INPUTS E SELECTS */
+        .gm-select {
+            width: 100%; padding: 10px; margin-bottom: 10px;
+            background: #1a1411; color: var(--gold); border: 1px solid #5d4037;
+            font-family: 'Rye'; font-size: 1rem; cursor: pointer;
+        }
+
+        /* BOTÕES */
+        .gm-btn {
+            width: 100%; padding: 15px; font-family: 'Rye'; font-size: 1.2rem;
+            cursor: pointer; border: none; border-radius: 5px;
+            margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: transform 0.1s;
+        }
+        .gm-btn:active { transform: translateY(2px); }
+
+        .btn-day { background: #2e4053; color: #fff; border: 2px solid #5d6d7e; }
+        .btn-day:hover { background: #34495e; }
+
+        .btn-damage { background: #641e16; color: #fff; border: 2px solid #922b21; }
+        .btn-damage:hover { background: #7b241c; }
+
+        .btn-roll { background: #7d6608; color: #fff; border: 2px solid #b7950b; }
+
+        /* LOG */
+        .log-box {
+            background: #000; color: #0f0; font-family: monospace;
+            padding: 10px; height: 200px; overflow-y: auto;
+            border: 1px solid #333; font-size: 0.9rem; text-align: left; margin-top: 10px;
+        }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px dashed #333; padding-bottom: 2px;}
+        .log-time { color: #666; margin-right: 5px; }
+
+        @media (max-width: 800px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <h1>DASHBOARD DO MESTRE</h1>
+
+    <div class="dashboard-grid">
+        
+        <div class="players-panel">
+            <h3>Visão Geral do Bando</h3>
+            <table id="players-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Vida / Dor</th>
+                        <th>Alimentado?</th>
+                        <th>Rações</th>
+                        <th>Avarias</th>
+                    </tr>
+                </thead>
+                <tbody id="players-body">
+                    <tr><td colspan="5">Procurando fugitivos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="controls-panel">
+            
+            <div class="control-box">
+                <h3>Passagem de Tempo</h3>
+                <p style="font-size: 0.8rem; color: #aaa;">Consome ração ou causa Dor.</p>
+                <button class="gm-btn btn-day" onclick="virarODia()">
+                    🌙 Virar o Dia
+                </button>
+            </div>
+
+            <div class="control-box">
+                <h3>Caos & Destruição</h3>
+                
+                <label style="display:block; text-align:left; font-size:0.8rem; color:#aaa; margin-bottom:5px;">Alvo da Avaria:</label>
+                <select id="alvo-avaria" class="gm-select">
+                    <option value="random">🎲 Aleatório (Sorte)</option>
+                    </select>
+
+                <button class="gm-btn btn-damage" onclick="causarAvaria()">
+                    🧥 Causar Avaria
+                </button>
+                <button class="gm-btn btn-roll" onclick="rolarEncontro()">
+                    🎲 Encontro (d6)
+                </button>
+            </div>
+
+            <div class="log-box" id="gm-log">
+                <div class="log-entry">> Sistema iniciado.</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let allPlayers = [];
+
+        // 1. CARREGAR DADOS
+        async function fetchPlayers() {
+            const { data, error } = await client
+                .from('Fichas')
+                .select('*')
+                .order('nome_personagem');
+
+            if (error) { log(`Erro: ${error.message}`); return; }
+
+            allPlayers = data;
+            renderTable();
+            atualizarSelectAlvos(); // <--- ATUALIZA O DROPDOWN
+        }
+
+        // 2. RENDERIZAR TABELA
+        function renderTable() {
+            const tbody = document.getElementById('players-body');
+            tbody.innerHTML = '';
+
+            allPlayers.forEach(player => {
+                const attr = player.atributos || {};
+                const rec = attr.recursos || { racoes: 0, alimentadoHoje: false };
+                const vest = attr.vestimentas || [];
+                
+                const avarias = vest.filter(v => v.estado && v.estado !== 'bom').length;
+                const destruidos = vest.filter(v => v.estado === 'destruido').length;
+
+                let foodStatus = rec.alimentadoHoje 
+                    ? '<span class="status-ok">SACIADO</span>' 
+                    : '<span class="status-bad">FOME</span>';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:var(--gold)">${player.nome_personagem}</td>
+                    <td>💀 ${attr.vida || 0} / 🩸 ${attr.dor || 0}</td>
+                    <td>${foodStatus}</td>
+                    <td>📦 ${rec.racoes || 0}</td>
+                    <td>${avarias > 0 ? `⚠️ ${avarias} (${destruidos} ☠️)` : '<span class="status-neutral">--</span>'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 3. ATUALIZAR DROPDOWN (NOVO)
+        function atualizarSelectAlvos() {
+            const select = document.getElementById('alvo-avaria');
+            const valorAtual = select.value; // Tenta manter a seleção se possível
+
+            // Limpa mantendo o primeiro (Random)
+            select.innerHTML = '<option value="random">🎲 Aleatório (Sorte)</option>';
+
+            allPlayers.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id; // Usa o ID do banco
+                option.innerText = p.nome_personagem;
+                select.appendChild(option);
+            });
+
+            // Se o valor selecionado antes ainda existir, seleciona de novo
+            if (valorAtual && valorAtual !== 'random') {
+                select.value = valorAtual;
+            }
+        }
+
+        // 4. VIRAR O DIA
+        async function virarODia() {
+            if(!confirm("Virar o dia?")) return;
+            log("--- NOVO DIA ---");
+
+            for (let player of allPlayers) {
+                let attr = player.atributos;
+                if (!attr.recursos) attr.recursos = { racoes: 0, alimentadoHoje: false };
+
+                let msg = "";
+                if (attr.recursos.alimentadoHoje) {
+                    attr.recursos.alimentadoHoje = false;
+                    msg = `✅ ${player.nome_personagem} ok.`;
+                } else {
+                    attr.dor = (attr.dor || 0) + 1;
+                    msg = `❌ ${player.nome_personagem} FOME (+1 Dor)`;
+                    if (attr.dor >= 6) {
+                        attr.dor = 0; attr.vida = (attr.vida || 0) + 1;
+                        msg += " -> 💥 FERIMENTO!";
+                    }
+                }
+                log(msg);
+                await client.from('Fichas').update({ atributos: attr }).eq('id', player.id);
+            }
+        }
+
+        // 5. CAUSAR AVARIA (ATUALIZADO)
+        async function causarAvaria() {
+            if (allPlayers.length === 0) return;
+
+            // 1. Quem é o alvo?
+            const select = document.getElementById('alvo-avaria');
+            const targetId = select.value;
+            let targetPlayer;
+
+            if (targetId === 'random') {
+                // Sorteia entre todos
+                const randIndex = Math.floor(Math.random() * allPlayers.length);
+                targetPlayer = allPlayers[randIndex];
+            } else {
+                // Pega o específico
+                targetPlayer = allPlayers.find(p => p.id == targetId);
+            }
+
+            if (!targetPlayer) { log("Erro: Jogador não encontrado."); return; }
+
+            const attr = targetPlayer.atributos;
+
+            // 2. Verifica roupas
+            if (!attr.vestimentas || attr.vestimentas.length === 0) {
+                log(`🤷‍♂️ ${targetPlayer.nome_personagem} não tem roupas cadastradas.`);
+                return;
+            }
+
+            // 3. Filtra roupas válidas (não destruídas)
+            const validClothes = attr.vestimentas
+                .map((v, i) => ({ ...v, index: i }))
+                .filter(v => v.nome && v.estado !== 'destruido');
+
+            if (validClothes.length === 0) {
+                log(`☠️ ${targetPlayer.nome_personagem} já está com tudo destruído!`);
+                return;
+            }
+
+            // 4. Rasga uma roupa aleatória desse jogador
+            const randClothIndex = Math.floor(Math.random() * validClothes.length);
+            const targetCloth = validClothes[randClothIndex];
+            const originalIndex = targetCloth.index;
+
+            const estados = ['bom', 'usado', 'rasgado', 'destruido'];
+            const currentStateIndex = estados.indexOf(targetCloth.estado || 'bom');
+            const newState = estados[currentStateIndex + 1] || 'destruido';
+
+            attr.vestimentas[originalIndex].estado = newState;
+
+            log(`💥 ${targetPlayer.nome_personagem}: '${targetCloth.nome}' agora está [${newState.toUpperCase()}]!`);
+
+            // 5. Salva
+            await client.from('Fichas').update({ atributos: attr }).eq('id', targetPlayer.id);
+        }
+
+        // 6. ROLAGEM
+        function rolarEncontro() {
+            const tab = ["Silêncio...", "Rastros frescos.", "Animal selvagem.", "Mudança de clima.", "Viajante/Comerciante.", "⚠️ EMBOSCADA!"];
+            const d6 = Math.floor(Math.random() * 6);
+            log(`🎲 (d6=${d6+1}): ${tab[d6]}`);
+        }
+
+        function log(msg) {
+            const box = document.getElementById('gm-log');
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            box.innerHTML = `<div class="log-entry"><span class="log-time">[${time}]</span> ${msg}</div>` + box.innerHTML;
+        }
+
+        // REALTIME
+        client.channel('gm-dashboard').on('postgres_changes', { event: '*', schema: 'public', table: 'Fichas' }, 
+            (payload) => {
+                const index = allPlayers.findIndex(p => p.id === payload.new.id);
+                if (index !== -1) allPlayers[index] = payload.new;
+                else allPlayers.push(payload.new);
+                
+                renderTable();
+                atualizarSelectAlvos(); // Mantém o dropdown atualizado se entrar gente nova
+            })
+            .subscribe();
+
+        fetchPlayers();
+        log("Sistema conectado.");
+
+    </script>
+</body>
+</html>

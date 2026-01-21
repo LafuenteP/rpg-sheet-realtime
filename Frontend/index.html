@@ -486,6 +486,283 @@ body {
     transition: opacity 0.3s;
 }
 
+/* ===== BOTÕES FLUTUANTES ===== */
+.floating-buttons {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 99;
+}
+
+.btn-float {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 2px solid #5d4037;
+    background: rgba(43, 27, 18, 0.95);
+    color: #e6dccf;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-float:hover {
+    transform: scale(1.1);
+    background: #5d4037;
+    border-color: var(--gold);
+}
+
+.btn-float.fed {
+    background: #2d5a2d;
+    border-color: #4a4;
+}
+
+/* ===== POPUP GENÉRICO ===== */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.popup-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.popup-content {
+    background: url("assets/fundofome.jpg") no-repeat center;
+    background-size: cover;
+    padding: 30px;
+    border: 4px solid #2b1b12;
+    box-shadow: 0 0 40px rgba(0,0,0,0.9);
+    max-width: 500px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    transform: scale(0.8);
+    transition: transform 0.3s;
+}
+
+.popup-overlay.show .popup-content {
+    transform: scale(1);
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.popup-header h2 {
+    font-family: 'Rye';
+    color: var(--ink);
+    margin: 0;
+    font-size: 1.6rem;
+}
+
+.btn-close-popup {
+    background: #8b0000;
+    border: none;
+    color: #fff;
+    font-size: 1.4rem;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-close-popup:hover {
+    background: #a00;
+    transform: scale(1.1);
+}
+
+/* ===== POPUP RECURSOS ===== */
+.recursos-section {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.recursos-section h3 {
+    font-family: 'Rye';
+    color: var(--ink);
+    font-size: 1.2rem;
+    margin: 0 0 15px 0;
+}
+
+.recursos-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.recursos-display input {
+    width: 80px;
+    padding: 10px;
+    font-family: 'Rye';
+    font-size: 2rem;
+    text-align: center;
+    border: 2px solid var(--ink);
+    background: rgba(255,250,240,0.9);
+    color: var(--ink);
+    border-radius: 8px;
+}
+
+.recursos-display span {
+    font-family: 'Courier Prime';
+    font-size: 1.1rem;
+    color: var(--ink);
+}
+
+.btn-alimentar {
+    padding: 15px 30px;
+    font-family: 'Rye';
+    font-size: 1.1rem;
+    border: 2px solid #2d5a2d;
+    background: #3a7a3a;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    margin-top: 10px;
+}
+
+.btn-alimentar:hover {
+    background: #4a8a4a;
+    transform: scale(1.05);
+}
+
+.btn-alimentar:disabled {
+    background: #666;
+    border-color: #444;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn-alimentar:disabled:hover {
+    transform: none;
+}
+
+.status-alimentado {
+    font-family: 'Courier Prime';
+    font-size: 1rem;
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+.status-alimentado.sim {
+    background: rgba(45, 90, 45, 0.3);
+    color: #2d5a2d;
+}
+
+.status-alimentado.nao {
+    background: rgba(139, 0, 0, 0.2);
+    color: #8b0000;
+}
+
+/* ===== POPUP VESTIMENTAS ===== */
+.vestimentas-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.vestimenta-item {
+    background: rgba(255,250,240,0.9);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.vestimenta-header {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.vestimenta-header input {
+    flex: 1;
+    padding: 8px;
+    font-family: 'Courier Prime';
+    font-size: 1rem;
+    border: 1px solid #5d4037;
+    background: transparent;
+    color: var(--ink);
+    border-radius: 4px;
+}
+
+.vestimenta-header select {
+    padding: 8px;
+    font-family: 'Courier Prime';
+    font-size: 0.9rem;
+    border: 1px solid #5d4037;
+    background: #fff;
+    color: var(--ink);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.vestimenta-desc {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px;
+    font-family: 'Courier Prime';
+    font-size: 0.9rem;
+    border: 1px dashed rgba(43, 27, 18, 0.4);
+    background: transparent;
+    color: var(--ink);
+    border-radius: 4px;
+    resize: vertical;
+}
+
+/* Estados das vestimentas */
+.vestimenta-item.estado-bom {
+    border-left: 4px solid #4a4;
+}
+
+.vestimenta-item.estado-usado {
+    border-left: 4px solid #cc0;
+}
+
+.vestimenta-item.estado-rasgado {
+    border-left: 4px solid #f80;
+}
+
+.vestimenta-item.estado-destruido {
+    border-left: 4px solid #a00;
+    opacity: 0.7;
+}
+
+/* Background específico do popup de vestimentas */
+#popup-vestimentas .popup-content {
+    background: url("assets/fundoroupa.jpg") no-repeat center;
+    background-size: cover;
+}
+
 /* =========================================
    RESPONSIVIDADE MOBILE
    ========================================= */
@@ -733,6 +1010,40 @@ body {
         font-size: 0.85rem;
         padding: 5px 8px;
     }
+    
+    /* Popups responsivos */
+    .floating-buttons {
+        bottom: 60px;
+        right: 10px;
+    }
+    
+    .btn-float {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+    }
+    
+    .popup-content {
+        padding: 20px;
+        max-height: 80vh;
+    }
+    
+    .popup-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .recursos-display input {
+        width: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .vestimenta-header {
+        flex-direction: column;
+    }
+    
+    .vestimenta-header select {
+        width: 100%;
+    }
 }
 
 </style>
@@ -873,6 +1184,57 @@ body {
         <button onclick="fecharModal()">Entendido</button>
     </div>
 </div>
+
+<!-- Botões Flutuantes -->
+<div class="floating-buttons">
+    <button class="btn-float" id="btn-recursos" onclick="abrirPopupRecursos()" title="Recursos / Alimentação">
+        🍖
+    </button>
+    <button class="btn-float" id="btn-vestimentas" onclick="abrirPopupVestimentas()" title="Vestimentas">
+        👔
+    </button>
+</div>
+
+<!-- Popup de Recursos/Alimentação -->
+<div class="popup-overlay" id="popup-recursos">
+    <div class="popup-content">
+        <div class="popup-header">
+            <h2>🍖 SUPRIMENTOS</h2>
+            <button class="btn-close-popup" onclick="fecharPopupRecursos()">✕</button>
+        </div>
+        
+        <div class="recursos-section">
+            <h3>Rações Disponíveis</h3>
+            <div class="recursos-display">
+                <input type="number" id="qtd-racoes" min="0" value="0">
+                <span>rações</span>
+            </div>
+            
+            <button class="btn-alimentar" id="btn-alimentar" onclick="seAlimentar()">
+                🍴 Se Alimentar
+            </button>
+            
+            <div class="status-alimentado" id="status-alimentado">
+                <!-- Status preenchido via JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Popup de Vestimentas -->
+<div class="popup-overlay" id="popup-vestimentas">
+    <div class="popup-content">
+        <div class="popup-header">
+            <h2>👔 VESTIMENTAS</h2>
+            <button class="btn-close-popup" onclick="fecharPopupVestimentas()">✕</button>
+        </div>
+        
+        <div class="vestimentas-list" id="vestimentas-list">
+            <!-- Gerado via JS -->
+        </div>
+    </div>
+</div>
+
 <div id="status" class="status-indicator"></div>
 
 <script>
@@ -974,6 +1336,18 @@ function preencherTela(attr) {
     // Anotações
     document.getElementById('anotacoes').value = attr.anotacoes || '';
 
+    // Recursos
+    if (attr.recursos) {
+        recursosData = attr.recursos;
+        document.getElementById('qtd-racoes').value = recursosData.racoes || 0;
+        atualizarBotaoRecursos();
+    }
+    
+    // Vestimentas
+    if (attr.vestimentas) {
+        vestimentasData = attr.vestimentas;
+    }
+
     // Atualiza lógica derivada
     gerarCaveirasVida();
     atualizarAcoes();
@@ -1005,7 +1379,10 @@ async function salvarFicha() {
             violencia: val('violencia')
         },
         // Anotações
-        anotacoes: document.getElementById('anotacoes').value
+        anotacoes: document.getElementById('anotacoes').value,
+        // Recursos e Vestimentas
+        recursos: recursosData,
+        vestimentas: vestimentasData
     };
 
     // Pega o cache atual pra não perder Habilidades/Montaria/Inventário
@@ -1107,6 +1484,136 @@ client.channel('sala-western')
         }
     }
 ).subscribe();
+
+// ===== RECURSOS E VESTIMENTAS =====
+let recursosData = { racoes: 0, alimentadoHoje: false };
+let vestimentasData = [
+    { nome: '', estado: 'bom', descricao: '' },
+    { nome: '', estado: 'bom', descricao: '' },
+    { nome: '', estado: 'bom', descricao: '' },
+    { nome: '', estado: 'bom', descricao: '' },
+    { nome: '', estado: 'bom', descricao: '' },
+    { nome: '', estado: 'bom', descricao: '' }
+];
+
+// Abrir/Fechar Popups
+function abrirPopupRecursos() {
+    document.getElementById('popup-recursos').classList.add('show');
+    atualizarStatusAlimentacao();
+}
+
+function fecharPopupRecursos() {
+    document.getElementById('popup-recursos').classList.remove('show');
+}
+
+function abrirPopupVestimentas() {
+    document.getElementById('popup-vestimentas').classList.add('show');
+    gerarListaVestimentas();
+}
+
+function fecharPopupVestimentas() {
+    document.getElementById('popup-vestimentas').classList.remove('show');
+}
+
+// Alimentação
+function seAlimentar() {
+    if (recursosData.alimentadoHoje) {
+        alert('Você já se alimentou hoje!');
+        return;
+    }
+    
+    const racoes = parseInt(document.getElementById('qtd-racoes').value) || 0;
+    if (racoes <= 0) {
+        alert('Você não tem rações!');
+        return;
+    }
+    
+    recursosData.racoes = racoes - 1;
+    recursosData.alimentadoHoje = true;
+    document.getElementById('qtd-racoes').value = recursosData.racoes;
+    
+    atualizarStatusAlimentacao();
+    atualizarBotaoRecursos();
+    salvarFicha();
+}
+
+function atualizarStatusAlimentacao() {
+    const statusEl = document.getElementById('status-alimentado');
+    const btnEl = document.getElementById('btn-alimentar');
+    
+    if (recursosData.alimentadoHoje) {
+        statusEl.className = 'status-alimentado sim';
+        statusEl.innerHTML = '✓ Você já se alimentou hoje';
+        btnEl.disabled = true;
+        btnEl.textContent = '✓ Alimentado';
+    } else {
+        statusEl.className = 'status-alimentado nao';
+        statusEl.innerHTML = '✗ Ainda não se alimentou hoje';
+        btnEl.disabled = false;
+        btnEl.textContent = '🍴 Se Alimentar';
+    }
+}
+
+function atualizarBotaoRecursos() {
+    const btn = document.getElementById('btn-recursos');
+    if (recursosData.alimentadoHoje) {
+        btn.classList.add('fed');
+    } else {
+        btn.classList.remove('fed');
+    }
+}
+
+// Vestimentas
+function gerarListaVestimentas() {
+    const container = document.getElementById('vestimentas-list');
+    container.innerHTML = '';
+    
+    vestimentasData.forEach((vest, i) => {
+        const div = document.createElement('div');
+        div.className = `vestimenta-item estado-${vest.estado}`;
+        div.innerHTML = `
+            <div class="vestimenta-header">
+                <input type="text" placeholder="Nome da vestimenta..." 
+                       value="${escapeHtmlPopup(vest.nome)}" 
+                       onchange="atualizarVestimenta(${i}, 'nome', this.value)">
+                <select onchange="atualizarVestimenta(${i}, 'estado', this.value)">
+                    <option value="bom" ${vest.estado === 'bom' ? 'selected' : ''}>Bom</option>
+                    <option value="usado" ${vest.estado === 'usado' ? 'selected' : ''}>Usado</option>
+                    <option value="rasgado" ${vest.estado === 'rasgado' ? 'selected' : ''}>Rasgado</option>
+                    <option value="destruido" ${vest.estado === 'destruido' ? 'selected' : ''}>Destruído</option>
+                </select>
+            </div>
+            <textarea class="vestimenta-desc" placeholder="Descrição, bônus, proteção..."
+                      onchange="atualizarVestimenta(${i}, 'descricao', this.value)">${escapeHtmlPopup(vest.descricao)}</textarea>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function atualizarVestimenta(index, campo, valor) {
+    vestimentasData[index][campo] = valor;
+    
+    // Atualiza visual do estado
+    if (campo === 'estado') {
+        const item = document.querySelectorAll('.vestimenta-item')[index];
+        item.className = `vestimenta-item estado-${valor}`;
+    }
+    
+    salvarFicha();
+}
+
+function escapeHtmlPopup(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Listener para mudança de rações
+document.getElementById('qtd-racoes').addEventListener('change', function() {
+    recursosData.racoes = parseInt(this.value) || 0;
+    salvarFicha();
+});
 
 // INICIALIZAÇÃO
 setupAutoSave();

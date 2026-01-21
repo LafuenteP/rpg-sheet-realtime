@@ -470,5 +470,23 @@
         carregar();
 
     </script>
+
+    </script>
+
+<script>
+    // Script para manter o ?nome=Fulano nos links do menu
+    const params = new URLSearchParams(window.location.search);
+    const nomeAtual = params.get('nome');
+
+    if (nomeAtual) {
+        document.querySelectorAll('.western-nav a').forEach(link => {
+            // Pega o href original (ex: "inventario.html")
+            const hrefOriginal = link.getAttribute('href');
+            // Muda para "inventario.html?nome=Neo"
+            link.setAttribute('href', `${hrefOriginal}?nome=${nomeAtual}`);
+        });
+    }
+</script>
+
 </body>
 </html>

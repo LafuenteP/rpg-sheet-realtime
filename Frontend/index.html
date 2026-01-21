@@ -763,6 +763,151 @@ body {
     background-size: cover;
 }
 
+/* Background específico do popup de redenção */
+#popup-redencao .popup-content {
+    background: url("assets/fundorend.jpg") no-repeat center;
+    background-size: cover;
+    max-width: 600px;
+}
+
+/* ===== POPUP REDENÇÃO ===== */
+.redencao-tipo-selector {
+    margin-bottom: 20px;
+}
+
+.redencao-tipo-selector label {
+    font-family: 'Rye';
+    color: var(--ink);
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.redencao-tipo-selector select {
+    width: 100%;
+    padding: 12px;
+    font-family: 'Rye';
+    font-size: 1.1rem;
+    border: 2px solid var(--ink);
+    background: rgba(255,250,240,0.95);
+    color: var(--ink);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.redencao-descricao {
+    background: rgba(43, 27, 18, 0.15);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--ink);
+}
+
+.redencao-descricao p {
+    font-family: 'Courier Prime';
+    color: var(--ink);
+    margin: 0;
+    font-size: 0.95rem;
+    font-style: italic;
+    line-height: 1.5;
+}
+
+.redencao-passos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.passo-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(255,250,240,0.9);
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.passo-item:hover {
+    border-color: var(--ink);
+}
+
+.passo-item.completo {
+    background: rgba(45, 90, 45, 0.2);
+    border-color: #4a4;
+}
+
+.passo-item.completo .passo-texto {
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.passo-checkbox {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    background: rgba(255,250,240,0.9);
+    transition: all 0.2s;
+}
+
+.passo-item.completo .passo-checkbox {
+    background: #3a7a3a;
+    border-color: #2d5a2d;
+    color: #fff;
+}
+
+.passo-numero {
+    font-family: 'Rye';
+    color: var(--ink);
+    font-size: 0.9rem;
+    min-width: 60px;
+}
+
+.passo-texto {
+    font-family: 'Courier Prime';
+    color: var(--ink);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    flex: 1;
+}
+
+.redencao-progresso {
+    margin-top: 20px;
+    text-align: center;
+    padding: 15px;
+    background: rgba(43, 27, 18, 0.1);
+    border-radius: 8px;
+}
+
+.redencao-progresso span {
+    font-family: 'Rye';
+    color: var(--ink);
+    font-size: 1.2rem;
+}
+
+.progresso-bar {
+    height: 12px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 6px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.progresso-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #5d4037, #8b6914);
+    border-radius: 6px;
+    transition: width 0.3s;
+}
+
 /* =========================================
    RESPONSIVIDADE MOBILE
    ========================================= */
@@ -1062,7 +1207,7 @@ body {
 
     <div class="sheet-left">
         <div class="portrait-frame">
-            <img src="assets/portrait.png" alt="Personagem">
+            <img id="char-photo" src="assets/portrait.png" alt="Personagem" onerror="this.src='assets/portrait.png'">
         </div>
 
         <div class="name-banner">
@@ -1193,6 +1338,9 @@ body {
     <button class="btn-float" id="btn-vestimentas" onclick="abrirPopupVestimentas()" title="Vestimentas">
         👔
     </button>
+    <button class="btn-float" id="btn-redencao" onclick="abrirPopupRedencao()" title="Redenção">
+        ⛪
+    </button>
 </div>
 
 <!-- Popup de Recursos/Alimentação -->
@@ -1231,6 +1379,43 @@ body {
         
         <div class="vestimentas-list" id="vestimentas-list">
             <!-- Gerado via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Popup de Redenção -->
+<div class="popup-overlay" id="popup-redencao">
+    <div class="popup-content">
+        <div class="popup-header">
+            <h2>⛪ REDENÇÃO</h2>
+            <button class="btn-close-popup" onclick="fecharPopupRedencao()">✕</button>
+        </div>
+        
+        <div class="redencao-tipo-selector">
+            <label>Tipo de Redenção:</label>
+            <select id="redencao-tipo" onchange="mudarTipoRedencao()">
+                <option value="vinganca">Vingança</option>
+                <option value="fuga">Fuga</option>
+                <option value="divida">Dívida</option>
+                <option value="remorso">Remorso</option>
+                <option value="recomeco">Recomeço</option>
+                <option value="ambicao">Ambição</option>
+            </select>
+        </div>
+        
+        <div class="redencao-descricao" id="redencao-descricao">
+            <p><!-- Preenchido via JS --></p>
+        </div>
+        
+        <div class="redencao-passos" id="redencao-passos">
+            <!-- Gerado via JS -->
+        </div>
+        
+        <div class="redencao-progresso">
+            <span id="progresso-texto">0 / 6 passos</span>
+            <div class="progresso-bar">
+                <div class="progresso-fill" id="progresso-fill" style="width: 0%"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -1312,6 +1497,20 @@ async function buscarDados() {
 function preencherTela(attr) {
     if (!attr) return;
 
+    // === NOVO CÓDIGO DA FOTO ===
+    const imgEl = document.getElementById('char-photo');
+    
+    // Prioridade 1: Link salvo no banco pelo Mestre
+    if (attr.fotoUrl) {
+        imgEl.src = attr.fotoUrl;
+    } 
+    // Prioridade 2: Tenta achar arquivo local com o nome (ex: assets/Neo.png)
+    else {
+        // Usa o NOME_PERSONAGEM que vem do config.js
+        imgEl.src = `assets/${NOME_PERSONAGEM}.png`;
+    }
+    // ===========================
+
     // Atributos Básicos
     document.getElementById('forca').value = attr.for || 0;
     document.getElementById('int').value = attr.int || 0;
@@ -1346,6 +1545,11 @@ function preencherTela(attr) {
     // Vestimentas
     if (attr.vestimentas) {
         vestimentasData = attr.vestimentas;
+    }
+    
+    // Redenção
+    if (attr.redencao) {
+        redencaoData = attr.redencao;
     }
 
     // Atualiza lógica derivada
@@ -1382,7 +1586,9 @@ async function salvarFicha() {
         anotacoes: document.getElementById('anotacoes').value,
         // Recursos e Vestimentas
         recursos: recursosData,
-        vestimentas: vestimentasData
+        vestimentas: vestimentasData,
+        // Redenção
+        redencao: redencaoData
     };
 
     // Pega o cache atual pra não perder Habilidades/Montaria/Inventário
@@ -1615,10 +1821,169 @@ document.getElementById('qtd-racoes').addEventListener('change', function() {
     salvarFicha();
 });
 
+// ===== REDENÇÃO =====
+const REDENCOES = {
+    vinganca: {
+        titulo: 'Vingança',
+        descricao: 'Preciso me vingar de (nome) que (assassinou/sequestrou) minha/meu (povo/família/terras).',
+        passos: [
+            'Causar problemas para minha gangue ao menos três vezes por causa da minha vingança.',
+            'Encontrar e ajudar (nome), a última vítima de (nome de quem está se vingando).',
+            'Ir até o último local onde (nome de quem está se vingando) foi avistado.',
+            'Resolver outro problema que (nome de quem está se vingando) causou pelo caminho.',
+            'Encontrar o paradeiro de (nome de quem está se vingando) e fazer o desafio para um duelo.',
+            'Vencer o duelo e completar minha vingança.'
+        ]
+    },
+    fuga: {
+        titulo: 'Fuga',
+        descricao: 'Acabei de escapar (da cadeia/dos sagrados/de outra gangue). Há uma boa recompensa pela minha cabeça.',
+        passos: [
+            'Usar sua condição de procurado para ajudar a gangue.',
+            'Causar problemas para minha gangue ao menos três vezes por ser procurado.',
+            'Sacrificar (algo/alguém) importante para mim, em nome da minha liberdade.',
+            'Livrar-me do pior caçador de recompensas que estiver atrás da minha cabeça.',
+            'Juntar o dinheiro necessário para pagar o preço pela minha cabeça.',
+            'Eliminar minha situação de procurado pagando a dívida ou lidando com as autoridades.'
+        ]
+    },
+    divida: {
+        titulo: 'Dívida',
+        descricao: 'Tenho uma dívida com um (mafioso/político) poderoso. Devo quitá-la ou pagarei com a vida.',
+        passos: [
+            'Recolher dinheiro da minha gangue para pagar minha dívida.',
+            'Causar problemas para minha gangue ao menos três vezes por causa da minha dívida.',
+            'Encontrar um trabalho que dê muito dinheiro, mas é muito mais arriscado do que o normal.',
+            'Juntar o valor de metade da minha dívida, ou conseguir um desconto.',
+            '(Roubar/enganar) alguém que eu amo para conseguir ainda mais dinheiro.',
+            'Pagar minha dívida.'
+        ]
+    },
+    remorso: {
+        titulo: 'Remorso',
+        descricao: 'Cometi um crime imperdoável contra (minha família/meu povo).',
+        passos: [
+            'Não (matar/roubar/andar à cavalo) como conduta punitiva para meu remorso.',
+            'Causar problemas para minha gangue ao menos três vezes por causa do meu remorso.',
+            'Reencontrar aqueles que sofreram por minha causa e fazer um serviço importante para eles.',
+            'Encontrar uma forma de compensar (minha gangue/família/meu povo) pelo ato que cometi.',
+            'Sacrificar as (minhas posses/vida atual/alguém importante) para conseguir o perdão.',
+            'Expiar o remorso dentro de mim e viver com o coração mais leve.'
+        ]
+    },
+    recomeco: {
+        titulo: 'Recomeço',
+        descricao: 'Já fui um grande (bandido/xerife/caçador) no passado, me aposentei e perdi minha honra.',
+        passos: [
+            'Realizar uma façanha que prove para minha gangue que eu ainda posso ser útil.',
+            'Encontrar alguém do meu passado que ainda se lembre de minha reputação.',
+            'Aprender ao menos 2 novas habilidades (isso pode ser conseguido com a evolução do personagem).',
+            'Causar problemas para minha gangue ao menos três vezes pela minha busca por recomeço.',
+            'Repetir duas façanhas tão épicas (roubos/salvamentos/capturas) quanto as que fiz no passado.',
+            'Recuperar minha honra, glória e fama que tinha no passado.'
+        ]
+    },
+    ambicao: {
+        titulo: 'Ambição',
+        descricao: 'Vou me tornar (maior/melhor/mais rápido) (duelista/jogador/bandido) que já pisou no Oeste Selvagem.',
+        passos: [
+            'Encontrar três outros (duelistas/jogadores/bandidos) para (duelar/jogar/enfrentar).',
+            'Causar problemas para minha gangue ao menos três vezes por causa da minha ambição.',
+            'Fazer ao menos três grandes (duelistas/jogadores/bandidos) conhecerem minha reputação.',
+            'Perder algum importante causa da ambição. (Este passo não pode acontecer primeiro).',
+            'Fazer amizade com um (rival/xerife/bandido) que tem a mesma ambição que eu.',
+            'Vencer o (duelo/jogo/combate) e me tornar (maior/melhor/mais rápido) do Oeste Selvagem.'
+        ]
+    }
+};
+
+let redencaoData = {
+    tipo: 'vinganca',
+    passosCompletos: [false, false, false, false, false, false]
+};
+
+function abrirPopupRedencao() {
+    document.getElementById('popup-redencao').classList.add('show');
+    document.getElementById('redencao-tipo').value = redencaoData.tipo;
+    atualizarPopupRedencao();
+}
+
+function fecharPopupRedencao() {
+    document.getElementById('popup-redencao').classList.remove('show');
+}
+
+function mudarTipoRedencao() {
+    const novoTipo = document.getElementById('redencao-tipo').value;
+    if (novoTipo !== redencaoData.tipo) {
+        // Reseta os passos ao mudar de tipo
+        redencaoData.tipo = novoTipo;
+        redencaoData.passosCompletos = [false, false, false, false, false, false];
+        atualizarPopupRedencao();
+        salvarFicha();
+    }
+}
+
+function atualizarPopupRedencao() {
+    const tipo = redencaoData.tipo;
+    const redencao = REDENCOES[tipo];
+    
+    // Atualiza descrição
+    document.querySelector('#redencao-descricao p').textContent = redencao.descricao;
+    
+    // Gera lista de passos
+    const container = document.getElementById('redencao-passos');
+    container.innerHTML = '';
+    
+    redencao.passos.forEach((passo, i) => {
+        const completo = redencaoData.passosCompletos[i];
+        const div = document.createElement('div');
+        div.className = `passo-item ${completo ? 'completo' : ''}`;
+        div.onclick = () => togglePasso(i);
+        div.innerHTML = `
+            <div class="passo-checkbox">${completo ? '✓' : ''}</div>
+            <span class="passo-numero">Passo ${i + 1}</span>
+            <span class="passo-texto">${passo}</span>
+        `;
+        container.appendChild(div);
+    });
+    
+    atualizarProgressoRedencao();
+}
+
+function togglePasso(index) {
+    redencaoData.passosCompletos[index] = !redencaoData.passosCompletos[index];
+    atualizarPopupRedencao();
+    salvarFicha();
+}
+
+function atualizarProgressoRedencao() {
+    const completos = redencaoData.passosCompletos.filter(p => p).length;
+    const total = 6;
+    const porcentagem = (completos / total) * 100;
+    
+    document.getElementById('progresso-texto').textContent = `${completos} / ${total} passos`;
+    document.getElementById('progresso-fill').style.width = `${porcentagem}%`;
+}
+
 // INICIALIZAÇÃO
 setupAutoSave();
 buscarDados();
 
+</script>
+
+<script>
+    // Script para manter o ?nome=Fulano nos links do menu
+    const params = new URLSearchParams(window.location.search);
+    const nomeAtual = params.get('nome');
+
+    if (nomeAtual) {
+        document.querySelectorAll('.western-nav a').forEach(link => {
+            // Pega o href original (ex: "inventario.html")
+            const hrefOriginal = link.getAttribute('href');
+            // Muda para "inventario.html?nome=Neo"
+            link.setAttribute('href', `${hrefOriginal}?nome=${nomeAtual}`);
+        });
+    }
 </script>
 
 </body>

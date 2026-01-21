@@ -11,6 +11,7 @@
 <style>
 :root {
     --ink: #2b1b12;
+    --gold: #ffcc80;
 }
 
 * {
@@ -19,13 +20,50 @@
 
 body {
     margin: 0;
-    padding: 20px;
+    padding: 0;
     background: #1a1411;
     font-family: 'Courier Prime', monospace;
     display: flex;
-    justify-content: center;
-    min-height: 100vh;
+    flex-direction: column;
     align-items: center;
+    min-height: 100vh;
+}
+
+/* ===== MENU DE NAVEGAÇÃO ===== */
+.western-nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(43, 27, 18, 0.95);
+    border-bottom: 2px solid #5d4037;
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    flex-shrink: 0;
+}
+
+.western-nav a {
+    color: #aaa;
+    text-decoration: none;
+    font-family: 'Rye', serif;
+    font-size: 1rem;
+    padding: 5px 10px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.western-nav a:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+}
+
+.western-nav a.active {
+    color: var(--gold);
+    border-bottom: 2px solid var(--gold);
 }
 
 /* ===== FICHA ===== */
@@ -379,40 +417,7 @@ body {
     background: rgba(255, 250, 240, 1);
 }
 
-/* ===== BOTÕES DE NAVEGAÇÃO (PLACAS) ===== */
-.nav-buttons {
-    display: flex;
-    justify-content: center;
-    gap: clamp(20px, 3vw, 100px);
-    padding-bottom: 5px;
-    margin-left: auto;
-    margin-right: 0;
-}
 
-.nav-btn {
-    background: url("assets/fundoescolhas.png") no-repeat center;
-    background-size: 100% 100%;
-    border: none;
-    cursor: pointer;
-    width: clamp(150px, 18vw, 220px);
-    height: clamp(60px, 9vh, 100px);
-    font-family: 'Rye', serif;
-    font-size: clamp(1rem, 1.5vw, 1.4rem);
-    color: #e6dccf;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.5);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: transform 0.2s, filter 0.2s;
-}
-
-.nav-btn:hover {
-    transform: scale(1.05);
-    filter: brightness(1.1);
-}
-
-.nav-btn:active {
-    transform: scale(0.98);
-}
 
 /* ===== ANTECEDENTES ===== */
 .antecedentes-section {
@@ -473,6 +478,12 @@ body {
 </head>
 
 <body>
+
+<nav class="western-nav">
+    <a href="index.html" class="active">Ficha</a>
+    <a href="habilidades.html">Habilidades</a>
+    <a href="inventario.html">Inventário</a>
+</nav>
 
 <div class="sheet" id="ficha-container">
 
@@ -586,12 +597,6 @@ body {
         <div class="anotacoes-box">
             <h4>ANOTAÇÕES:</h4>
             <textarea id="anotacoes" placeholder="Escreva suas anotações aqui..."></textarea>
-        </div>
-
-        <div class="nav-buttons">
-            <button class="nav-btn" onclick="irParaInventario()">Inventário</button>
-            <button class="nav-btn" onclick="irParaHabilidades()">Habilidades</button>
-            <button class="nav-btn" onclick="irParaMontaria()">Montaria</button>
         </div>
 
     </div>
@@ -813,19 +818,6 @@ client.channel('sala-western')
         }
     }
 ).subscribe();
-
-// Navegação
-function irParaInventario() {
-    window.location.href = 'inventario.html';
-}
-
-function irParaHabilidades() {
-    // TODO: criar página de habilidades
-}
-
-function irParaMontaria() {
-    // TODO: criar página de montaria
-}
 
 // Inicialização
 setupVitals();

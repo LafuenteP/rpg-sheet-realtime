@@ -12,6 +12,7 @@
     --ink: #2b1b12;
     --cell-bg: rgba(200, 210, 230, 0.85);
     --header-bg: #1a1a1a;
+    --gold: #ffcc80;
 }
 
 * {
@@ -25,6 +26,42 @@ body {
     font-family: 'Courier Prime', monospace;
     position: relative;
     background: #1a1411;
+}
+
+/* ===== MENU DE NAVEGAÇÃO ===== */
+.western-nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(43, 27, 18, 0.95);
+    border-bottom: 2px solid #5d4037;
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.western-nav a {
+    color: #aaa;
+    text-decoration: none;
+    font-family: 'Rye', serif;
+    font-size: 1rem;
+    padding: 5px 10px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.western-nav a:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+}
+
+.western-nav a.active {
+    color: var(--gold);
+    border-bottom: 2px solid var(--gold);
 }
 
 /* Background escurecido */
@@ -278,38 +315,16 @@ body::before {
     border-color: #5d4037;
 }
 
-/* Botão de voltar */
-.btn-voltar {
-    background: url("assets/fundoescolhas.png") no-repeat center;
-    background-size: 100% 100%;
-    border: none;
-    cursor: pointer;
-    width: 180px;
-    height: 70px;
-    font-family: 'Rye', serif;
-    font-size: 1.2rem;
-    color: #e6dccf;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: transform 0.2s, filter 0.2s;
-    margin-top: 20px;
-    margin-right: 42%;
-}
-
-.btn-voltar:hover {
-    transform: scale(1.05);
-    filter: brightness(1.1);
-}
-
-.btn-voltar:active {
-    transform: scale(0.98);
-}
-
 </style>
 </head>
 
 <body>
+
+<nav class="western-nav">
+    <a href="index.html">Ficha</a>
+    <a href="habilidades.html">Habilidades</a>
+    <a href="inventario.html" class="active">Inventário</a>
+</nav>
 
 <div class="inventory-container">
 
@@ -358,14 +373,9 @@ body::before {
         </div>
     </div>
 
-    <button class="btn-voltar" onclick="voltarFicha()">Voltar</button>
-
 </div>
 
 <script>
-function voltarFicha() {
-    window.location.href = 'index.html';
-}
 
 // Armazena dados dos itens e armas
 let itensData = [];

@@ -475,106 +475,247 @@ body {
 }
 
 /* =========================================
-       CORREÇÃO PARA CELULAR (Mobile Responsive)
-       Cole isso no FINAL do seu <style>
-    ========================================= */
-    @media (max-width: 768px) {
-        
-        /* 1. Transforma o layout lado-a-lado em coluna única */
-        .sheet {
-            display: flex;
-            flex-direction: column;
-            width: 95%;      /* Ocupa a tela toda */
-            padding: 15px;   /* Menos borda */
-            height: auto;    /* Altura automática pra poder rolar */
-            max-height: none; /* Remove limite de altura */
-            background-size: cover;
-        }
+   RESPONSIVIDADE MOBILE
+   ========================================= */
 
-        /* 2. Ajusta a Foto */
-        .portrait-frame {
-            width: 100%;
-            margin: 0 auto; /* Centraliza */
-        }
-
-        /* 3. Conserta o Banner do Nome (Estava gigante) */
-        .name-banner {
-            width: 100%;
-            height: 120px;       /* Altura menor */
-            margin-top: -20px;   /* Menos sobreposição */
-            background-size: cover;
-            margin-bottom: 20px;
-        }
-        
-        /* Diminui a fonte do nome no SVG */
-        .texto-curvado {
-            font-size: 35px; 
-        }
-
-        /* 4. Organiza os Atributos (Cartas) */
-        .attributes {
-            flex-wrap: wrap;       /* Deixa cair pra linha de baixo se não couber */
-            justify-content: center;
-            margin-top: 0;         /* Remove margem negativa antiga */
-            margin-bottom: 20px;
-            gap: 15px;
-        }
-
-        .attribute-card {
-            width: 110px;          /* Cartas menores */
-            height: 150px;
-            background-size: 100% 100%;
-        }
-        
-        .attribute-card input {
-            font-size: 2rem;       /* Fonte do número um pouco menor */
-            margin-top: 25px;
-        }
-
-        /* 5. Conserta a Vida e Dor (O maior problema) */
-        .vitals-section {
-            padding-left: 0;
-            margin-top: 10px;
-            align-items: center;   /* Centraliza tudo */
-        }
-
-        .vital-row {
-            margin-left: 0;        /* Remove aquele recuo gigante */
-            margin-top: 0;
-            flex-direction: column; /* Coloca o texto EM CIMA das caveiras */
-            justify-content: center;
-            gap: 5px;
-            margin-bottom: 15px;
-            width: 100%;
-        }
-
-        .vital-row label {
-            text-align: center;
-            font-size: 1.2rem;
-            min-width: auto;
-        }
-
-        .track img {
-            width: 35px; /* Caveiras um pouco menores pra caber */
-        }
-
-        /* 6. Botão Salvar */
-        .save-btn {
-            width: 100%;           /* Botão largura total */
-            margin-right: 0;       /* Remove margem negativa */
-            font-size: 1.2rem;
-        }
-        
-        /* Ajuste do Menu de Navegação no Celular */
-        .western-nav {
-            flex-wrap: wrap;
-            padding: 10px 5px;
-        }
-        .western-nav a {
-            font-size: 0.9rem;
-            padding: 5px;
-        }
+/* Tablets e telas médias */
+@media (max-width: 1024px) {
+    .sheet {
+        width: 98%;
+        grid-template-columns: 35% 65%;
     }
+    
+    .acoes-banner {
+        width: 50%;
+    }
+}
+
+/* Celulares */
+@media (max-width: 768px) {
+    
+    /* Layout geral - coluna única */
+    .sheet {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        padding: 15px;
+        min-height: auto;
+        max-height: none;
+        gap: 20px;
+    }
+
+    /* Seção esquerda (foto e nome) */
+    .sheet-left {
+        width: 100%;
+        align-items: center;
+    }
+
+    .portrait-frame {
+        width: 80%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .name-banner {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        width: 100%;
+        height: 100px;
+        margin-top: 10px;
+    }
+    
+    .texto-curvado {
+        font-size: 30px;
+    }
+
+    /* Seção direita */
+    .sheet-right {
+        width: 100%;
+    }
+
+    .wanted-strip {
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    /* Atributos (cartas) */
+    .attributes {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .attribute-card {
+        width: 70px;
+        transform: none !important;
+    }
+    
+    .attribute-card label {
+        font-size: 0.9rem;
+        margin-top: -30px;
+    }
+    
+    .attribute-card input {
+        font-size: 1.8rem;
+        margin-top: 20%;
+    }
+
+    /* Vida e Dor */
+    .vitals-section {
+        padding: 0 10px;
+    }
+
+    .vital-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .vital-row label {
+        font-size: 1.1rem;
+        text-align: center;
+    }
+
+    .track {
+        justify-content: center;
+        max-width: 100%;
+    }
+
+    .track img {
+        width: 30px;
+        min-width: 22px;
+    }
+
+    /* Ações e Antecedentes */
+    .acoes-antecedentes-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .acoes-banner {
+        width: 90%;
+        max-width: 280px;
+        height: 120px;
+        margin-left: 0;
+        padding: 5% 12%;
+    }
+    
+    .acoes-banner input {
+        font-size: 1.8rem;
+    }
+
+    .antecedentes-section {
+        width: 100%;
+    }
+
+    .antecedentes-section h3 {
+        margin: 0 0 10px 0;
+        text-align: center;
+    }
+
+    .skills-grid {
+        max-width: 100%;
+        margin: 0 auto;
+        gap: 10px 15px;
+    }
+
+    .skill-item {
+        justify-content: center;
+    }
+
+    .skill-item label {
+        font-size: 0.85rem;
+    }
+
+    .skill-item input {
+        width: 35px;
+        font-size: 1.1rem;
+    }
+
+    .skill-item::after {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Anotações */
+    .anotacoes-box {
+        width: 100%;
+        margin: 0;
+    }
+
+    .anotacoes-box textarea {
+        height: 100px;
+    }
+
+    /* Menu de Navegação */
+    .western-nav {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .western-nav a {
+        font-size: 0.85rem;
+        padding: 5px 8px;
+    }
+    
+    /* Modal */
+    .modal-condicao {
+        max-width: 90%;
+        padding: 25px 20px;
+    }
+    
+    .modal-condicao h2 {
+        font-size: 1.6rem;
+    }
+    
+    .modal-condicao .condicao-nome {
+        font-size: 1.4rem;
+    }
+    
+    .modal-condicao .condicao-efeito {
+        font-size: 1.1rem;
+    }
+}
+
+/* Celulares pequenos */
+@media (max-width: 480px) {
+    .sheet {
+        padding: 10px;
+    }
+
+    .portrait-frame {
+        width: 90%;
+    }
+
+    .attribute-card {
+        width: 60px;
+    }
+    
+    .attribute-card label {
+        font-size: 0.8rem;
+    }
+    
+    .attribute-card input {
+        font-size: 1.5rem;
+    }
+
+    .track img {
+        width: 25px;
+        min-width: 18px;
+    }
+
+    .skills-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .western-nav a {
+        font-size: 0.75rem;
+    }
+}
 
 </style>
 </head>

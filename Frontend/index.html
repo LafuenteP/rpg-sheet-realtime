@@ -10,75 +10,76 @@
 <script src="config.js"></script>
 
 <script>
-// ===== SISTEMA DE SENHA =====
-const SENHAS_FICHAS = {
-    'Josue': 'pantufa',
-    'Trinity': 'trinity123',
-    // Adicione mais personagens aqui: 'Nome': 'senha'
-};
+    // 1. Configuração das Senhas
+    const SENHAS = {
+        'Trinity': 'trinity123',
+        'Josue': 'pantufa',
+        'Morpheus': 'pilula'
+    };
 
-// Verifica se já está autenticado (localStorage persiste entre navegações)
-function verificarAutenticacao() {
-    const authData = localStorage.getItem('fichaAuth');
-    if (authData) {
-        try {
-            const auth = JSON.parse(authData);
-            // Verifica se o token é válido (mesmo personagem e menos de 24h)
-            if (auth.nome === NOME_PERSONAGEM && (Date.now() - auth.timestamp) < 86400000) {
-                liberarAcesso();
-                return true;
-            }
-        } catch(e) {}
+    // 2. Verifica se já tem permissão SALVA antes de mostrar a tela
+    function checkAuth() {
+        // Se o personagem não precisa de senha, libera
+        if (!SENHAS[NOME_PERSONAGEM]) return true;
+
+        // Tenta pegar a permissão salva no navegador
+        const authKey = `auth_${NOME_PERSONAGEM}`; // ex: auth_Trinity
+        const authData = JSON.parse(localStorage.getItem(authKey));
+        
+        // Se tem permissão e ela é recente (menos de 24h)
+        if (authData && (Date.now() - authData.time < 86400000)) {
+            return true; // Liberado
+        }
+        return false; // Bloqueado
     }
-    
-    // Se não tem senha cadastrada, libera automaticamente
-    if (!SENHAS_FICHAS[NOME_PERSONAGEM]) {
-        liberarAcesso();
-        return true;
+
+    // Se NÃO estiver autorizado, adiciona a classe 'locked' no corpo assim que possível
+    if (!checkAuth()) {
+        document.documentElement.classList.add('locked');
     }
-    
-    // Mostra o nome do personagem na tela de senha
-    document.getElementById('password-char-name').textContent = `Ficha de ${NOME_PERSONAGEM}`;
-    return false;
-}
 
-function verificarSenha() {
-    const senhaDigitada = document.getElementById('password-input').value;
-    const senhaCorreta = SENHAS_FICHAS[NOME_PERSONAGEM];
-    
-    if (senhaDigitada === senhaCorreta) {
-        // Salva no localStorage com timestamp (expira em 24h)
-        localStorage.setItem('fichaAuth', JSON.stringify({
-            nome: NOME_PERSONAGEM,
-            timestamp: Date.now()
-        }));
-        liberarAcesso();
-    } else {
-        document.getElementById('password-error').classList.add('show');
-        document.getElementById('password-input').value = '';
-        document.getElementById('password-input').focus();
+    // Função para o botão "Entrar"
+    function tentarDesbloquear() {
+        const input = document.getElementById('pass-input');
+        const erro = document.getElementById('pass-error');
+        
+        if (input.value === SENHAS[NOME_PERSONAGEM]) {
+            // Salva a permissão
+            localStorage.setItem(`auth_${NOME_PERSONAGEM}`, JSON.stringify({ time: Date.now() }));
+            // Remove o bloqueio
+            document.documentElement.classList.remove('locked');
+            document.getElementById('tela-senha').style.display = 'none';
+        } else {
+            erro.style.display = 'block';
+            input.value = '';
+        }
     }
-}
-
-function liberarAcesso() {
-    document.body.classList.remove('locked');
-    document.getElementById('password-screen').classList.add('hidden');
-}
-
-// Permite apertar Enter para verificar senha
-document.getElementById('password-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        verificarSenha();
-    }
-});
-
-// Verifica autenticação ao carregar
-if (typeof NOME_PERSONAGEM !== 'undefined') {
-    verificarAutenticacao();
-}
 </script>
 
+
 <style>
+
+/* CSS PARA O BLOQUEIO */
+html.locked body > *:not(#tela-senha) {
+    display: none !important; /* Esconde tudo que não for a tela de senha */
+}
+
+html.locked body {
+    background: #1a1411;
+    overflow: hidden;
+}
+
+#tela-senha {
+    display: none; /* Escondido por padrão */
+}
+
+html.locked #tela-senha {
+    display: flex !important; /* Aparece só quando bloqueado */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #1a1411; z-index: 9999;
+    justify-content: center; align-items: center; flex-direction: column;
+}
+
 :root {
     --ink: #2b1b12;
     --gold: #ffcc80;
@@ -1361,17 +1362,28 @@ body.locked #status {
 </style>
 </head>
 
-<body class="locked">
+<body>
 
-<!-- Tela de Senha -->
-<div class="password-screen" id="password-screen">
-    <div class="password-box">
-        <h2>🔒 ACESSO RESTRITO</h2>
-        <div class="char-name" id="password-char-name">Carregando...</div>
-        <input type="password" id="password-input" placeholder="Digite a senha..." autocomplete="off">
-        <button onclick="verificarSenha()">Entrar</button>
-        <div class="password-error" id="password-error">✗ Senha incorreta!</div>
+<div id="tela-senha">
+    <div style="background:url('assets/paper-bg.jpg'); padding:40px; border:4px solid #2b1b12; text-align:center; max-width:400px; border-radius:8px;">
+        <h2 style="font-family:'Rye'; margin-top:0;">🔒 ACESSO RESTRITO</h2>
+        <p style="font-family:'Courier Prime';">Ficha de <b id="nome-lock">Personagem</b></p>
+        
+        <input type="password" id="pass-input" placeholder="Senha..." 
+               style="padding:10px; font-size:1.2rem; text-align:center; width:100%; margin-bottom:15px; font-family:'Courier Prime';"
+               onkeypress="if(event.key==='Enter') tentarDesbloquear()">
+        
+        <button onclick="tentarDesbloquear()" 
+                style="padding:10px 30px; font-family:'Rye'; cursor:pointer; background:#5d4037; color:#fff; border:none; font-size:1.1rem;">
+            ABRIR FICHA
+        </button>
+        
+        <p id="pass-error" style="color:red; display:none; margin-top:10px;">Senha Incorreta!</p>
     </div>
+    <script>
+        // Atualiza o nome na tela de bloqueio
+        document.getElementById('nome-lock').innerText = NOME_PERSONAGEM || 'Desconhecido';
+    </script>
 </div>
 
 <nav class="western-nav">
@@ -1578,6 +1590,7 @@ body.locked #status {
                 <option value="remorso">Remorso</option>
                 <option value="recomeco">Recomeço</option>
                 <option value="ambicao">Ambição</option>
+                <option value="culpa">Culpa</option>
             </select>
         </div>
         
@@ -2072,6 +2085,18 @@ const REDENCOES = {
             'Fazer amizade com um (rival/xerife/bandido) que tem a mesma ambição que eu.',
             'Vencer o (duelo/jogo/combate) e me tornar (maior/melhor/mais rápido) do Oeste Selvagem.'
         ]
+    },
+    culpa: {
+        titulo: 'Culpa',
+        descricao: 'Carrego comigo a culpa de ter feito algo terrível no passado.',
+        passos: [
+            'Não salvar/curar alguém por não acreditar que sou capaz.',
+            'Causar Problemas para a minha gangue ao menos tres vezes por conta da minha Culpa/Autodesacreditação.',
+            'Reencontrar/Encontrar alguém que sofreu por conta da minhas ações ou minha incapacidade, e ajudar a pessoa.',
+            'Encontrar uma forma de compensar a minha gangue pelos erros que cometi.',
+            'Conseguir salvar alguém muito importante na minha vida por conta das minhas ações.',
+            'Eliminar a culpa das mortes que eu deixei acontecer, e entender que eu tentei o maximo que eu conseguia.'
+        ]
     }
 };
 
@@ -2153,21 +2178,20 @@ document.getElementById('nome-personagem-texto').textContent = NOME_PERSONAGEM;
 </script>
 
 <script>
-    // Script para manter o ?nome=Fulano nos links do menu
-    (function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const nomeParam = urlParams.get('nome');
+    // MANTÉM O USUÁRIO AO NAVEGAR
+    // Se eu sou a Trinity, clico no inventário e vou para inventario.html?nome=Trinity
+    const paramsURL = new URLSearchParams(window.location.search);
+    const nomeAtual = paramsURL.get('nome');
 
-        if (nomeParam) {
-            document.querySelectorAll('.western-nav a').forEach(link => {
-                const hrefOriginal = link.getAttribute('href');
-                // Evita adicionar ?nome= se já existir
-                if (!hrefOriginal.includes('?nome=')) {
-                    link.setAttribute('href', `${hrefOriginal}?nome=${nomeParam}`);
-                }
-            });
-        }
-    })();
+    if (nomeAtual) {
+        document.querySelectorAll('a').forEach(link => {
+            const href = link.getAttribute('href');
+            // Se o link é interno e não tem ?nome ainda
+            if (href && !href.startsWith('http') && !href.includes('?')) {
+                link.setAttribute('href', `${href}?nome=${nomeAtual}`);
+            }
+        });
+    }
 </script>
 
 </body>

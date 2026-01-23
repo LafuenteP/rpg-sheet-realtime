@@ -1,945 +1,701 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Inventário — A Última Dose</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Inventário — A Última Dose</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
-<script>
-    // 1. Configuração das Senhas
-    const SENHAS = {
-        'Trinity': 'trinity123',
-        'Josue': 'pantufa',
-        'Morpheus': 'pilula'
-    };
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 
-    // 2. Verifica se já tem permissão SALVA antes de mostrar a tela
-    function checkAuth() {
-        // Se o personagem não precisa de senha, libera
-        if (!SENHAS[NOME_PERSONAGEM]) return true;
+    <script>
+        // CONFIGURAÇÃO DE SENHAS
+        const SENHAS = {
+            'Trinity': 'trinity123',
+            'Josue': 'pantufa',
+            'Morpheus': 'pilula'
+        };
 
-        // Tenta pegar a permissão salva no navegador
-        const authKey = `auth_${NOME_PERSONAGEM}`; // ex: auth_Trinity
-        const authData = JSON.parse(localStorage.getItem(authKey));
-        
-        // Se tem permissão e ela é recente (menos de 24h)
-        if (authData && (Date.now() - authData.time < 86400000)) {
-            return true; // Liberado
+        // VERIFICAÇÃO DE LOGIN
+        function checkAuth() {
+            if (!SENHAS[NOME_PERSONAGEM]) return true;
+            const authKey = `auth_${NOME_PERSONAGEM}`;
+            const authData = JSON.parse(localStorage.getItem(authKey));
+            if (authData && (Date.now() - authData.time < 86400000)) return true;
+            return false;
         }
-        return false; // Bloqueado
-    }
 
-    // Se NÃO estiver autorizado, adiciona a classe 'locked' no corpo assim que possível
-    if (!checkAuth()) {
-        document.documentElement.classList.add('locked');
-    }
-
-    // Função para o botão "Entrar"
-    function tentarDesbloquear() {
-        const input = document.getElementById('pass-input');
-        const erro = document.getElementById('pass-error');
-        
-        if (input.value === SENHAS[NOME_PERSONAGEM]) {
-            // Salva a permissão
-            localStorage.setItem(`auth_${NOME_PERSONAGEM}`, JSON.stringify({ time: Date.now() }));
-            // Remove o bloqueio
-            document.documentElement.classList.remove('locked');
-            document.getElementById('tela-senha').style.display = 'none';
-        } else {
-            erro.style.display = 'block';
-            input.value = '';
+        // BLOQUEIA IMEDIATAMENTE SE PRECISAR
+        if (!checkAuth()) {
+            document.documentElement.classList.add('locked');
         }
-    }
-</script>
 
-<link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+        function tentarDesbloquear() {
+            const input = document.getElementById('pass-input');
+            if (input.value === SENHAS[NOME_PERSONAGEM]) {
+                localStorage.setItem(`auth_${NOME_PERSONAGEM}`, JSON.stringify({ time: Date.now() }));
+                document.documentElement.classList.remove('locked');
+                document.getElementById('tela-senha').style.display = 'none';
+            } else {
+                document.getElementById('pass-error').style.display = 'block';
+                input.value = '';
+            }
+        }
 
-<style>
+        // FUNÇÃO DEBOUNCE (PARA NÃO TRAVAR O BANCO)
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
 
+        // VARIAVEL GLOBAL PARA O SALVAMENTO COM ATRASO
+        // Será definida corretamente lá embaixo, quando a função salvarFicha existir
+        var acionarSalvarComDelay; 
+    </script>
 
-/* CSS PARA O BLOQUEIO */
-html.locked body > *:not(#tela-senha) {
-    display: none !important; /* Esconde tudo que não for a tela de senha */
-}
+    <style>
+        /* CSS DE BLOQUEIO */
+        html.locked body > *:not(#tela-senha) { display: none !important; }
+        html.locked body { background: #1a1411; overflow: hidden; }
+        #tela-senha { display: none; }
+        html.locked #tela-senha { display: flex !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1411; z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
 
-html.locked body {
-    background: #1a1411;
-    overflow: hidden;
-}
+        /* ESTILOS GERAIS */
+        :root { --ink: #2b1b12; --gold: #ffcc80; --bg-dark: #1a1411; }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; min-height: 100vh; font-family: 'Courier Prime', monospace; background: var(--bg-dark); }
+        
+        /* BACKGROUND */
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url("assets/inventario/backgroundinv.png") no-repeat center;
+            background-size: cover; filter: brightness(0.7); z-index: -1;
+        }
 
-#tela-senha {
-    display: none; /* Escondido por padrão */
-}
+        /* TELA SENHA */
+        .password-box { background:url('assets/locked.jpg') center center/contain no-repeat, #1a1411; padding:40px; border:5px solid #2b1b12; text-align:center; max-width:400px; border-radius:8px; }
+        .password-box h2 { font-family: 'Rye'; margin: 0 0 10px 0; color: var(--ink); }
+        .password-box input { width: 100%; padding: 10px; margin-bottom: 15px; font-family: 'Courier Prime'; font-size: 1.2rem; text-align: center; }
+        .password-box button { width: 100%; padding: 10px; font-family: 'Rye'; font-size: 1.1rem; background: #5d4037; color: #fff; cursor: pointer; border: none; }
 
-html.locked #tela-senha {
-    display: flex !important; /* Aparece só quando bloqueado */
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #1a1411; z-index: 9999;
-    justify-content: center; align-items: center; flex-direction: column;
-}
+        /* LAYOUT */
+        .western-nav { display: flex; justify-content: center; gap: 15px; padding: 15px; background: rgba(43, 27, 18, 0.95); border-bottom: 2px solid #5d4037; width: 100%; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .western-nav a { color: #aaa; text-decoration: none; font-family: 'Rye'; font-size: 1rem; padding: 5px 10px; border: 1px solid transparent; text-transform: uppercase; transition: 0.2s; }
+        .western-nav a:hover, .western-nav a.active { color: var(--gold); border-color: var(--gold); }
 
-:root {
-    --ink: #2b1b12;
-    --cell-bg: rgba(200, 210, 230, 0.85);
-    --header-bg: #1a1a1a;
-    --gold: #ffcc80;
-}
+        .inventory-container { padding: 40px 20px; display: flex; justify-content: center; }
+        .inventory-layout { display: flex; gap: 20px; width: 100%; max-width: 1000px; align-items: flex-start; }
+        .tables-column { flex: 1; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 
-/* TELA DE SENHA */
-.password-screen {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: url('assets/fundosenha.jpg') center/cover no-repeat;
-    display: flex; justify-content: center; align-items: center;
-    z-index: 9999;
-}
-.password-screen::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7);
-}
-.password-box {
-    position: relative;
-    background: linear-gradient(135deg, #3b2e22, #2a1f18);
-    border: 4px solid #5d4037;
-    border-radius: 12px;
-    padding: 40px;
-    text-align: center;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.5);
-    max-width: 350px;
-    width: 90%;
-}
-.password-box h2 {
-    font-family: 'Rye', serif;
-    color: var(--gold);
-    margin: 0 0 10px 0;
-    text-shadow: 2px 2px 0 #000;
-}
-.password-box p {
-    color: #aaa;
-    margin: 0 0 25px 0;
-    font-size: 0.9rem;
-}
-.password-box input {
-    width: 100%;
-    padding: 12px;
-    font-size: 1rem;
-    font-family: 'Courier Prime', monospace;
-    background: #1a1411;
-    border: 2px solid #5d4037;
-    border-radius: 6px;
-    color: #e6dccf;
-    text-align: center;
-    margin-bottom: 15px;
-    box-sizing: border-box;
-}
-.password-box input:focus {
-    outline: none;
-    border-color: var(--gold);
-}
-.password-box button {
-    width: 100%;
-    padding: 12px;
-    font-family: 'Rye', serif;
-    font-size: 1rem;
-    background: linear-gradient(180deg, #5d4037, #3e2723);
-    border: 2px solid #8d6e63;
-    border-radius: 6px;
-    color: var(--gold);
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: 0.2s;
-}
-.password-box button:hover {
-    background: linear-gradient(180deg, #6d4c41, #4e342e);
-    box-shadow: 0 0 15px rgba(255,204,128,0.3);
-}
-.password-error {
-    color: #ff6b6b;
-    font-size: 0.85rem;
-    margin-top: 10px;
-    display: none;
-}
-body.locked > *:not(.password-screen) {
-    display: none !important;
-}
+        /* --- LAYOUT DE 3 COLUNAS --- */
+        .inventory-layout { 
+            display: flex; 
+            gap: 15px; 
+            width: 100%; 
+            max-width: 1200px; /* Aumentei para caber as 3 colunas */
+            align-items: flex-start; 
+        }
 
-* {
-    box-sizing: border-box;
-}
+        .tables-column { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            min-width: 0; 
+        }
 
-body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    font-family: 'Courier Prime', monospace;
-    position: relative;
-    background: #1a1411;
-}
+        /* Classe genérica para os painéis laterais (Munição e Carga) */
+        .side-panel { 
+            background: rgba(0, 0, 0, 0.6); 
+            padding: 15px; 
+            border: 2px solid #5d4037; 
+            border-radius: 8px; 
+            text-align: center; 
+            width: 160px; /* Largura fixa para ficar bonito */
+            flex-shrink: 0;
+            position: sticky; 
+            top: 80px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08); 
+        }
 
-/* ===== MENU DE NAVEGAÇÃO ===== */
-.western-nav {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    padding: 15px;
-    background: rgba(43, 27, 18, 0.95);
-    border-bottom: 2px solid #5d4037;
-    width: 100%;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-}
+        .side-panel h3 { font-family: 'Rye'; color: #e6dccf; margin: 0 0 10px 0; letter-spacing: 1px; font-size: 1rem; }
+        
+        .space-display { font-family: 'Rye'; font-size: 2.2rem; color: #e6dccf; margin-bottom: 5px; }
+        .space-display.over { color: #ff5555; }
+        
+        /* Inputs estilizados dos painéis */
+        .panel-input { 
+            width: 60px; text-align: center; font-family: 'Rye'; 
+            font-size: 1.2rem; margin-top: 5px; 
+            background: rgba(255,255,255,0.9); 
+            border: 2px solid #5d4037; border-radius: 5px; 
+        }
 
-.western-nav a {
-    color: #aaa;
-    text-decoration: none;
-    font-family: 'Rye', serif;
-    font-size: 1rem;
-    padding: 5px 10px;
-    border: 1px solid transparent;
-    transition: all 0.2s;
-    text-transform: uppercase;
-}
+        /* RESPONSIVIDADE */
+        @media (max-width: 1024px) {
+            .inventory-layout { flex-direction: column; align-items: center; }
+            .tables-column { width: 100%; order: 3; } /* Tabela vai pro fim no celular */
+            
+            /* No celular, os painéis ficam um ao lado do outro em cima */
+            .side-panel { 
+                width: 90%; 
+                max-width: 400px;
+                position: relative; 
+                top: 0; 
+                margin-bottom: 10px;
+                display: flex;
+                flex-direction: row; /* Deita o painel no mobile */
+                justify-content: space-around;
+                align-items: center;
+            }
+            .side-panel h3 { margin: 0; margin-right: 10px; }
+        }
 
-.western-nav a:hover {
-    color: var(--gold);
-    border-color: var(--gold);
-}
+        /* MODAL DE NOVA ARMA */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: url('assets/rock.jpg') center/cover; padding: 30px; border: 4px solid #5d4037; width: 90%; max-width: 500px; border-radius: 8px; box-shadow: 0 0 50px rgba(0,0,0,1); }
+        .modal-box h2 { font-family: 'Rye'; margin-top: 0; color: var(--ink); text-align: center; }
 
-.western-nav a.active {
-    color: var(--gold);
-    border-bottom: 2px solid var(--gold);
-}
+        /* Responsividade: mobile e tablets */
+        @media (max-width: 1024px) {
+            .inventory-layout { flex-direction: column; align-items: center; gap: 0; }
+            .tables-column { width: 100%; max-width: 750px; }
+            .space-panel { position: relative; top: 0; width: 100%; max-width: 750px; margin-bottom: 20px; }
+        }
+        @media (max-width: 768px) {
+            .inventory-container { padding: 20px 5px; }
+            .inventory-layout { flex-direction: column; align-items: stretch; gap: 0; }
+            .tables-column { width: 100%; max-width: 100%; }
+            .space-panel { width: 100%; min-width: unset; max-width: 100%; margin-bottom: 20px; }
+            .inventory-table { font-size: 0.95rem; }
+            .section-header { font-size: 1rem; }
+            .section-header.small { font-size: 0.8rem; }
+            .space-display { font-size: 2rem; }
+        }
+        @media (max-width: 480px) {
+            .inventory-container { padding: 10px 2px; }
+            .space-panel { padding: 10px; }
+            .inventory-table { font-size: 0.9rem; }
+            .section-header { font-size: 0.95rem; }
+            .section-header.small { font-size: 0.7rem; }
+            .space-display { font-size: 1.3rem; }
+        }
 
-/* Background escurecido */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url("assets/inventario/backgroundinv.png") no-repeat center;
-    background-size: cover;
-    filter: brightness(0.7);
-    z-index: -1;
-}
+        /* Tabelas com rolagem horizontal em telas pequenas */
+        .tables-column { overflow-x: auto; }
+        .inventory-table { min-width: 320px; }
 
-/* Container principal */
-.inventory-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 20px;
-    min-height: 100vh;
-}
+        /* TABELAS */
+        .inventory-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .section-header { font-family: 'Rye'; color: #fff; background: #222; padding: 10px; border-bottom: 2px solid #5d4037; font-size: 1.2rem; letter-spacing: 1px; text-shadow: 1px 1px 0 #000; }
+        .section-header.small { font-size: 0.9rem; text-align: center; width: 80px; }
+        .inventory-table td { background: rgba(220, 220, 220, 0.93); padding: 8px; border: 1px solid #000; }
+        .inventory-table input { width: 100%; background: transparent; border: none; font-family: 'Courier Prime'; font-size: 1rem; outline: none; color: #1a1a1a; padding: 2px 4px; font-weight: bold; }
+        .arma-name, .arma-dano, .arma-space {
+            color: #222 !important;
+            font-weight: bold !important;
+            background: #fffbe8;
+            border-radius: 3px;
+        }
+        
+        /* DESCRIÇÃO */
+        .col-expand { width: 30px; padding: 0 !important; text-align: center; background: #3e2723 !important; }
+        .btn-expand { background: transparent; border: none; color: #fff; width: 100%; height: 100%; cursor: pointer; font-weight: bold; }
+        .desc-row { display: none; }
+        .desc-row.show { display: table-row; }
+        .desc-row td { background: #fff8e1 !important; padding: 5px !important; }
+        .desc-row textarea { width: 100%; min-height: 50px; border: none; background: transparent; font-family: 'Courier Prime'; resize: vertical; outline: none; }
 
-/* Layout principal com tabela e painel lateral */
-.inventory-layout {
-    display: flex;
-    gap: 15px;
-    align-items: flex-start;
-    justify-content: flex-end;
-    width: 100%;
-    max-width: 1000px;
-    margin-right: 5%;
-}
+        /* PAINEL CARGA */
+        .space-panel { background: rgba(0, 0, 0, 0.6); padding: 20px; border: 2px solid #5d4037; border-radius: 8px; text-align: center; min-width: 150px; position: sticky; top: 80px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-left: 10px; }
+        .space-panel h3 { font-family: 'Rye'; color: #e6dccf; margin: 0 0 10px 0; letter-spacing: 1px; }
+        .space-display { font-family: 'Rye'; font-size: 2.5rem; color: #e6dccf; margin-bottom: 5px; }
+        .space-display.over { color: #ff5555; }
+        .space-max input { width: 60px; text-align: center; font-family: 'Rye'; font-size: 1.2rem; margin-top: 10px; background: rgba(255,255,255,0.9); border: 2px solid #5d4037; border-radius: 5px; }
+        
+        #status { position: fixed; bottom: 10px; right: 10px; color: #fff; opacity: 0.7; font-size: 0.8rem; z-index: 999; }
 
-.tables-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-width: 750px;
-}
-
-/* Painel lateral de espaço */
-.space-panel {
-    background: rgba(0, 0, 0, 0.5);
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    min-width: 130px;
-    position: sticky;
-    top: 40px;
-}
-
-.space-panel h3 {
-    font-family: 'Rye', serif;
-    color: #e6dccf;
-    font-size: 1.2rem;
-    margin: 0 0 15px 0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.space-display {
-    font-family: 'Rye', serif;
-    font-size: 2.5rem;
-    color: #e6dccf;
-    margin: 10px 0;
-}
-
-.space-display.over {
-    color: #ff4444;
-}
-
-.space-label {
-    font-family: 'Courier Prime', monospace;
-    color: #aaa;
-    font-size: 0.9rem;
-}
-
-.space-max {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.space-max label {
-    font-family: 'Courier Prime', monospace;
-    color: #e6dccf;
-    font-size: 0.9rem;
-}
-
-.space-max input {
-    width: 50px;
-    padding: 5px;
-    border: 2px solid #5d4037;
-    background: rgba(255, 250, 240, 0.9);
-    font-family: 'Rye', serif;
-    font-size: 1.2rem;
-    text-align: center;
-    color: var(--ink);
-    border-radius: 5px;
-}
-
-/* Tabela base */
-.inventory-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 4px;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 15px;
-    border-radius: 10px;
-}
-
-/* Cabeçalhos das seções */
-.section-header {
-    font-family: 'Rye', serif;
-    font-size: 1.8rem;
-    color: #fff;
-    text-transform: uppercase;
-    background: var(--header-bg);
-    padding: 10px 15px;
-    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
-    letter-spacing: 2px;
-}
-
-.section-header.small {
-    font-size: 1.2rem;
-    text-align: center;
-    padding: 8px 10px;
-}
-
-/* Células */
-.inventory-table td {
-    background: rgba(200, 210, 230, 0.7);
-    padding: 12px 15px;
-    border: 2px solid #1a1a1a;
-}
-
-.inventory-table input {
-    width: 100%;
-    background: transparent;
-    border: none;
-    font-family: 'Courier Prime', monospace;
-    font-size: 1.1rem;
-    color: var(--ink);
-    outline: none;
-}
-
-.inventory-table input::placeholder {
-    color: rgba(43, 27, 18, 0.5);
-    font-style: italic;
-}
-
-/* Coluna de espaço (itens) */
-.col-espaco {
-    width: 80px;
-    text-align: center;
-}
-
-.col-espaco input {
-    text-align: center;
-    font-weight: bold;
-}
-
-/* Colunas armas */
-.col-arma-espaco,
-.col-arma-dano {
-    width: 80px;
-    text-align: center;
-}
-
-.col-arma-espaco input,
-.col-arma-dano input {
-    text-align: center;
-    font-weight: bold;
-}
-
-/* Botão expandir descrição */
-.col-expand {
-    width: 40px;
-    text-align: center;
-    padding: 5px !important;
-}
-
-.btn-expand {
-    background: rgba(93, 64, 55, 0.8);
-    border: none;
-    color: #e6dccf;
-    font-size: 1.2rem;
-    width: 30px;
-    height: 30px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-expand:hover {
-    background: rgba(93, 64, 55, 1);
-    transform: scale(1.1);
-}
-
-.btn-expand.expanded {
-    background: #8b0000;
-}
-
-/* Linha de descrição */
-.item-row {
-    position: relative;
-}
-
-.desc-row {
-    display: none;
-}
-
-.desc-row.show {
-    display: table-row;
-}
-
-.desc-row td {
-    background: rgba(255, 250, 240, 0.9) !important;
-    padding: 10px 15px !important;
-}
-
-.desc-row textarea {
-    width: 100%;
-    min-height: 60px;
-    padding: 10px;
-    font-family: 'Courier Prime', monospace;
-    font-size: 1rem;
-    color: var(--ink);
-    background: transparent;
-    border: 1px dashed rgba(43, 27, 18, 0.3);
-    border-radius: 5px;
-    resize: vertical;
-    outline: none;
-}
-
-.desc-row textarea::placeholder {
-    color: rgba(43, 27, 18, 0.5);
-    font-style: italic;
-}
-
-.desc-row textarea:focus {
-    border-color: #5d4037;
-}
-
-/* =========================================
-   RESPONSIVIDADE MOBILE
-   ========================================= */
-
-/* Tablets e telas médias */
-@media (max-width: 1024px) {
-    .inventory-layout {
-        flex-direction: column;
-        align-items: center;
-        margin-right: 0;
-    }
-    
-    .space-panel {
-        position: relative;
-        top: auto;
-        width: 100%;
-        max-width: 750px;
-        margin-bottom: 20px;
-    }
-    
-    .tables-column {
-        width: 100%;
-        max-width: 750px;
-    }
-}
-
-/* Celulares */
-@media (max-width: 768px) {
-    .inventory-container {
-        padding: 20px 10px;
-    }
-    
-    .inventory-layout {
-        gap: 15px;
-    }
-    
-    .space-panel {
-        padding: 15px;
-        min-width: auto;
-    }
-    
-    .space-panel h3 {
-        font-size: 1rem;
-    }
-    
-    .space-display {
-        font-size: 2rem;
-    }
-    
-    .inventory-table {
-        padding: 10px;
-    }
-    
-    .section-header {
-        font-size: 1.2rem;
-        padding: 8px 10px;
-    }
-    
-    .section-header.small {
-        font-size: 0.9rem;
-        padding: 6px 5px;
-    }
-    
-    .inventory-table td {
-        padding: 8px 10px;
-    }
-    
-    .inventory-table input {
-        font-size: 1rem;
-    }
-    
-    .col-espaco,
-    .col-arma-espaco,
-    .col-arma-dano {
-        width: 60px;
-    }
-    
-    .western-nav {
-        flex-wrap: wrap;
-        gap: 10px;
-        padding: 10px;
-    }
-    
-    .western-nav a {
-        font-size: 0.85rem;
-        padding: 5px 8px;
-    }
-}
-
-/* Celulares pequenos */
-@media (max-width: 480px) {
-    .inventory-container {
-        padding: 15px 5px;
-    }
-    
-    .space-panel {
-        padding: 12px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .space-panel h3 {
-        font-size: 0.9rem;
-        margin: 0;
-        width: auto;
-    }
-    
-    .space-display {
-        font-size: 1.6rem;
-        margin: 0;
-    }
-    
-    .space-label {
-        font-size: 0.75rem;
-    }
-    
-    .space-max {
-        margin-top: 0;
-    }
-    
-    .space-max input {
-        width: 40px;
-        font-size: 1rem;
-        padding: 3px;
-    }
-    
-    .inventory-table {
-        padding: 5px;
-        border-spacing: 2px;
-    }
-    
-    .section-header {
-        font-size: 0.9rem;
-        padding: 6px 5px;
-        letter-spacing: 1px;
-    }
-    
-    .section-header.small {
-        font-size: 0.7rem;
-        padding: 5px 3px;
-    }
-    
-    .inventory-table td {
-        padding: 6px 5px;
-    }
-    
-    .inventory-table input {
-        font-size: 0.85rem;
-    }
-    
-    .col-espaco,
-    .col-arma-espaco,
-    .col-arma-dano {
-        width: 45px;
-    }
-    
-    .col-expand {
-        width: 30px;
-        padding: 3px !important;
-    }
-    
-    .btn-expand {
-        width: 24px;
-        height: 24px;
-        font-size: 0.9rem;
-    }
-    
-    .desc-row textarea {
-        min-height: 50px;
-        padding: 8px;
-        font-size: 0.9rem;
-    }
-    
-    .western-nav a {
-        font-size: 0.85rem;
-        padding: 5px 8px;
-    }
-}
-
-</style>
+        @media (max-width: 768px) { .inventory-layout { flex-direction: column-reverse; align-items: center; } .space-panel { width: 100%; position: relative; top: 0; } }
+    </style>
 </head>
 
 <body>
 
-<div id="tela-senha">
-    <div style="background:url('assets/paper-bg.jpg'); padding:40px; border:4px solid #2b1b12; text-align:center; max-width:400px; border-radius:8px;">
-        <h2 style="font-family:'Rye'; margin-top:0;">🔒 ACESSO RESTRITO</h2>
-        <p style="font-family:'Courier Prime';">Ficha de <b id="nome-lock">Personagem</b></p>
-        
-        <input type="password" id="pass-input" placeholder="Senha..." 
-               style="padding:10px; font-size:1.2rem; text-align:center; width:100%; margin-bottom:15px; font-family:'Courier Prime';"
-               onkeypress="if(event.key==='Enter') tentarDesbloquear()">
-        
-        <button onclick="tentarDesbloquear()" 
-                style="padding:10px 30px; font-family:'Rye'; cursor:pointer; background:#5d4037; color:#fff; border:none; font-size:1.1rem;">
-            ABRIR FICHA
-        </button>
-        
-        <p id="pass-error" style="color:red; display:none; margin-top:10px;">Senha Incorreta!</p>
-    </div>
-    <script>
-        // Atualiza o nome na tela de bloqueio
-        document.getElementById('nome-lock').innerText = NOME_PERSONAGEM || 'Desconhecido';
-    </script>
-</div>
+    <div class="modal-overlay" id="modal-arma">
+        <div class="modal-box">
+            <h2>NOVA ARMA</h2>
+            <div class="form-group">
+                <label>Nome da Arma</label>
+                <input type="text" id="new-nome" placeholder="Ex: Colt Navy">
+            </div>
+            <div class="form-row">
+                <div class="form-group" style="flex:1">
+                    <label>Dano</label>
+                    <input type="number" id="new-dano" value="1">
+                </div>
+                <div class="form-group" style="flex:1">
+                    <label>Tipo</label>
+                    <select id="new-tipo">
+                        <option value="💀 Letal">💀 Letal</option>
+                        <option value="👊 Dor">👊 Dor</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group" style="flex:1">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label for="new-balas">Munição Max</label>
+                        <input type="checkbox" id="check-usa-municao" checked onchange="toggleInputMunicao()" style="width:auto; transform: scale(1.2);">
+                    </div>
+                    <input type="number" id="new-balas" value="6">
+                </div>
 
-<nav class="western-nav">
-    <a href="index.html">Ficha</a>
-    <a href="habilidades.html">Habilidades</a>
-    <a href="montaria.html">Montaria</a>
-    <a href="inventario.html" class="active">Inventário</a>
-</nav>
+                <div class="form-group" style="flex:1">
+                    <label>Espaço (KG)</label>
+                    <input type="number" id="new-espaco" value="1" step="0.5">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Efeito Especial / Descrição</label>
+                <textarea id="new-desc" rows="3" placeholder="Ex: Pode atirar duas vezes..."></textarea>
+            </div>
+            <button class="btn-western" onclick="confirmarNovaArma()">CRIAR ARMA</button>
+            <button class="btn-western btn-cancel" onclick="fecharModalArma()">CANCELAR</button>
+        </div>
+    </div>
+
+    <div id="tela-senha">
+        <div class="password-box">
+            <h2>🔒 ACESSO RESTRITO</h2>
+            <p>Ficha de <b id="nome-lock">...</b></p>
+            <input type="password" id="pass-input" placeholder="Senha..." onkeypress="if(event.key==='Enter') tentarDesbloquear()">
+            <button onclick="tentarDesbloquear()">ABRIR</button>
+            <p id="pass-error" style="color:red; display:none; margin-top:10px;">Senha Incorreta!</p>
+        </div>
+        <script>document.getElementById('nome-lock').innerText = NOME_PERSONAGEM || '...';</script>
+    </div>
+
+    <nav class="western-nav">
+        <a href="index.html">Ficha</a>
+        <a href="habilidades.html">Habilidades</a>
+        <a href="montaria.html">Montaria</a>
+        <a href="inventario.html" class="active">Inventário</a>
+    </nav>
 
 <div class="inventory-container">
-
     <div class="inventory-layout">
+
+        <div class="side-panel">
+            <h3>MUNIÇÃO</h3>
+            
+            <select id="ammo-type" onchange="atualizarLimiteBalas()" style="width:100%; background:rgba(0,0,0,0.3); color:#e6dccf; border:1px solid #5d4037; font-family:'Courier Prime'; margin-bottom:5px; font-size:0.8rem;">
+                <option value="bandoleira">Bandoleira</option>
+                <option value="cinturao">Cinturão</option>
+                <option value="aljava">Aljava</option>
+            </select>
+
+            <div class="space-display" id="ammo-display">0</div>
+            
+            <div style="color:#aaa; font-size:0.7rem; margin-bottom:5px;">BALAS NO CINTO</div>
+            
+            <input type="number" id="ammo-qtd" class="panel-input" value="0" min="0" onchange="salvarMunicao()">
+        </div>
+
         <div class="tables-column">
-            <!-- TABELA DE ITENS -->
-            <table class="inventory-table" id="items-table">
-                <thead>
-                    <tr>
-                        <td class="section-header" style="width: 40px;"></td>
-                        <td class="section-header">ITENS</td>
-                        <td class="section-header small">ESPAÇO</td>
-                    </tr>
-                </thead>
-                <tbody id="items-body">
-                    <!-- Linhas geradas dinamicamente -->
-                </tbody>
+            
+            <table class="inventory-table">
+                <thead><tr><td class="section-header" colspan="2">ITENS GERAIS</td><td class="section-header" style="width:80px; text-align:center;">KG</td></tr></thead>
+                <tbody id="items-body"></tbody>
             </table>
 
-            <!-- TABELA DE ARMAS -->
-            <table class="inventory-table" id="armas-table">
+            <table class="inventory-table">
                 <thead>
                     <tr>
-                        <td class="section-header" style="width: 40px;"></td>
-                        <td class="section-header">ARMAS</td>
-                        <td class="section-header small">ESPAÇO</td>
-                        <td class="section-header small">DANO</td>
+                        <td class="section-header" colspan="2">ARSENAL</td>
+                        <td class="section-header" style="width:100px; text-align:center;">EQUIPAR</td>
                     </tr>
                 </thead>
-                <tbody id="armas-body">
-                    <!-- Linhas geradas dinamicamente -->
-                </tbody>
+                <tbody id="weapons-body"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="padding:10px;">
+                            <button class="btn-western" onclick="abrirModalArma()">+ ADICIONAR ARMA</button>
+                        </td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
 
-        <!-- Painel lateral de espaço -->
-        <div class="space-panel">
+        <div class="side-panel">
             <h3>CARGA</h3>
             <div class="space-display" id="space-current">0</div>
-            <div class="space-label">espaços usados</div>
-            <div class="space-max">
-                <label>MAX:</label>
-                <input type="number" id="space-max" value="10" min="1">
-            </div>
-            <div class="space-label" id="space-status" style="margin-top: 15px; font-weight: bold;"></div>
+            <div style="color:#aaa; font-size:0.7rem; margin-bottom:5px;">KG / ESPAÇOS</div>
+            <input type="number" id="space-max" class="panel-input" value="10" onchange="salvarFicha()">
         </div>
-    </div>
 
+    </div>
 </div>
 
-<script>
+    <div id="status">Carregando...</div>
 
-// Armazena dados dos itens e armas
-let itensData = [];
-let armasData = [];
-const NUM_ARMAS = 4;
+    <script>
+            // ==========================================
+            // 1. ESTADO E DADOS
+            // ==========================================
+            let itensData = [];
+            let armasData = [];
 
-// Toggle descrição
-function toggleDescricao(btn, descRowId) {
-    const descRow = document.getElementById(descRowId);
-    descRow.classList.toggle('show');
-    btn.classList.toggle('expanded');
-    btn.textContent = descRow.classList.contains('show') ? '▲' : '▼';
-}
-
-// Gera linhas da tabela de itens baseado na carga máxima
-function gerarLinhasItens() {
-    const maxEspaco = parseInt(document.getElementById('space-max').value) || 10;
-    const tbody = document.getElementById('items-body');
-    
-    // Salva dados atuais
-    salvarDadosItens();
-    
-    // Limpa e regenera
-    tbody.innerHTML = '';
-    
-    for (let i = 0; i < maxEspaco; i++) {
-        const dadosSalvos = itensData[i] || { nome: '', espaco: '', descricao: '' };
-        
-        // Linha principal do item
-        const tr = document.createElement('tr');
-        tr.className = 'item-row';
-        tr.innerHTML = `
-            <td class="col-expand">
-                <button class="btn-expand" onclick="toggleDescricao(this, 'desc-item-${i}')">▼</button>
-            </td>
-            <td><input type="text" class="item-name" data-index="${i}" placeholder="Nome do item..." value="${escapeHtml(dadosSalvos.nome)}"></td>
-            <td class="col-espaco"><input type="number" class="item-space" data-index="${i}" min="0" step="0.5" value="${dadosSalvos.espaco}"></td>
-        `;
-        tbody.appendChild(tr);
-        
-        // Linha de descrição (oculta por padrão)
-        const descTr = document.createElement('tr');
-        descTr.className = 'desc-row';
-        descTr.id = `desc-item-${i}`;
-        descTr.innerHTML = `
-            <td colspan="3">
-                <textarea class="item-desc" data-index="${i}" placeholder="Descrição do item, efeitos especiais, origem...">${escapeHtml(dadosSalvos.descricao)}</textarea>
-            </td>
-        `;
-        tbody.appendChild(descTr);
-    }
-    
-    // Adiciona listeners nas novas linhas
-    tbody.querySelectorAll('.item-space').forEach(input => {
-        input.addEventListener('input', calcularEspaco);
-    });
-    
-    calcularEspaco();
-}
-
-// Gera linhas da tabela de armas
-function gerarLinhasArmas() {
-    const tbody = document.getElementById('armas-body');
-    
-    // Salva dados atuais
-    salvarDadosArmas();
-    
-    // Limpa e regenera
-    tbody.innerHTML = '';
-    
-    for (let i = 0; i < NUM_ARMAS; i++) {
-        const dadosSalvos = armasData[i] || { nome: '', espaco: '', dano: '', descricao: '' };
-        
-        // Linha principal da arma
-        const tr = document.createElement('tr');
-        tr.className = 'item-row';
-        tr.innerHTML = `
-            <td class="col-expand">
-                <button class="btn-expand" onclick="toggleDescricao(this, 'desc-arma-${i}')">▼</button>
-            </td>
-            <td><input type="text" class="arma-name" data-index="${i}" placeholder="Nome da arma..." value="${escapeHtml(dadosSalvos.nome)}"></td>
-            <td class="col-arma-espaco"><input type="number" class="item-space arma-space" data-index="${i}" min="0" step="0.5" value="${dadosSalvos.espaco}"></td>
-            <td class="col-arma-dano"><input type="text" class="arma-dano" data-index="${i}" placeholder="1 💀" value="${escapeHtml(dadosSalvos.dano)}"></td>
-        `;
-        tbody.appendChild(tr);
-        
-        // Linha de descrição (oculta por padrão)
-        const descTr = document.createElement('tr');
-        descTr.className = 'desc-row';
-        descTr.id = `desc-arma-${i}`;
-        descTr.innerHTML = `
-            <td colspan="4">
-                <textarea class="arma-desc" data-index="${i}" placeholder="Descrição da arma, propriedades especiais, munição...">${escapeHtml(dadosSalvos.descricao)}</textarea>
-            </td>
-        `;
-        tbody.appendChild(descTr);
-    }
-    
-    // Adiciona listeners nas armas
-    tbody.querySelectorAll('.item-space').forEach(input => {
-        input.addEventListener('input', calcularEspaco);
-    });
-}
-
-// Salva dados dos itens
-function salvarDadosItens() {
-    const tbody = document.getElementById('items-body');
-    const rows = tbody.querySelectorAll('.item-row');
-    itensData = [];
-    
-    rows.forEach((tr, i) => {
-        const nomeInput = tr.querySelector('.item-name');
-        const espacoInput = tr.querySelector('.item-space');
-        const descRow = document.getElementById(`desc-item-${i}`);
-        const descInput = descRow ? descRow.querySelector('.item-desc') : null;
-        
-        itensData[i] = {
-            nome: nomeInput ? nomeInput.value : '',
-            espaco: espacoInput ? espacoInput.value : '',
-            descricao: descInput ? descInput.value : ''
-        };
-    });
-}
-
-// Salva dados das armas
-function salvarDadosArmas() {
-    const tbody = document.getElementById('armas-body');
-    const rows = tbody.querySelectorAll('.item-row');
-    armasData = [];
-    
-    rows.forEach((tr, i) => {
-        const nomeInput = tr.querySelector('.arma-name');
-        const espacoInput = tr.querySelector('.arma-space');
-        const danoInput = tr.querySelector('.arma-dano');
-        const descRow = document.getElementById(`desc-arma-${i}`);
-        const descInput = descRow ? descRow.querySelector('.arma-desc') : null;
-        
-        armasData[i] = {
-            nome: nomeInput ? nomeInput.value : '',
-            espaco: espacoInput ? espacoInput.value : '',
-            dano: danoInput ? danoInput.value : '',
-            descricao: descInput ? descInput.value : ''
-        };
-    });
-}
-
-// Escape HTML para evitar XSS
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// Calcula espaço total usado
-function calcularEspaco() {
-    const espacos = document.querySelectorAll('.item-space');
-    let total = 0;
-    
-    espacos.forEach(input => {
-        const valor = parseInt(input.value) || 0;
-        total += valor;
-    });
-    
-    const maxEspaco = parseInt(document.getElementById('space-max').value) || 10;
-    const displayEl = document.getElementById('space-current');
-    const statusEl = document.getElementById('space-status');
-    
-    displayEl.textContent = total;
-    
-    if (total > maxEspaco) {
-        displayEl.classList.add('over');
-        statusEl.textContent = `⚠️ +${total - maxEspaco} acima!`;
-        statusEl.style.color = '#ff4444';
-    } else {
-        displayEl.classList.remove('over');
-        statusEl.textContent = `✓ ${maxEspaco - total} livres`;
-        statusEl.style.color = '#88ff88';
-    }
-}
-
-// Listener para mudar carga máxima
-document.getElementById('space-max').addEventListener('input', gerarLinhasItens);
-
-// Inicialização
-gerarLinhasItens();
-gerarLinhasArmas();
-</script>
-
-<script>
-    // MANTÉM O USUÁRIO AO NAVEGAR
-    // Se eu sou a Trinity, clico no inventário e vou para inventario.html?nome=Trinity
-    const paramsURL = new URLSearchParams(window.location.search);
-    const nomeAtual = paramsURL.get('nome');
-
-    if (nomeAtual) {
-        document.querySelectorAll('a').forEach(link => {
-            const href = link.getAttribute('href');
-            // Se o link é interno e não tem ?nome ainda
-            if (href && !href.startsWith('http') && !href.includes('?')) {
-                link.setAttribute('href', `${href}?nome=${nomeAtual}`);
+            // ==========================================
+            // 2. FUNÇÕES DO MODAL (SIMPLIFICADAS)
+            // ==========================================
+            function abrirModalArma() { 
+                document.getElementById('modal-arma').classList.add('show'); 
             }
-        });
-    }
-</script>
+            
+            function fecharModalArma() { 
+                document.getElementById('modal-arma').classList.remove('show'); 
+            }
+
+            function toggleInputMunicao() {
+                const checkbox = document.getElementById('check-usa-municao');
+                const inputBalas = document.getElementById('new-balas');
+                
+                if (checkbox.checked) {
+                    inputBalas.disabled = false;
+                    inputBalas.style.opacity = "1";
+                    if(inputBalas.value == 0) inputBalas.value = 6; // Restaura um valor padrão se estiver zerado
+                } else {
+                    inputBalas.disabled = true;
+                    inputBalas.style.opacity = "0.3";
+                    inputBalas.value = 0; // Zera visualmente
+                }
+            }
+
+            // ==========================================
+            // ATUALIZAR A FUNÇÃO: CONFIRMAR NOVA ARMA
+            // ==========================================
+            async function confirmarNovaArma() {
+                const usaMunicao = document.getElementById('check-usa-municao').checked;
+                
+                // Se a checkbox estiver marcada, pega o valor do input. Se não, é 0.
+                const qtdBalas = usaMunicao ? (parseInt(document.getElementById('new-balas').value) || 0) : 0;
+
+                // Cria o objeto da arma
+                const novaArma = {
+                    nome: document.getElementById('new-nome').value || 'Arma Sem Nome',
+                    dano: parseInt(document.getElementById('new-dano').value) || 1,
+                    tipo: document.getElementById('new-tipo').value,
+                    balasMax: qtdBalas,
+                    balasAtual: qtdBalas, // Já começa carregada ou com 0 se não usar munição
+                    espaco: parseFloat(document.getElementById('new-espaco').value) || 1,
+                    descricao: document.getElementById('new-desc').value,
+                    equipado: false
+                };
+
+                // 1. Atualiza memória
+                armasData.push(novaArma);
+                
+                // 2. Fecha modal
+                fecharModalArma();
+                
+                // 3. Atualiza tela e salva
+                gerarTabelaArmas();
+                await salvarFicha();
+                
+                // 4. Limpa campos e reseta o checkbox
+                document.getElementById('new-nome').value = '';
+                document.getElementById('new-desc').value = '';
+                
+                // Reseta o estado da munição para o próximo uso
+                document.getElementById('check-usa-municao').checked = true;
+                toggleInputMunicao(); // Garante que o input volta a ficar habilitado
+            }
+
+            // ==========================================
+            // 3. RENDERIZAÇÃO
+            // ==========================================
+
+            function gerarLinhasItens() {
+                const maxEspaco = parseInt(document.getElementById('space-max').value) || 10;
+                const tbody = document.getElementById('items-body');
+                tbody.innerHTML = '';
+                
+                for(let i=0; i<maxEspaco; i++) {
+                    // Se não existir, cria objeto vazio na memória
+                    if(!itensData[i]) itensData[i] = { nome: '', espaco: 0, descricao: '' };
+                    const dados = itensData[i];
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'item-row';
+                    // Note o onchange chamando 'atualizarItem'
+                    tr.innerHTML = `
+                        <td class="col-expand"><button class="btn-expand" onclick="toggleDescricao(this, 'desc-item-${i}')">▼</button></td>
+                        <td><input type="text" value="${escapeHtml(dados.nome)}" placeholder="..." onchange="atualizarItem(${i}, 'nome', this.value)"></td>
+                        <td class="col-espaco"><input type="number" value="${dados.espaco}" step="0.5" onchange="atualizarItem(${i}, 'espaco', this.value)"></td>
+                    `;
+                    tbody.appendChild(tr);
+                    
+                    const trDesc = document.createElement('tr');
+                    trDesc.className = 'desc-row';
+                    trDesc.id = `desc-item-${i}`;
+                    trDesc.innerHTML = `<td colspan="3"><textarea placeholder="Descrição..." onchange="atualizarItem(${i}, 'descricao', this.value)">${escapeHtml(dados.descricao)}</textarea></td>`;
+                    tbody.appendChild(trDesc);
+                }
+                calcularCarga();
+            }
+
+            function gerarTabelaArmas() {
+                const tbody = document.getElementById('weapons-body');
+                tbody.innerHTML = '';
+
+                armasData.forEach((arma, index) => {
+                    const tr = document.createElement('tr');
+                    
+                    // Mantém o verde bem suave se estiver equipado
+                    const bg = arma.equipado ? 'rgba(46, 125, 50, 0.2)' : 'transparent';
+                    tr.style.background = bg;
+
+                    // Verifica munição
+                    const textoMunicao = arma.balasMax > 0 
+                        ? `(${arma.balasAtual}/${arma.balasMax} 💥)` 
+                        : '(Corpo-a-Corpo ⚔️)';
+
+                    tr.innerHTML = `
+                        <td colspan="2" style="padding:10px;">
+                            <div style="font-family:'Rye'; color:#2b1b12; font-size:1.3rem; text-shadow: 0px 0px 1px rgba(0,0,0,0.1);">
+                                ${escapeHtml(arma.nome)} 
+                                
+                                <span style="font-size:0.85rem; font-family:'Courier Prime'; color:#8d6e63; font-weight:bold;">
+                                    ${textoMunicao}
+                                </span>
+                            </div>
+
+                            <div style="font-size:0.9rem; color:#3e2723; margin-top:4px; font-weight: 600;">
+                                Dano: <b>${arma.dano}</b> [${arma.tipo}] | ${escapeHtml(arma.descricao)}
+                            </div>
+
+                            <button onclick="removerArma(${index})" style="font-size:0.75rem; color:#c62828; background:none; border:none; cursor:pointer; margin-top:8px; font-weight:bold;">[X] Descartar</button>
+                        </td>
+                        <td style="vertical-align:middle; text-align:center;">
+                            <button class="btn-equipar ${arma.equipado ? 'equipado' : ''}" onclick="toggleEquipar(${index})">
+                                ${arma.equipado ? 'EQUIPADO' : 'EQUIPAR'}
+                            </button>
+                            <div style="font-size:0.9rem; margin-top:5px; color:#3e2723; font-weight:bold;">${arma.espaco} KG</div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                calcularCarga();
+            }
+
+            // ==========================================
+            // 4. ATUALIZAÇÃO DE DADOS (Handlers)
+            // ==========================================
+
+            function atualizarItem(index, campo, valor) {
+                if(!itensData[index]) itensData[index] = {};
+                itensData[index][campo] = campo === 'espaco' ? parseFloat(valor) : valor;
+                calcularCarga();
+                salvarFicha();
+            }
+
+            function toggleEquipar(index) {
+                const arma = armasData[index];
+
+                // Se a arma já está equipada, apenas desequipa (sem restrição)
+                if (arma.equipado) {
+                    arma.equipado = false;
+                } else {
+                    // Se quer equipar, verifica quantas já estão equipadas
+                    const quantasEquipadas = armasData.filter(a => a.equipado).length;
+                    
+                    if (quantasEquipadas >= 2) {
+                        alert("⚠️ Você só tem duas mãos! Desequipe uma arma antes.");
+                        return; // Para a função aqui, não equipa
+                    }
+                    
+                    // Se passou na verificação, equipa
+                    arma.equipado = true;
+                }
+
+                // Atualiza a tela e salva
+                gerarTabelaArmas();
+                salvarFicha();
+            }
+
+            function removerArma(index) {
+                if(confirm('Tem certeza que quer jogar essa arma fora?')) {
+                    armasData.splice(index, 1);
+                    gerarTabelaArmas();
+                    salvarFicha();
+                }
+            }
+
+            // --- VARIÁVEIS GLOBAIS ---
+            let municaoData = { tipo: 'bandoleira', qtd: 0 };
+
+            // --- FUNÇÕES DE MUNIÇÃO ---
+            function atualizarLimiteBalas() {
+                const tipo = document.getElementById('ammo-type').value;
+                const input = document.getElementById('ammo-qtd');
+                
+                // Define limites baseados no tipo
+                let max = 12; // Padrão (Bandoleira)
+                if (tipo === 'cinturao') max = 24;
+                if (tipo === 'aljava') max = 10;
+
+                input.max = max;
+
+                // Se tiver mais munição do que cabe no novo recipiente, corta o excesso
+                // Ex: Tinha 24 balas, trocou pra Aljava, cai pra 10.
+                if(parseInt(input.value) > max) {
+                    input.value = max;
+                }
+                
+                // Atualiza visual
+                document.getElementById('ammo-display').innerText = input.value;
+                
+                // Muda o texto descritivo dependendo do tipo
+                const labelTexto = (tipo === 'aljava') ? 'FLECHAS NA ALJAVA' : 'BALAS NO CINTO';
+                // Acha a div logo abaixo do display para mudar o texto (opcional, mas fica legal)
+                document.getElementById('ammo-display').nextElementSibling.innerText = labelTexto;
+
+                // Atualiza dados globais
+                municaoData.tipo = tipo;
+                municaoData.qtd = parseInt(input.value);
+                
+                salvarFicha();
+            }
+
+            function salvarMunicao() {
+            const input = document.getElementById('ammo-qtd');
+            let val = parseInt(input.value);
+            const max = parseInt(input.max);
+
+            // Garante que não ultrapasse o limite
+            if(val > max) {
+                val = max;
+                input.value = max;
+            }
+            if(val < 0) {
+                val = 0;
+                input.value = 0;
+            }
+
+            document.getElementById('ammo-display').innerText = val;
+            municaoData.qtd = val;
+            salvarFicha();
+        }
+
+            function calcularCarga() {
+                let total = 0;
+                itensData.forEach(i => total += (parseFloat(i?.espaco) || 0));
+                armasData.forEach(a => total += (parseFloat(a.espaco) || 0));
+                
+                const max = parseInt(document.getElementById('space-max').value) || 10;
+                const el = document.getElementById('space-current');
+                el.innerText = total;
+                el.className = total > max ? 'space-display over' : 'space-display';
+            }
+
+            function toggleDescricao(btn, descRowId) {
+                const descRow = document.getElementById(descRowId);
+                descRow.classList.toggle('show');
+                btn.classList.toggle('expanded');
+                btn.textContent = descRow.classList.contains('show') ? '▲' : '▼';
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+            }
+
+            // ==========================================
+            // 5. SUPABASE (Salvar e Carregar)
+            // ==========================================
+
+            async function salvarFicha() {
+                const status = document.getElementById('status');
+                status.innerText = 'Salvando...';
+                
+                // 1. Pega dados atuais para não sobrescrever
+                const { data: current } = await client.from('Fichas').select('atributos').eq('nome_personagem', NOME_PERSONAGEM).single();
+                let payload = current ? current.atributos : {};
+                
+                // 2. Monta o objeto de inventário
+                payload.inventario = {
+                    items: itensData,
+                    weapons: armasData,
+                    maxLoad: document.getElementById('space-max').value,
+                    municao: municaoData
+                };
+
+                // 3. Envia
+                const { error } = await client.from('Fichas').update({ atributos: payload }).eq('nome_personagem', NOME_PERSONAGEM);
+                
+                if(!error) {
+                    status.innerText = '• Salvo •';
+                    setTimeout(() => status.innerText = '', 2000);
+                } else {
+                    console.error(error);
+                    status.innerText = 'Erro ao salvar!';
+                }
+            }
+
+            async function carregar() {
+                const status = document.getElementById('status');
+                status.innerText = 'Carregando...';
+                
+                const { data } = await client.from('Fichas').select('atributos').eq('nome_personagem', NOME_PERSONAGEM).single();
+
+                if (data && data.atributos && data.atributos.inventario) {
+                    const inv = data.atributos.inventario;
+                    itensData = inv.items || [];
+                    armasData = inv.weapons || []; // Garante que lê as armas do banco
+                    document.getElementById('space-max').value = inv.maxLoad || 10;
+                }
+
+                if (data.atributos.inventario.municao) {
+                    municaoData = data.atributos.inventario.municao;
+                    document.getElementById('ammo-type').value = municaoData.tipo;
+                    document.getElementById('ammo-qtd').value = municaoData.qtd;
+                    atualizarLimiteBalas(); // Para setar o max correto visualmente
+                }
+                
+                gerarLinhasItens();
+                gerarTabelaArmas();
+                status.innerText = 'Pronto';
+            }
+
+            // Inicialização
+            carregar();
+
+
+        // Realtime
+        client.channel('inv-room').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Fichas' }, 
+        (payload) => {
+            // Opcional: Atualizar se o mestre mudar algo
+        }).subscribe();
+
+    </script>
+
+    <script>
+        const paramsURL = new URLSearchParams(window.location.search);
+        const nomeAtual = paramsURL.get('nome');
+        if (nomeAtual) {
+            document.querySelectorAll('a').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && !href.startsWith('http') && !href.includes('?')) {
+                    link.setAttribute('href', `${href}?nome=${nomeAtual}`);
+                }
+            });
+        }
+    </script>
 
 </body>
 </html>

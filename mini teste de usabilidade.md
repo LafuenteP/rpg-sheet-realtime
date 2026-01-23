@@ -38,3 +38,6 @@
 - "O que você achou do visual 'Western'? Atrapalhou a leitura em algum momento?"
     
 - "Você sentiu confiança de que as coisas estavam sendo salvas automaticamente?"
+
+
+~~vai precisar de tutorial sobre roupa e comida~~, ~~no dano ter caveira ou dor~~, ~~faltando aumentar a vida do cavalo~~, ~~inventário sumiu,~~ ~~notificação do que ganha quando conclui a rendenção~~, ~~não sabe pra que servia o outros em habilidades~~, ~~todos os pontos de vida, teste contra a morte, vê o nível, balas, mecanica de xp dando xp pelo dashboard,~~ 

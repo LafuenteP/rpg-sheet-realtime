@@ -49,6 +49,9 @@
             // Remove o bloqueio
             document.documentElement.classList.remove('locked');
             document.getElementById('tela-senha').style.display = 'none';
+
+            setTimeout(verificarTutorial, 500);
+
         } else {
             erro.style.display = 'block';
             input.value = '';
@@ -98,6 +101,10 @@ body {
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
+}
+
+.painel-arma-equipada {
+    margin-left: auto;
 }
 
 /* ===== TELA DE SENHA ===== */
@@ -326,6 +333,10 @@ body.locked #status {
     border-bottom: 2px solid var(--ink);
     padding-bottom: 10px;
     font-size: clamp(0.8rem, 1.5vw, 1.2rem);
+     /* --- MUDANÇAS AQUI --- */
+    width: 85%;        /* Encurta a barra (100% seria total) */
+    margin-left: auto; /* Empurra ela para a direita */
+    /* --------------------- */
 }
 
 /* ===== ATRIBUTOS ===== */
@@ -545,6 +556,60 @@ body.locked #status {
 }
 
 .modal-condicao button:hover {
+    background: #6d5047;
+}
+
+/* modal de tutorial */
+
+.modal-tutor {
+    background: url("assets/tutor.png") no-repeat center;
+    background-size: cover;
+    padding: 40px 50px;
+    border: 4px solid #2b1b12;
+    box-shadow: 0 0 30px rgba(0,0,0,0.9);
+    text-align: center;
+    max-width: 500px;
+    transform: scale(0.8);
+    transition: transform 0.3s;
+}
+
+.modal-overlay.show .modal-tutor {
+    transform: scale(1);
+}
+
+.modal-tutor h2 {
+    font-family: 'Rye';
+    color: #8b0000;
+    margin: 0 0 10px 0;
+    font-size: 2.2rem;
+}
+
+.modal-tutor .condicao-nome {
+    font-family: 'Rye';
+    color: var(--ink);
+    font-size: 2rem;
+    margin: 15px 0;
+}
+
+.modal-tutor .condicao-efeito {
+    font-family: 'Courier Prime';
+    color: var(--ink);
+    font-size: 1.4rem;
+    line-height: 1.5;
+}
+
+.modal-tutor button {
+    margin-top: 20px;
+    padding: 12px 35px;
+    font-family: 'Rye';
+    font-size: 1.3rem;
+    border: none;
+    background: #5d4037;
+    color: #e6dccf;
+    cursor: pointer;
+}
+
+.modal-tutor button:hover {
     background: #6d5047;
 }
 
@@ -1076,6 +1141,43 @@ body.locked #status {
     transition: width 0.3s;
 }
 
+/* ESTILO DA BARRA DE NÍVEL */
+/* ESTILO DA BARRA DE NÍVEL (ATUALIZADO) */
+.level-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(43, 27, 18, 0.1);
+    border: 2px solid var(--ink);
+    padding: 5px 15px;
+    border-radius: 4px;
+    font-family: 'Rye';
+    color: var(--ink);
+    margin-bottom: -10px;
+    
+    /* --- MUDANÇAS AQUI --- */
+    width: 85%;        /* Encurta a barra (100% seria total) */
+    margin-left: auto; /* Empurra ela para a direita */
+    /* --------------------- */
+}
+
+.xp-bar-container {
+    flex-grow: 1;
+    margin: 0 15px;
+    background: rgba(0,0,0,0.2);
+    height: 10px;
+    border-radius: 5px;
+    position: relative;
+    overflow: hidden;
+}
+
+.xp-bar-fill {
+    background: var(--ink);
+    height: 100%;
+    width: 0%;
+    transition: width 0.5s ease-in-out;
+}
+
 /* =========================================
    RESPONSIVIDADE MOBILE
    ========================================= */
@@ -1359,13 +1461,22 @@ body.locked #status {
     }
 }
 
+/* Estilo Especial para Redenção Completa */
+.modal-redencao-full {
+    background: url("assets/redenconc.jpg") center/cover !important; /* Fundo de papel */
+    border: 4px solid #ffcc80 !important; /* Borda Dourada */
+    box-shadow: 0 0 50px rgba(255, 204, 128, 0.5) !important;
+}
+.modal-redencao-full h2 { color: #8b6914 !important; text-shadow: 1px 1px 0 #fff; }
+.modal-redencao-full .condicao-efeito { color: #2b1b12 !important; font-weight: bold; white-space: pre-line; }
+
 </style>
 </head>
 
 <body>
 
 <div id="tela-senha">
-    <div style="background:url('assets/paper-bg.jpg'); padding:40px; border:4px solid #2b1b12; text-align:center; max-width:400px; border-radius:8px;">
+    <div style="background:url('assets/locked.jpg') center center/contain no-repeat, #1a1411; padding:40px; border:5px solid #2b1b12; text-align:center; max-width:400px; border-radius:8px;">
         <h2 style="font-family:'Rye'; margin-top:0;">🔒 ACESSO RESTRITO</h2>
         <p style="font-family:'Courier Prime';">Ficha de <b id="nome-lock">Personagem</b></p>
         
@@ -1416,6 +1527,16 @@ body.locked #status {
 
         <div class="wanted-strip">WANTED — DEAD OR ALIVE</div>
 
+        <div class="level-strip">
+            <span id="level-display">NÍVEL 1</span>
+            
+            <div class="xp-bar-container">
+                <div class="xp-bar-fill" id="xp-fill"></div>
+            </div>
+            
+            <span id="xp-text" style="font-size: 0.9rem;">0 / 10 XP</span>
+        </div>
+
         <div class="attributes">
             <div class="attribute-card">
                 <label>FOR</label>
@@ -1462,6 +1583,8 @@ body.locked #status {
                 <input id="combate" type="number" min="0" value="1" readonly>
             </div>
 
+
+            
             <div class="antecedentes-section">
                 <h3>ANTECEDENTES:</h3>
                 <div class="skills-grid">
@@ -1502,6 +1625,9 @@ body.locked #status {
             </div>
         </div>
 
+        <div id="painel-armas" style="margin-top:20px; display:flex; flex-direction:column; gap:10px;">
+            </div>
+
         <div class="anotacoes-box">
             <h4>ANOTAÇÕES:</h4>
             <textarea id="anotacoes" placeholder="Escreva suas anotações aqui..."></textarea>
@@ -1513,10 +1639,51 @@ body.locked #status {
 <!-- Modal de Condição -->
 <div class="modal-overlay" id="modal-condicao">
     <div class="modal-condicao">
-        <h2>⚠ FERIMENTO! ⚠</h2>
+        <h2>⚠ ATENÇÃO! ⚠</h2>
         <div class="condicao-nome" id="condicao-nome"></div>
         <div class="condicao-efeito" id="condicao-efeito"></div>
         <button onclick="fecharModal()">Entendido</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-levelup">
+    <div class="modal-condicao" style="border: 4px solid #ffd700; background: url('assets/redenconc.jpg') center/cover; box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);">
+        <h2 style="color: #b8860b; font-size: 2.2rem; text-shadow: 1px 1px 0 #000;">🌟 SUBIU DE NÍVEL! 🌟</h2>
+        
+        <div style="font-family: 'Rye'; font-size: 1.8rem; color: #2b1b12; margin: 10px 0;">
+            Agora você é Nível <span id="lvl-novo-numero" style="font-size:2.5rem; color:#b8860b;">2</span>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="font-family:'Rye'; margin-top:0; color:#2b1b12;">RECOMPENSAS:</p>
+            <div id="lvl-recompensas" style="font-family:'Courier Prime'; font-size: 1.2rem; color: #2b1b12; white-space: pre-line; font-weight:bold; line-height: 1.6;">
+                </div>
+        </div>
+
+        <button onclick="fecharLevelUp()" style="background: #b8860b; color: #fff; border: 2px solid #8b6508; width: 100%;">
+            REIVINDICAR
+        </button>
+    </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-morte">
+    <div class="modal-condicao" style="background: #000; border: 4px solid #8b0000;">
+        <h2 style="color: #ff0000; font-size: 2.2rem; text-shadow: 0 0 10px #8b0000;">💀 MORTE! 💀</h2>
+        
+        <div class="condicao-efeito" style="color: #ccc; font-size: 1.3rem; margin: 20px 0;">
+            Você marcou sua última caveira.<br>
+            <b style="color:#fff;">Role um teste de vida no Discord!</b>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
+            <button onclick="morteFalha()" style="background: #b71c1c; border: 2px solid #ff0000; color: #fff;">
+                FALHA ✝
+            </button>
+            <button onclick="morteSucesso()" style="background: #2e7d32; border: 2px solid #4caf50; color: #fff;">
+                SUCESSO ❤
+            </button>
+        </div>
     </div>
 </div>
 
@@ -1611,11 +1778,56 @@ body.locked #status {
     </div>
 </div>
 
+<div class="modal-overlay" id="modal-tutorial">
+    <div class="modal-tutor" style="max-width: 550px;">
+        <h2 id="tut-titulo" style="color:var(--ink); margin-bottom:15px;">BEM-VINDO AO OESTE</h2>
+        
+        <div id="tut-conteudo" style="font-family:'Courier Prime'; font-size:1.1rem; text-align:left; min-height:120px; line-height:1.4;">
+            </div>
+
+        <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #5d4037; padding-top:15px;">
+            <button onclick="pularTutorial()" style="background:transparent; border:none; color:#5d4037; font-family:'Courier Prime'; font-size:0.9rem; text-decoration:underline; padding:0;">
+                Pular Tutorial
+            </button>
+            
+            <div style="font-family:'Rye'; color:#888; font-size:0.9rem;">
+                <span id="tut-passo">1</span>/3
+            </div>
+
+            <button id="btn-prox-tut" onclick="proximoPasso()" style="margin-top:0; padding:8px 20px; font-size:1rem;">
+                Próximo ➔
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="status" class="status-indicator"></div>
 
 <script>
 // Variáveis Globais
-let dadosLocais = { vida: 0, dor: 0 };
+let dadosLocais = { vida: 0, dor: 0, xp: 0 };
+
+const TABELA_NIVEL = [
+    { nivel: 1, xp: 0 },
+    { nivel: 2, xp: 10 },
+    { nivel: 3, xp: 20 },
+    { nivel: 4, xp: 30 },
+    { nivel: 5, xp: 45 },
+    { nivel: 6, xp: 65 }
+];
+
+// TABELA DE RECOMPENSAS POR NÍVEL
+const RECOMPENSAS_NIVEL = {
+    2: "• +1 Vida para cada ponto em Físico (min. 1)\n• +1 Ponto de Antecedente\n• +1 Habilidade",
+    3: "• +1 Ponto de Atributo\n• +1 Habilidade",
+    4: "• +1 Vida para cada ponto em Físico (min. 1)\n• +1 Ponto de Atributo\n• +1 Habilidade",
+    5: "• +1 Vida para cada ponto em Físico (min. 1)\n• +1 Ponto de Atributo",
+    6: "• +3 Vida\n• +1 Ponto de Atributo\n• +1 Habilidade"
+};
+
+// Variável para evitar popup assim que abre a ficha
+let primeiraCarga = true;
+
 const CONDICOES = [
     { nome: 'Atordoamento', efeito: '-1 Ação de Combate na próxima rodada.' },
     { nome: 'Queda', efeito: 'Gaste um Movimento para se levantar.' },
@@ -1644,9 +1856,17 @@ function gerarCaveirasVida() {
         img.src = 'assets/skull.png';
         img.onclick = () => {
             const novoValor = i + 1;
+            // Lógica padrão de marcar/desmarcar
             dadosLocais.vida = (dadosLocais.vida === novoValor) ? 0 : novoValor;
+            
             atualizarVisual();
             salvarFicha();
+
+            // --- CÓDIGO NOVO: CHECK DE MORTE ---
+            // Se a vida marcada for igual ou maior que o total, abre o modal
+            if (dadosLocais.vida >= totalVida) {
+                document.getElementById('modal-morte').classList.add('show');
+            }
         };
         vidaTrack.appendChild(img);
     }
@@ -1661,6 +1881,39 @@ function atualizarAcoes() {
     document.getElementById('combate').value = 1 + cor;
 }
 
+function atualizarXPVisual() {
+    const xpAtual = dadosLocais.xp || 0;
+    let nivelAtual = 1;
+    let proxNivelXP = 10;
+    let xpBaseNivel = 0;
+
+    // Calcula em que nível o personagem está
+    for (let i = 0; i < TABELA_NIVEL.length; i++) {
+        if (xpAtual >= TABELA_NIVEL[i].xp) {
+            nivelAtual = TABELA_NIVEL[i].nivel;
+            xpBaseNivel = TABELA_NIVEL[i].xp;
+            
+            // Define o próximo alvo (se houver)
+            if (i < TABELA_NIVEL.length - 1) {
+                proxNivelXP = TABELA_NIVEL[i+1].xp;
+            } else {
+                proxNivelXP = xpAtual; // Nível máximo atingido
+            }
+        }
+    }
+
+    // Calcula a porcentagem da barra (apenas o progresso do nível atual)
+    const range = proxNivelXP - xpBaseNivel;
+    const progresso = xpAtual - xpBaseNivel;
+    // Evita divisão por zero no nível máximo
+    const pct = range > 0 ? (progresso / range) * 100 : 100;
+
+    // Atualiza o HTML
+    document.getElementById('level-display').innerText = `NÍVEL ${nivelAtual}`;
+    document.getElementById('xp-text').innerText = `${xpAtual} / ${proxNivelXP} XP`;
+    document.getElementById('xp-fill').style.width = `${pct}%`;
+}
+
 function atualizarVisual() {
     document.querySelectorAll('.vida-track img').forEach((s, i) => {
         s.classList.toggle('active', i < dadosLocais.vida);
@@ -1668,6 +1921,8 @@ function atualizarVisual() {
     document.querySelectorAll('.dor-track img').forEach((f, i) => {
         f.classList.toggle('active', i < dadosLocais.dor);
     });
+
+    atualizarXPVisual();
 }
 
 // 2. FUNÇÕES DE SUPABASE
@@ -1684,23 +1939,36 @@ async function buscarDados() {
     else if (error) console.error(error);
 }
 
-// PREENCHER TELA
+// PREENCHER TELA (ATUALIZADA)
 function preencherTela(attr) {
     if (!attr) return;
 
+    // === NOVO: CHECK DE LEVEL UP ===
+    const xpNovo = attr.xp || 0;
+    const xpAntigo = dadosLocais.xp || 0;
+
+    // Se o XP aumentou E não é a primeira vez que abrimos a página
+    if (xpNovo > xpAntigo && !primeiraCarga) {
+        const nivelAntigo = calcularNivel(xpAntigo);
+        const nivelNovo = calcularNivel(xpNovo);
+
+        // Se mudou de nível (ex: 1 para 2)
+        if (nivelNovo > nivelAntigo) {
+            document.getElementById('lvl-novo-numero').innerText = nivelNovo;
+            document.getElementById('lvl-recompensas').innerText = RECOMPENSAS_NIVEL[nivelNovo] || "Recompensas não listadas.";
+            document.getElementById('modal-levelup').classList.add('show');
+        }
+    }
+    primeiraCarga = false; // Marca que já carregou
+    // ===============================
+
     // === NOVO CÓDIGO DA FOTO ===
     const imgEl = document.getElementById('char-photo');
-    
-    // Prioridade 1: Link salvo no banco pelo Mestre
     if (attr.fotoUrl) {
         imgEl.src = attr.fotoUrl;
-    } 
-    // Prioridade 2: Tenta achar arquivo local com o nome (ex: assets/Neo.png)
-    else {
-        // Usa o NOME_PERSONAGEM que vem do config.js
+    } else {
         imgEl.src = `assets/${NOME_PERSONAGEM}.png`;
     }
-    // ===========================
 
     // Atributos Básicos
     document.getElementById('forca').value = attr.for || 0;
@@ -1711,8 +1979,9 @@ function preencherTela(attr) {
     // Vitais
     dadosLocais.vida = attr.vida || 0;
     dadosLocais.dor = attr.dor || 0;
+    dadosLocais.xp = attr.xp || 0; // Atualiza o XP local
 
-    // Antecedentes (Verifica se existe o objeto, se não põe 0)
+    // Antecedentes
     const ant = attr.antecedentes || {};
     document.getElementById('atencao').value = ant.atencao || 0;
     document.getElementById('medicina').value = ant.medicina || 0;
@@ -1733,21 +2002,53 @@ function preencherTela(attr) {
         atualizarBotaoRecursos();
     }
     
-    // Vestimentas
-    if (attr.vestimentas) {
-        vestimentasData = attr.vestimentas;
-    }
-    
-    // Redenção
-    if (attr.redencao) {
-        redencaoData = attr.redencao;
-    }
+    // Vestimentas e Redenção
+    if (attr.vestimentas) vestimentasData = attr.vestimentas;
+    if (attr.redencao) redencaoData = attr.redencao;
 
     // Atualiza lógica derivada
     gerarCaveirasVida();
     atualizarAcoes();
-    atualizarVisual();
-    
+    atualizarVisual(); 
+
+    // ATUALIZAÇÃO: RENDERIZAR ARMAS EQUIPADAS
+    const containerArmas = document.getElementById('painel-armas');
+    if(containerArmas) {
+        containerArmas.innerHTML = '';
+        if (attr.inventario && attr.inventario.weapons) {
+            const armasEquipadas = attr.inventario.weapons.filter(w => w.equipado);
+            armasEquipadas.forEach((arma) => {
+                const indexReal = attr.inventario.weapons.indexOf(arma);
+                const temMunicao = arma.balasMax > 0;
+                const div = document.createElement('div');
+                div.className = "painel-arma-equipada";
+                div.style.cssText = "background: rgba(43,27,18,0.92); padding: 2px 6px; border: 2px solid #ffcc80; border-radius: 8px; display: flex; justify-content: space-between; align-items: flex-start; color: #fff; gap: 6px; max-width: 750px; width: 100%; min-width: 0; box-sizing: border-box;";
+                
+                let painelDireito = '';
+                if (temMunicao) {
+                    painelDireito = `
+                        <div style="text-align:right; min-width:70px;">
+                            <div style="font-family:'Courier Prime'; font-size:0.92rem; margin-bottom:2px; line-height:1.1;">${arma.balasAtual} / ${arma.balasMax} 💥</div>
+                            <button onclick="darTiro(${indexReal})" style="background:#8b0000; color:#fff; border:2px solid #000; padding:2px 7px; font-family:'Rye'; cursor:pointer; font-size:0.85rem; border-radius:5px; line-height:1.1;">ATIRAR!</button>
+                            <button onclick="recarregar(${indexReal})" style="font-size:0.7rem; background:none; border:none; color:#ffcc80; cursor:pointer; text-decoration:underline; display:block; width:100%; margin-top:2px; line-height:1.1;">Recarregar</button>
+                        </div>`;
+                } else {
+                    painelDireito = `
+                        <div style="text-align:right; min-width:60px;">
+                            <div style="font-size:1.1rem; margin-bottom:2px; line-height:1.1;">⚔️</div>
+                            <button style="background:#5d4037; color:#fff; border:2px solid #000; padding:2px 7px; font-family:'Rye'; cursor:default; font-size:0.85rem; line-height:1.1;">ATACAR</button>
+                        </div>`;
+                }
+
+                div.innerHTML = `
+                    <div style="min-width:0;">
+                        <div style="font-family:'Rye'; font-size:0.92rem; color:#ffcc80; word-break:break-word; line-height:1.1;">${arma.nome}</div>
+                        <div style="font-size:0.75rem; font-family:'Courier Prime'; color:#ccc; word-break:break-word; line-height:1.1;">Dano: ${arma.dano} <br><i>${arma.descricao}</i></div>
+                    </div>${painelDireito}`;
+                containerArmas.appendChild(div);
+            });
+        }
+    }
     statusMsg('• Sincronizado •');
 }
 
@@ -1762,6 +2063,8 @@ async function salvarFicha() {
         cor: val('cor'),
         vida: dadosLocais.vida,
         dor: dadosLocais.dor,
+        xp: dadosLocais.xp,
+
         // Agrupando Antecedentes
         antecedentes: {
             atencao: val('atencao'),
@@ -1804,6 +2107,8 @@ async function salvarFicha() {
         console.error(error);
     }
 }
+
+
 
 // 3. AUTO-SAVE
 function setupAutoSave() {
@@ -1868,8 +2173,16 @@ function sortearCondicao() {
     document.getElementById('condicao-efeito').innerText = condicao.efeito;
     document.getElementById('modal-condicao').classList.add('show');
 }
+
+// ATUALIZE SUA FUNÇÃO fecharModal PARA ESTA:
 function fecharModal() {
-    document.getElementById('modal-condicao').classList.remove('show');
+    const modal = document.getElementById('modal-condicao');
+    modal.classList.remove('show');
+    
+    // Remove o estilo dourado (limpeza) para não bugar os próximos avisos normais
+    setTimeout(() => {
+        modal.querySelector('.modal-condicao').classList.remove('modal-redencao-full');
+    }, 300);
 }
 
 // 4. REALTIME
@@ -2157,6 +2470,32 @@ function togglePasso(index) {
     redencaoData.passosCompletos[index] = !redencaoData.passosCompletos[index];
     atualizarPopupRedencao();
     salvarFicha();
+    
+    // --- NOVO: VERIFICA SE COMPLETOU OS 6 PASSOS ---
+    const totalCompletos = redencaoData.passosCompletos.filter(p => p).length;
+    
+    if (totalCompletos === 6) {
+        // Fecha o popup da lista para mostrar o parabéns limpo
+        fecharPopupRedencao(); 
+        
+        // Mensagem com quebras de linha (\n)
+        const recompensas = "Você concluiu sua jornada.\n\nVOCÊ GANHOU:\n★ +1 Habilidade\n★ +2 de Vida\n★ Pode tirar uma carta a mais na Iniciativa e escolher a melhor.";
+        
+        mostrarModalRedencao("REDENÇÃO ALCANÇADA!", recompensas);
+    }
+}
+
+// Função específica para abrir o modal com estilo dourado
+function mostrarModalRedencao(titulo, mensagem) {
+    const modal = document.getElementById('modal-condicao');
+    const content = modal.querySelector('.modal-condicao');
+    
+    // Adiciona a classe de estilo dourado
+    content.classList.add('modal-redencao-full');
+    
+    document.getElementById('condicao-nome').innerText = titulo;
+    document.getElementById('condicao-efeito').innerText = mensagem;
+    modal.classList.add('show');
 }
 
 function atualizarProgressoRedencao() {
@@ -2168,12 +2507,228 @@ function atualizarProgressoRedencao() {
     document.getElementById('progresso-fill').style.width = `${porcentagem}%`;
 }
 
+// ========================================================
+// SISTEMA DE TIRO E RECARGA (INTEGRADO COM O INVENTÁRIO)
+// ========================================================
+
+// Função genérica para avisos (Usa o modal de condição que já existe)
+function mostrarModalAviso(titulo, mensagem) {
+    const modal = document.getElementById('modal-condicao');
+    if (!modal) return;
+    
+    document.getElementById('condicao-nome').innerText = titulo;
+    document.getElementById('condicao-efeito').innerText = mensagem;
+    modal.classList.add('show');
+}
+
+async function darTiro(indexArma) {
+    // Busca dados atualizados
+    const { data } = await client.from('Fichas').select('atributos').eq('nome_personagem', NOME_PERSONAGEM).single();
+    
+    if (data && data.atributos && data.atributos.inventario) {
+        let weapons = data.atributos.inventario.weapons;
+        
+        if (weapons[indexArma].balasAtual > 0) {
+            // TEM BALA: ATIRA
+            weapons[indexArma].balasAtual -= 1;
+            
+            const payload = { ...data.atributos };
+            payload.inventario.weapons = weapons;
+            
+            // Salva e Atualiza a tela
+            await client.from('Fichas').update({ atributos: payload }).eq('nome_personagem', NOME_PERSONAGEM);
+            preencherTela(payload);
+        } else {
+            // SEM BALA NA ARMA
+            mostrarModalAviso('⚠ CLIQUE SECO!', 'Sua arma está vazia. Você precisa recarregar.');
+        }
+    }
+}
+
+async function recarregar(indexArma) {
+    // 1. Busca dados do banco para garantir que temos o inventário atualizado
+    const { data } = await client.from('Fichas').select('atributos').eq('nome_personagem', NOME_PERSONAGEM).single();
+    
+    if (data) {
+        let inv = data.atributos.inventario;
+        let weapons = inv.weapons;
+        
+        // Pega a munição do inventário (ou cria zerada se não existir pra não dar erro)
+        let municao = inv.municao || { tipo: 'bandoleira', qtd: 0 }; 
+
+        const arma = weapons[indexArma];
+        const balasFaltando = arma.balasMax - arma.balasAtual;
+
+        // CASO 1: A arma já está cheia?
+        if (balasFaltando <= 0) {
+            mostrarModalAviso('⚠ ARMA CHEIA', 'Essa arma já está totalmente carregada.');
+            return;
+        }
+
+        // CASO 2: Tem balas no cinto/bandoleira?
+        if (municao.qtd <= 0) {
+            mostrarModalAviso('⚠ CINTURÃO VAZIO!', 'Você não tem mais balas no seu inventário.');
+            return;
+        }
+
+        // CASO 3: Recarga (Matemática)
+        // Recarrega o que falta OU o que tem disponível (o que for menor)
+        const quantidadeRecarga = Math.min(balasFaltando, municao.qtd);
+
+        // Enche a arma
+        weapons[indexArma].balasAtual += quantidadeRecarga;
+        
+        // Esvazia o cinto
+        municao.qtd -= quantidadeRecarga;
+
+        // Monta o pacote pra salvar
+        const payload = { ...data.atributos };
+        payload.inventario.weapons = weapons;
+        payload.inventario.municao = municao; // Salva a nova quantidade do cinto
+        
+        // Envia pro Supabase
+        await client.from('Fichas').update({ atributos: payload }).eq('nome_personagem', NOME_PERSONAGEM);
+        
+        // Feedback
+        statusMsg(`Recarregou ${quantidadeRecarga} balas`);
+        preencherTela(payload);
+    }
+}
+
+
+// ========================================================
+// SISTEMA DE TUTORIAL (ONBOARDING)
+// ========================================================
+
+const passosTutorial = [
+    {
+        titulo: "SUA FICHA DIGITAL",
+        texto: `Esta é a sua ferramenta de sobrevivência. Todos os dados (Vida, Atributos, Munição) são <b>salvos automaticamente</b> assim que você os altera.<br><br>Não se preocupe em perder seu progresso.`
+    },
+    {
+        titulo: "SOBREVIVÊNCIA & REDENÇÃO",
+        texto: `No canto inferior direito, use os botões flutuantes:<br><br>
+        🍖 <b>Recursos:</b> Gerencie sua fome e gaste rações.<br>
+        👔 <b>Vestimentas:</b> Cuide do estado das suas roupas.<br>
+        ⛪ <b>Redenção:</b> Acompanhe sua missão pessoal.`
+    },
+    {
+        titulo: "COMBATE E MUNIÇÃO",
+        texto: `Suas armas aparecem na lista. <br><br>
+        🔴 <b>ATIRAR:</b> Clique no botão vermelho. A bala é descontada automaticamente.<br>
+        🔄 <b>RECARREGAR:</b> Se a arma esvaziar, clique em Recarregar. O sistema buscará munição direto do seu <b>Inventário</b> (Cinto, Bandoleira ou Aljava).`
+    }
+];
+
+let passoAtual = 0;
+
+// Verifica se o usuário já viu o tutorial para esse personagem
+function verificarTutorial() {
+    const viuTutorial = localStorage.getItem(`tutorial_visto_${NOME_PERSONAGEM}`);
+    
+    if (!viuTutorial) {
+        passoAtual = 0;
+        atualizarModalTutorial();
+        document.getElementById('modal-tutorial').classList.add('show');
+    }
+}
+
+function atualizarModalTutorial() {
+    const dados = passosTutorial[passoAtual];
+    document.getElementById('tut-titulo').innerText = dados.titulo;
+    document.getElementById('tut-conteudo').innerHTML = dados.texto;
+    document.getElementById('tut-passo').innerText = passoAtual + 1;
+
+    // Muda o texto do botão no último passo
+    const btn = document.getElementById('btn-prox-tut');
+    if (passoAtual === passosTutorial.length - 1) {
+        btn.innerText = "Entendido (Fechar)";
+        btn.onclick = fecharTutorialCompleto;
+    } else {
+        btn.innerText = "Próximo ➔";
+        btn.onclick = proximoPasso;
+    }
+}
+
+function proximoPasso() {
+    if (passoAtual < passosTutorial.length - 1) {
+        passoAtual++;
+        atualizarModalTutorial();
+    }
+}
+
+function fecharTutorialCompleto() {
+    // Marca que o usuário já viu
+    localStorage.setItem(`tutorial_visto_${NOME_PERSONAGEM}`, 'true');
+    document.getElementById('modal-tutorial').classList.remove('show');
+}
+
+function pularTutorial() {
+    // Marca como visto também pra não encher o saco depois
+    if(confirm("Tem certeza? O tutorial explica como recarregar as armas.")) {
+        fecharTutorialCompleto();
+    }
+}
+
+// FUNÇÕES DE MORTE
+function morteSucesso() {
+    // Se tiver sucesso, removemos 1 de dano para o personagem não ficar "marcado como morto" na ficha
+    if(dadosLocais.vida > 0) dadosLocais.vida -= 1;
+    
+    atualizarVisual();
+    salvarFicha();
+    
+    // Fecha o modal de morte e mostra um aviso
+    document.getElementById('modal-morte').classList.remove('show');
+    mostrarModalAviso("SOBREVIVEU", "Você estabilizou por pouco. Cuidado.");
+}
+
+function morteFalha() {
+    document.getElementById('modal-morte').classList.remove('show');
+    // Aqui apenas avisamos. Se quiser, podemos adicionar lógica para "travar" a ficha depois.
+    mostrarModalAviso("FIM DA LINHA", "Seu personagem sucumbiu aos ferimentos.");
+}
+
+
+// --- FUNÇÕES DE NÍVEL E POPUP ---
+
+// Calcula nível baseado no XP (Reutilizando a constante TABELA_NIVEL que você já tem)
+function calcularNivel(xp) {
+    let nivel = 1;
+    for (let i = 0; i < TABELA_NIVEL.length; i++) {
+        if (xp >= TABELA_NIVEL[i].xp) {
+            nivel = TABELA_NIVEL[i].nivel;
+        }
+    }
+    return nivel;
+}
+
+function abrirModalLevelUp(novoNivel) {
+    const textoRecompensa = RECOMPENSAS_NIVEL[novoNivel] || "Parabéns pela sobrevivência.";
+    
+    document.getElementById('lvl-novo-numero').innerText = novoNivel;
+    document.getElementById('lvl-recompensas').innerText = textoRecompensa;
+    
+    document.getElementById('modal-levelup').classList.add('show');
+    
+    // Efeito sonoro opcional (se quiser)
+    // const audio = new Audio('assets/levelup.mp3'); audio.play();
+}
+
+function fecharLevelUp() {
+    document.getElementById('modal-levelup').classList.remove('show');
+}
+
 // INICIALIZAÇÃO
 setupAutoSave();
 buscarDados();
 
 // Atualiza o nome no banner
 document.getElementById('nome-personagem-texto').textContent = NOME_PERSONAGEM;
+
+if (!document.documentElement.classList.contains('locked')) {
+    setTimeout(verificarTutorial, 1000); // Espera 1seg pra carregar o layout antes de mostrar
+}
 
 </script>
 

@@ -344,6 +344,7 @@
             flex-shrink: 0;
         }
         
+
         .fid-desc { font-size: 0.9rem; line-height: 1.2; }
 
         /* Item Ativo (Selecionado) */
@@ -398,12 +399,57 @@
 
         #status { text-align: center; margin-top: 20px; opacity: 0.6; }
 
+
+
+        /* =========================================
+           CORREÇÃO DE VISIBILIDADE (CONTRASTE)
+           ========================================= */
+        
+        /* 1. Borda clara ao redor de todos os textos escuros */
+        .mount-sheet h1, 
+        .mount-sheet label, 
+        .stat-label, 
+        .track-section h3, 
+        .stat-input,
+        .title-block span {
+            text-shadow: 
+                2px 0 0 #e6dccf, 
+                -2px 0 0 #e6dccf, 
+                0 2px 0 #e6dccf, 
+                0 -2px 0 #e6dccf, 
+                1px 1px 0 #e6dccf, 
+                -1px -1px 0 #e6dccf, 
+                1px -1px 0 #e6dccf, 
+                -1px 1px 0 #e6dccf;
+            /* Isso cria um contorno cor de papel grosso ao redor da tinta preta */
+        }
+
+        /* 2. Borda clara ao redor das Caveiras e Punhos */
+        .track-row img {
+            /* Drop-shadow age como um contorno para imagens PNG transparentes */
+            filter: drop-shadow(0 0 1px #e6dccf) drop-shadow(0 0 2px #fff);
+        }
+
+        /* 3. Fundo mais sólido nas caixas de atributos */
+        .stat-box, .track-section {
+            background: rgba(230, 220, 207, 0.75); /* Cor de papel com 75% de opacidade */
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); /* Sombra para destacar do fundo */
+        }
+
+        /* 4. Ajuste na cor do input de nome para garantir leitura */
+        #nome-montaria {
+            background: rgba(230, 220, 207, 0.6);
+            padding: 0 5px;
+        }
+
     </style>
 </head>
 <body>
 
     <div id="tela-senha">
-        <div style="background:url('assets/paper-bg.jpg'); padding:40px; border:4px solid #2b1b12; text-align:center; max-width:400px; border-radius:8px;">
+        <div style="background:url('assets/locked.jpg') center center/contain no-repeat, #1a1411; padding:40px; border:5px solid #2b1b12; text-align:center; max-width:400px; border-radius:8px;">
             <h2 style="font-family:'Rye'; margin-top:0;">🔒 ACESSO RESTRITO</h2>
             <p style="font-family:'Courier Prime';">Ficha de <b id="nome-lock">Personagem</b></p>
             
@@ -509,12 +555,12 @@
         <div id="status">Sincronizando...</div>
     </div>
 
-    <script>
+<script>
         // CONFIG GLOBAL DO config.js É CARREGADA AUTOMATICAMENTE
         
         let montariaData = {
             nome: '',
-            foto: '', // URL da foto
+            foto: '', 
             potencia: 0,
             resistencia: 0,
             dor: 0,
@@ -522,7 +568,6 @@
             fidelidade: 0
         };
 
-        // Cache do objeto completo do banco
         let atributosCompletos = {};
 
         // 1. CARREGAR
@@ -536,7 +581,6 @@
             if (data) {
                 atributosCompletos = data.atributos || {};
                 
-                // Se já existir dados de montaria, usa. Se não, usa o padrão.
                 if(atributosCompletos.montaria) {
                     montariaData = { ...montariaData, ...atributosCompletos.montaria };
                 }
@@ -545,20 +589,28 @@
             }
         }
 
-        // 2. ATUALIZAR TELA
+        // 2. ATUALIZAR TELA (AQUI ESTÁ A MUDANÇA)
         function atualizarTela() {
             // Inputs Texto/Num
             document.getElementById('nome-montaria').value = montariaData.nome;
             document.getElementById('potencia').value = montariaData.potencia;
             document.getElementById('resistencia').value = montariaData.resistencia;
             
-            // Foto (Se tiver URL, usa. Se não, usa default)
+            // Foto
             const imgEl = document.getElementById('foto-montaria');
             if(montariaData.foto) imgEl.src = montariaData.foto;
             
+            // --- MUDANÇA: CÁLCULO DINÂMICO DA VIDA ---
+            // Base 6 + Valor da Resistência
+            const baseVida = 6;
+            const bonusResistencia = parseInt(montariaData.resistencia) || 0;
+            const maxVida = baseVida + bonusResistencia;
+
             // Renderiza Tracks
             renderTracks('track-dor', 6, montariaData.dor, 'dor', 'assets/fist.png');
-            renderTracks('track-vida', 6, montariaData.vida, 'vida', 'assets/skull.png');
+            
+            // Usa a variável maxVida aqui no lugar do 6 fixo
+            renderTracks('track-vida', maxVida, montariaData.vida, 'vida', 'assets/skull.png');
 
             // Renderiza Fidelidade
             const lista = document.querySelectorAll('.fidelity-item');
@@ -576,7 +628,7 @@
             for(let i = 0; i < max; i++) {
                 const img = document.createElement('img');
                 img.src = iconSrc;
-                img.onerror = function() { this.src = 'assets/skull.png'; }; // Fallback
+                img.onerror = function() { this.src = 'assets/skull.png'; }; 
                 
                 if(i < atual) img.classList.add('active');
                 
@@ -607,14 +659,16 @@
         async function salvar() {
             // Atualiza objeto local com inputs
             montariaData.nome = document.getElementById('nome-montaria').value;
-            montariaData.potencia = parseInt(document.getElementById('potencia').value);
-            montariaData.resistencia = parseInt(document.getElementById('resistencia').value);
+            montariaData.potencia = parseInt(document.getElementById('potencia').value) || 0;
+            
+            // Garante que a resistência seja salva como número para o cálculo funcionar
+            montariaData.resistencia = parseInt(document.getElementById('resistencia').value) || 0;
 
-            // Atualiza o visual imediatamente
+            // Atualiza o visual imediatamente (Para as bolinhas aparecerem na hora)
             atualizarTela();
+            
             document.getElementById('status').innerText = 'Salvando...';
 
-            // Prepara para enviar
             atributosCompletos.montaria = montariaData;
 
             const { error } = await client

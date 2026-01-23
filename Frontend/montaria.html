@@ -7,6 +7,8 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     
     <script src="config.js"></script>
     <script>
@@ -345,6 +347,45 @@
         }
         
 
+        /* MODAL DE CROP */
+        .modal-crop-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none; /* Escondido por padrão */
+            justify-content: center; align-items: center;
+            z-index: 10000;
+        }
+        .modal-crop-overlay.show { display: flex; }
+
+        .crop-container {
+            background: #1a1411;
+            border: 2px solid #5d4037;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%; max-width: 500px;
+            text-align: center;
+        }
+
+        .img-wrapper {
+            max-height: 60vh; /* Limita altura */
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        /* Garante que a imagem não estoure */
+        .img-wrapper img { max-width: 100%; }
+
+        .crop-buttons { display: flex; gap: 10px; justify-content: center; }
+
+        .btn-confirmar {
+            background: #2e7d32; color: white; border: none;
+            padding: 10px 20px; font-family: 'Rye'; cursor: pointer; font-size: 1rem;
+        }
+        .btn-cancelar {
+            background: #c62828; color: white; border: none;
+            padding: 10px 20px; font-family: 'Rye'; cursor: pointer; font-size: 1rem;
+        }
+
         .fid-desc { font-size: 0.9rem; line-height: 1.2; }
 
         /* Item Ativo (Selecionado) */
@@ -555,6 +596,21 @@
         <div id="status">Sincronizando...</div>
     </div>
 
+    <input type="file" id="input-arquivo-foto" accept="image/*" style="display: none;" onchange="carregarImagemParaRecorte(this)">
+
+    <div id="modal-crop" class="modal-crop-overlay">
+        <div class="crop-container">
+            <h2 style="font-family:'Rye'; color:#e6dccf; margin-top:0;">AJUSTAR RETRATO</h2>
+            <div class="img-wrapper">
+                <img id="imagem-para-cortar" src="">
+            </div>
+            <div class="crop-buttons">
+                <button class="btn-cancelar" onclick="fecharCrop()">Cancelar</button>
+                <button class="btn-confirmar" onclick="confirmarRecorte()">✂ Cortar e Salvar</button>
+            </div>
+        </div>
+    </div>
+
 <script>
         // CONFIG GLOBAL DO config.js É CARREGADA AUTOMATICAMENTE
         
@@ -648,11 +704,79 @@
             salvar();
         }
 
+        let cropper = null; // Variável global para o cortador
+
+        // Função chamada ao clicar na foto
         function mudarFoto() {
-            const url = prompt("Cole a URL da imagem da montaria (ou deixe vazio para resetar):", montariaData.foto);
-            if(url !== null) {
-                montariaData.foto = url;
-                salvar();
+            // Pergunta simples ao usuário
+            if (confirm("Deseja enviar uma foto do seu dispositivo?\n\n[OK] Enviar Arquivo\n[CANCELAR] Usar Link da Internet")) {
+                // Clica no input invisível
+                document.getElementById('input-arquivo-foto').click();
+            } else {
+                // Lógica antiga de URL
+                const url = prompt("Cole a URL da imagem da montaria:", montariaData.foto);
+                if(url !== null) {
+                    montariaData.foto = url;
+                    salvar();
+                }
+            }
+        }
+
+        // Quando o usuário seleciona um arquivo
+        function carregarImagemParaRecorte(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function (e) {
+                    const image = document.getElementById('imagem-para-cortar');
+                    image.src = e.target.result;
+                    
+                    // Abre o modal
+                    document.getElementById('modal-crop').classList.add('show');
+                    
+                    // Se já existir um cropper, destrói o anterior
+                    if (cropper) { cropper.destroy(); }
+
+                    // Inicia o Cropper.js
+                    cropper = new Cropper(image, {
+                        aspectRatio: 1, // Força quadrado (1:1)
+                        viewMode: 1,    // Restringe o corte dentro da imagem
+                        autoCropArea: 1,
+                    });
+                };
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+            // Reseta o input para permitir selecionar a mesma foto se errar
+            input.value = '';
+        }
+
+        // Botão Confirmar Recorte
+        function confirmarRecorte() {
+            if (!cropper) return;
+
+            // Pega o resultado cortado e redimensiona para 300x300 (para não pesar o banco de dados)
+            const canvas = cropper.getCroppedCanvas({
+                width: 300,
+                height: 300,
+            });
+
+            // Converte para texto (Base64)
+            const imagemBase64 = canvas.toDataURL('image/jpeg', 0.8); // Qualidade 0.8 (JPG)
+
+            // Salva na ficha
+            montariaData.foto = imagemBase64;
+            salvar();
+
+            fecharCrop();
+        }
+
+        // Botão Cancelar
+        function fecharCrop() {
+            document.getElementById('modal-crop').classList.remove('show');
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
             }
         }
 

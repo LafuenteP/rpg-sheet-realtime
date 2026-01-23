@@ -1203,6 +1203,8 @@ body.locked #status {
         margin-bottom: 10px;       /* Mantém um espaçamento embaixo */
     }
 
+    
+
 }
 
 /* Celulares */
@@ -1276,10 +1278,24 @@ body.locked #status {
         margin-top: -20px;
     }
     
-/* Você vai precisar diminuir a fonte do input senão estoura */
+/* O AJUSTE DOS NÚMEROS */
     .attribute-card input {
-        font-size: 1.5rem; /* Fonte menor para caber */
-        margin-left: 10px; /* Ajuste fino da posição */
+        width: 100%;
+        text-align: center;
+        border: none;
+        background: transparent;
+        margin: 0; 
+        
+        /* TRUQUE 1: Tamanho da fonte baseado na largura da tela (vw) */
+        /* Isso garante que o número sempre caiba na caixa de 1/4 da tela */
+        font-size: 6vw !important; 
+        
+        /* TRUQUE 2: Empurrar para baixo para alinhar no centro do background */
+        /* Ajuste este padding-top até o número cair na posição exata */
+        padding-top: 60px;
+        
+        height: auto;
+        line-height: 1; /* Remove espaçamento extra de linha */
     }
 
     /* Vida e Dor */

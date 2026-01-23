@@ -1256,15 +1256,18 @@ body.locked #status {
         text-align: center;
     }
 
-    /* Atributos (cartas) */
+   /* Atributos (cartas) - MODO GRID 2x2 */
+/* Atributos (cartas) - MODO LINHA ÚNICA */
     .attributes {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 15px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr); /* Força 4 colunas */
+        gap: 5px;  /* Gap MUITO pequeno para caber no celular */
+        width: 100%;
+        padding: 0 5px; /* Margem de segurança nas bordas */
     }
 
     .attribute-card {
-        width: 130px;
+        width: 100% !important;
         transform: none !important;
     }
     
@@ -1273,10 +1276,10 @@ body.locked #status {
         margin-top: -20px;
     }
     
+/* Você vai precisar diminuir a fonte do input senão estoura */
     .attribute-card input {
-        font-size: 2.2rem;
-        margin-top: 18%;
-        margin-left: 20px;
+        font-size: 1.5rem; /* Fonte menor para caber */
+        margin-left: 10px; /* Ajuste fino da posição */
     }
 
     /* Vida e Dor */
@@ -1408,9 +1411,6 @@ body.locked #status {
         width: 90%;
     }
 
-    .attribute-card {
-        width: 85px;
-    }
     
     .attribute-card label {
         font-size: 0.95rem;

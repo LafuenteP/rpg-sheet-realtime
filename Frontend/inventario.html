@@ -136,23 +136,83 @@
         }
 
         /* RESPONSIVIDADE */
+       /* RESPONSIVIDADE ATUALIZADA - SUBSTITUA A ANTIGA POR ESSA */
         @media (max-width: 1024px) {
-            .inventory-layout { flex-direction: column; align-items: center; }
-            .tables-column { width: 100%; order: 3; } /* Tabela vai pro fim no celular */
+            /* Layout principal vira coluna */
+            .inventory-layout { 
+                flex-direction: column; 
+                align-items: stretch; /* Estica para ocupar a largura */
+                gap: 15px; 
+            }
+
+            /* A tabela vai para baixo */
+            .tables-column { 
+                width: 100%; 
+                order: 3; 
+            }
             
-            /* No celular, os painéis ficam um ao lado do outro em cima */
-            .side-panel { 
-                width: 90%; 
-                max-width: 400px;
+            /* Mágica do Painel (Munição e Carga) */
+            .side-panel, .space-panel { 
+                width: 100%; /* Ocupa a largura toda */
+                max-width: none; /* Remove limite de largura */
+                margin: 0; 
                 position: relative; 
                 top: 0; 
-                margin-bottom: 10px;
-                display: flex;
-                flex-direction: row; /* Deita o painel no mobile */
-                justify-content: space-around;
+                box-sizing: border-box; /* Garante que padding não estoura */
+
+                /* Transforma em uma régua horizontal organizada */
+                display: grid;
+                /* Colunas: 
+                1. Título/Select (ocupa o espaço que precisar)
+                2. O resto do espaço livre (fr)
+                3. O Input (tamanho fixo) 
+                */
+                grid-template-columns: auto 1fr auto; 
                 align-items: center;
+                padding: 10px 15px;
+                gap: 15px;
             }
-            .side-panel h3 { margin: 0; margin-right: 10px; }
+
+            /* Ajuste do Título e Select para ficarem juntos ou empilhados compactos */
+            .side-panel h3, .space-panel h3 {
+                font-size: 0.9rem;
+                margin: 0;
+                text-align: left;
+                grid-column: 1; /* Fica na primeira coluna */
+            }
+
+            /* O Select de munição não pode ser gigante */
+            .side-panel select {
+                width: 100px;
+                font-size: 0.8rem;
+                margin-top: 5px;
+                display: block; /* Garante que fique embaixo do título se precisar */
+            }
+
+            /* O Número Grande (Display) fica centralizado no espaço que sobrar */
+            .space-display {
+                grid-column: 2; /* Fica na coluna do meio */
+                font-size: 1.8rem;
+                margin: 0;
+                text-align: center;
+                line-height: 1;
+            }
+
+            /* O Input fica na direita, fixo */
+            .panel-input, .space-max input {
+                grid-column: 3; /* Fica na última coluna */
+                width: 50px; /* Largura fixa compacta */
+                height: 40px; /* Altura boa para o dedo */
+                margin: 0 !important; /* Remove margens antigas */
+                font-size: 1rem;
+            }
+
+            /* O SEGREDO: Esconder a legenda pequena ("Balas no cinto" / "KG") no mobile */
+            /* Isso libera o espaço que estava faltando e evita a quebra de linha */
+            .side-panel div[style*="font-size:0.7rem"],
+            .space-panel div[style*="font-size:0.7rem"] {
+                display: none !important;
+            }
         }
 
         /* MODAL DE NOVA ARMA */
@@ -162,11 +222,6 @@
         .modal-box h2 { font-family: 'Rye'; margin-top: 0; color: var(--ink); text-align: center; }
 
         /* Responsividade: mobile e tablets */
-        @media (max-width: 1024px) {
-            .inventory-layout { flex-direction: column; align-items: center; gap: 0; }
-            .tables-column { width: 100%; max-width: 750px; }
-            .space-panel { position: relative; top: 0; width: 100%; max-width: 750px; margin-bottom: 20px; }
-        }
         @media (max-width: 768px) {
             .inventory-container { padding: 20px 5px; }
             .inventory-layout { flex-direction: column; align-items: stretch; gap: 0; }

@@ -41,3 +41,11 @@
 
 
 ~~vai precisar de tutorial sobre roupa e comida~~, ~~no dano ter caveira ou dor~~, ~~faltando aumentar a vida do cavalo~~, ~~inventário sumiu,~~ ~~notificação do que ganha quando conclui a rendenção~~, ~~não sabe pra que servia o outros em habilidades~~, ~~todos os pontos de vida, teste contra a morte, vê o nível, balas, mecanica de xp dando xp pelo dashboard,~~ 
+
+
+cleisse''
+
+subir de vida ao subir pro nivel 2
+corpo a corpo, sim ou não
+responsividade em celulares médios
+resistencia do cavalo, no máximo 5 em casa

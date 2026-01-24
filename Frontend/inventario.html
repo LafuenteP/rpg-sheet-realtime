@@ -683,7 +683,9 @@
                             <button class="btn-equipar ${arma.equipado ? 'equipado' : ''}" onclick="toggleEquipar(${index})">
                                 ${arma.equipado ? 'EQUIPADO' : 'EQUIPAR'}
                             </button>
-                            <div style="font-size:0.9rem; margin-top:5px; color:#3e2723; font-weight:bold;">${arma.espaco} KG</div>
+                            <div style="font-size:0.9rem; margin-top:5px; color:#3e2723; font-weight:bold;">
+                                ${arma.equipado ? `<s style="opacity:0.5">${arma.espaco} KG</s> (0)` : `${arma.espaco} KG`}
+                            </div>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -795,11 +797,23 @@
 
             function calcularCarga() {
                 let total = 0;
+
+                // Soma o peso de todos os itens gerais
                 itensData.forEach(i => total += (parseFloat(i?.espaco) || 0));
-                armasData.forEach(a => total += (parseFloat(a.espaco) || 0));
+
+                // Soma o peso APENAS das armas que NÃO estão equipadas
+                armasData.forEach(a => {
+                    if (!a.equipado) { // <--- A MUDANÇA ESTÁ AQUI
+                        total += (parseFloat(a.espaco) || 0);
+                    }
+                });
                 
                 const max = parseInt(document.getElementById('space-max').value) || 10;
                 const el = document.getElementById('space-current');
+                
+                // Arredonda para evitar problemas com decimais (ex: 1.00000002)
+                total = Math.round(total * 100) / 100;
+
                 el.innerText = total;
                 el.className = total > max ? 'space-display over' : 'space-display';
             }

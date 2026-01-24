@@ -49,3 +49,10 @@ subir de vida ao subir pro nivel 2
 corpo a corpo, sim ou não
 responsividade em celulares médios
 resistencia do cavalo, no máximo 5 em casa
+
+botão pra editar arma
+corrigir a adição de linhas
+arma precisa de bandoleiras diferentes
+
+marcar no inventário se é alimento, se for ele vai pra index como alimento
+no modal de se alimentar, mostra os alimentos disponíveis do inventário.

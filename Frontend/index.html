@@ -64,6 +64,51 @@
 
 <style>
 
+
+/* ESTILO DA LISTA DE ALIMENTOS */
+/* SUBSTITUA A REGRA ANTIGA POR ESTA */
+.lista-alimentos-container {
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(255, 250, 240, 0.95); /* Fundo CLARO e OPACO para leitura */
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+    margin-bottom: 15px;
+    text-align: left;
+    padding: 10px;
+    min-height: 60px; /* Garante que a caixa tenha tamanho mesmo vazia */
+}
+
+/* Garante que o texto dentro seja escuro e legível */
+.alimento-option {
+    color: #2b1b12; 
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px dashed rgba(43, 27, 18, 0.3);
+    cursor: pointer;
+}
+
+.alimento-option:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.alimento-option input[type="radio"] {
+    margin-right: 10px;
+    width: 20px !important; /* Sobrescreve estilo global */
+    height: 20px;
+    accent-color: #5d4037;
+    cursor: pointer;
+}
+
+.aviso-vazio {
+    padding: 20px;
+    text-align: center;
+    color: #888;
+    font-style: italic;
+}
+
 /* CSS PARA O BLOQUEIO */
 html.locked body > *:not(#tela-senha) {
     display: none !important; /* Esconde tudo que não for a tela de senha */
@@ -1736,19 +1781,17 @@ body.locked #status {
         </div>
         
         <div class="recursos-section">
-            <h3>Rações Disponíveis</h3>
-            <div class="recursos-display">
-                <input type="number" id="qtd-racoes" min="0" value="0">
-                <span>rações</span>
-            </div>
+            <h3 style="font-size: 1rem; margin-bottom: 5px;">ESCOLHA O QUE COMER:</h3>
+            
+            <div id="lista-alimentos" class="lista-alimentos-container">
+                </div>
             
             <button class="btn-alimentar" id="btn-alimentar" onclick="seAlimentar()">
-                🍴 Se Alimentar
+                🍴 Comer Item Selecionado
             </button>
             
             <div class="status-alimentado" id="status-alimentado">
-                <!-- Status preenchido via JS -->
-            </div>
+                </div>
         </div>
     </div>
 </div>
@@ -1833,6 +1876,8 @@ body.locked #status {
 <script>
 // Variáveis Globais
 let dadosLocais = { vida: 0, dor: 0, xp: 0 };
+let inventarioGlobal = { items: [], weapons: [], municao: {} };
+let itemAlimentoSelecionadoIndex = null; // Para saber qual índice apagar
 
 const TABELA_NIVEL = [
     { nivel: 1, xp: 0 },
@@ -1871,33 +1916,58 @@ const val = (id) => {
 };
 
 // 1. GERAÇÃO DE VIDA E AÇÕES
+// Substitua a função antiga por esta versão turbinada
 function gerarCaveirasVida() {
     const forca = val('forca');
-    const totalVida = 6 + forca;
+    const xp = dadosLocais.xp || 0;
     
+    // Calcula o nível atual baseado no XP
+    const nivel = calcularNivel(xp);
+
+    // 1. Vida Base (Nível 1)
+    let totalVida = 6 + forca;
+
+    // 2. Bônus de Nível (Acumulativo conforme a tabela)
+    // A regra diz: +1 para cada ponto em Físico (mínimo 1)
+    const bonusPorFisico = Math.max(1, forca); 
+
+    if (nivel >= 2) totalVida += bonusPorFisico; // Ganha no Nível 2
+    if (nivel >= 4) totalVida += bonusPorFisico; // Ganha no Nível 4
+    if (nivel >= 5) totalVida += bonusPorFisico; // Ganha no Nível 5
+    if (nivel >= 6) totalVida += 3;              // Ganha +3 fixo no Nível 6
+
+    // 3. Renderização das Caveiras
     const vidaTrack = document.querySelector('.vida-track');
     vidaTrack.innerHTML = ''; 
     
     for (let i = 0; i < totalVida; i++) {
         const img = document.createElement('img');
         img.src = 'assets/skull.png';
+        
         img.onclick = () => {
             const novoValor = i + 1;
-            // Lógica padrão de marcar/desmarcar
+            // Se clicar na mesma, zera (ou desmarca)
             dadosLocais.vida = (dadosLocais.vida === novoValor) ? 0 : novoValor;
             
             atualizarVisual();
             salvarFicha();
 
-            // --- CÓDIGO NOVO: CHECK DE MORTE ---
-            // Se a vida marcada for igual ou maior que o total, abre o modal
+            // Check de Morte
             if (dadosLocais.vida >= totalVida) {
                 document.getElementById('modal-morte').classList.add('show');
             }
         };
         vidaTrack.appendChild(img);
     }
-    if (dadosLocais.vida > totalVida) dadosLocais.vida = totalVida;
+
+    // 4. Segurança ao "Descer de Nível"
+    // Se o jogador tinha 10 de dano e desceu de nível (agora max é 8),
+    // reduzimos o dano atual para 8 para não bugar o visual.
+    if (dadosLocais.vida > totalVida) {
+        dadosLocais.vida = totalVida;
+        salvarFicha(); // Salva a correção silenciosamente
+    }
+    
     atualizarVisual();
 }
 
@@ -1997,6 +2067,16 @@ function preencherTela(attr) {
         imgEl.src = `assets/${NOME_PERSONAGEM}.png`;
     }
 
+    if (attr.inventario) {
+        // Garante que sempre haja um array de items, weapons e objeto municao
+        inventarioGlobal = {
+            items: Array.isArray(attr.inventario.items) ? attr.inventario.items : [],
+            weapons: Array.isArray(attr.inventario.weapons) ? attr.inventario.weapons : [],
+            municao: attr.inventario.municao || {}
+        };
+    }
+    
+
     // Atributos Básicos
     document.getElementById('forca').value = attr.for || 0;
     document.getElementById('int').value = attr.int || 0;
@@ -2025,7 +2105,6 @@ function preencherTela(attr) {
     // Recursos
     if (attr.recursos) {
         recursosData = attr.recursos;
-        document.getElementById('qtd-racoes').value = recursosData.racoes || 0;
         atualizarBotaoRecursos();
     }
     
@@ -2086,11 +2165,115 @@ function preencherTela(attr) {
     statusMsg('• Sincronizado •');
 }
 
+// 4. NOVAS FUNÇÕES PARA O POPUP DE RECURSOS
+
+function abrirPopupRecursos() {
+    document.getElementById('popup-recursos').classList.add('show');
+    renderizarListaAlimentos();
+    atualizarStatusAlimentacao();
+}
+
+function renderizarListaAlimentos() {
+    const container = document.getElementById('lista-alimentos');
+    if (!container) {
+        console.error("ERRO: Não encontrei a div 'lista-alimentos' no HTML.");
+        return;
+    }
+
+    container.innerHTML = ''; // Limpa a lista
+    itemAlimentoSelecionadoIndex = null;
+    let contador = 0;
+
+    // 1. DIAGNÓSTICO: Verifica se o inventário existe
+    if (!inventarioGlobal) {
+        container.innerHTML = '<div style="padding:10px; color:red;">ERRO: O Inventário não foi carregado do banco de dados. Recarregue a página (F5).</div>';
+        return;
+    }
+
+    // 2. DIAGNÓSTICO: Verifica se existe a lista de itens
+    if (!inventarioGlobal.items || !Array.isArray(inventarioGlobal.items)) {
+        // Se não tiver items, inicializa como array vazio para não travar
+        inventarioGlobal.items = [];
+        container.innerHTML = '<div class="aviso-vazio">Inventário vazio ou formato inválido.</div>';
+        return;
+    }
+
+    // 3. RENDERIZAÇÃO
+    inventarioGlobal.items.forEach((item, index) => {
+        // Aceita true, "true", 1, "1" para a flag alimento
+        if (item && item.nome && (item.alimento === true || item.alimento === "true" || item.alimento === 1 || item.alimento === "1")) {
+            contador++;
+            const div = document.createElement('div');
+            div.className = 'alimento-option';
+            div.style.cssText = "display:flex; align-items:center; padding:8px; border-bottom:1px dashed #5d4037; cursor:pointer; color:#2b1b12;";
+            div.onclick = function() {
+                const radio = this.querySelector('input');
+                radio.checked = true;
+                itemAlimentoSelecionadoIndex = index;
+            };
+            div.innerHTML = `
+                <input type="radio" name="food_selection" value="${index}" style="margin-right:10px; width:20px; height:20px;">
+                <span>🍗 <b>${item.nome}</b> <span style="font-size:0.8rem; color:#666;">(${item.espaco || 0} kg)</span></span>
+            `;
+            container.appendChild(div);
+        }
+    });
+
+    // 4. FEEDBACK SE NÃO ACHOU NADA
+    if (contador === 0) {
+        container.innerHTML = `
+            <div class="aviso-vazio" style="text-align:center; padding:20px; color:#5d4037;">
+                <p>Nenhum item marcado como "Alimento" encontrado.</p>
+                <small style="color:#a00;">Vá na aba <b>Inventário</b>, marque a caixinha ☑ ao lado do item e espere salvar.</small>
+            </div>`;
+    }
+}
+
+async function seAlimentar() {
+    // 1. Verifica se já comeu
+    if (recursosData.alimentadoHoje) {
+        alert('Você já está satisfeito por hoje!');
+        return;
+    }
+
+    // 2. Verifica se selecionou algo
+    if (itemAlimentoSelecionadoIndex === null) {
+        alert('Selecione um item da lista para comer.');
+        return;
+    }
+
+    // 3. EFEITO DE COMER
+    if(confirm("Comer este item? Ele será removido do inventário.")) {
+        
+        // Remove o item (Reseta o slot para vazio para manter a ordem da grade)
+        inventarioGlobal.items[itemAlimentoSelecionadoIndex] = { 
+            nome: '', 
+            espaco: 0, 
+            descricao: '', 
+            alimento: false 
+        };
+
+        // Marca como alimentado
+        recursosData.alimentadoHoje = true;
+
+        // Atualiza UI e Salva
+        renderizarListaAlimentos(); // Atualiza a lista visualmente (o item some)
+        atualizarStatusAlimentacao();
+        atualizarBotaoRecursos();
+        
+        await salvarFicha(); // Salva no banco (incluindo o item removido)
+        
+        statusMsg("Você comeu e se sente melhor.");
+    }
+}
+
+
 // SALVAR FICHA (AGORA COMPLETO)
 async function salvarFicha() {
     statusMsg('Salvando...');
 
     const novosAtributos = {
+        // ... todos os seus atributos existentes (for, int, vida, etc)...
         for: val('forca'),
         int: val('int'),
         vel: val('vel'),
@@ -2098,8 +2281,7 @@ async function salvarFicha() {
         vida: dadosLocais.vida,
         dor: dadosLocais.dor,
         xp: dadosLocais.xp,
-
-        // Agrupando Antecedentes
+        
         antecedentes: {
             atencao: val('atencao'),
             medicina: val('medicina'),
@@ -2110,13 +2292,13 @@ async function salvarFicha() {
             tradicao: val('tradicao'),
             violencia: val('violencia')
         },
-        // Anotações
         anotacoes: document.getElementById('anotacoes').value,
-        // Recursos e Vestimentas
         recursos: recursosData,
         vestimentas: vestimentasData,
-        // Redenção
-        redencao: redencaoData
+        redencao: redencaoData,
+
+        // ADIÇÃO IMPORTANTE: Envia o inventário modificado junto!
+        inventario: inventarioGlobal 
     };
 
     // Pega o cache atual pra não perder Habilidades/Montaria/Inventário
@@ -2241,8 +2423,20 @@ let vestimentasData = [
 ];
 
 // Abrir/Fechar Popups
-function abrirPopupRecursos() {
+async function abrirPopupRecursos() {
+    // 1. Abre o modal visualmente primeiro (pra parecer rápido)
     document.getElementById('popup-recursos').classList.add('show');
+    
+    // 2. Coloca um aviso de "Carregando..." enquanto busca no banco
+    const container = document.getElementById('lista-alimentos');
+    container.innerHTML = '<div style="padding:10px; color:#aaa;">Buscando na mochila...</div>';
+
+    // 3. FORÇA baixar os dados mais recentes do Supabase
+    // Isso garante que se você acabou de editar o inventário, a ficha vai saber
+    await buscarDados(); 
+
+    // 4. Agora que baixou (e atualizou a variável inventarioGlobal), desenha a lista
+    renderizarListaAlimentos();
     atualizarStatusAlimentacao();
 }
 
@@ -2259,26 +2453,42 @@ function fecharPopupVestimentas() {
     document.getElementById('popup-vestimentas').classList.remove('show');
 }
 
-// Alimentação
-function seAlimentar() {
+async function seAlimentar() {
+    // 1. Verifica se já comeu
     if (recursosData.alimentadoHoje) {
-        alert('Você já se alimentou hoje!');
+        alert('Você já está satisfeito por hoje!');
         return;
     }
-    
-    const racoes = parseInt(document.getElementById('qtd-racoes').value) || 0;
-    if (racoes <= 0) {
-        alert('Você não tem rações!');
+
+    // 2. Verifica se selecionou algo
+    if (itemAlimentoSelecionadoIndex === null) {
+        alert('Selecione um item da lista para comer.');
         return;
     }
-    
-    recursosData.racoes = racoes - 1;
-    recursosData.alimentadoHoje = true;
-    document.getElementById('qtd-racoes').value = recursosData.racoes;
-    
-    atualizarStatusAlimentacao();
-    atualizarBotaoRecursos();
-    salvarFicha();
+
+    // 3. EFEITO DE COMER
+    if(confirm("Comer este item? Ele será removido do inventário.")) {
+        
+        // Remove o item (Reseta o slot para vazio para manter a ordem da grade)
+        inventarioGlobal.items[itemAlimentoSelecionadoIndex] = { 
+            nome: '', 
+            espaco: 0, 
+            descricao: '', 
+            alimento: false 
+        };
+
+        // Marca como alimentado
+        recursosData.alimentadoHoje = true;
+
+        // Atualiza UI e Salva
+        renderizarListaAlimentos(); 
+        atualizarStatusAlimentacao();
+        atualizarBotaoRecursos();
+        
+        await salvarFicha(); 
+        
+        statusMsg("Você comeu e se sente melhor.");
+    }
 }
 
 function atualizarStatusAlimentacao() {
@@ -2353,11 +2563,6 @@ function escapeHtmlPopup(text) {
     return div.innerHTML;
 }
 
-// Listener para mudança de rações
-document.getElementById('qtd-racoes').addEventListener('change', function() {
-    recursosData.racoes = parseInt(this.value) || 0;
-    salvarFicha();
-});
 
 // ===== REDENÇÃO =====
 const REDENCOES = {

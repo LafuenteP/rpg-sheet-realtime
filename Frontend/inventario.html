@@ -219,8 +219,105 @@
         /* MODAL DE NOVA ARMA */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; }
         .modal-overlay.show { display: flex; }
-        .modal-box { background: url('assets/rock.jpg') center/cover; padding: 30px; border: 4px solid #5d4037; width: 90%; max-width: 500px; border-radius: 8px; box-shadow: 0 0 50px rgba(0,0,0,1); }
+
+        .modal-box { 
+            background: url('assets/rock.jpg') center/cover, #2b1b12; 
+            padding: 25px; 
+            border: 4px solid #5d4037; 
+            width: 95%; 
+            max-width: 500px; 
+            max-height: 90vh; /* Não deixa o modal ser maior que 90% da tela */
+            overflow-y: auto; /* Adiciona scroll se o conteúdo crescer */
+            border-radius: 8px; 
+            box-shadow: 0 0 50px rgba(0,0,0,1); 
+            color: #e6dccf; /* Cor do texto para contraste */
+        }
+
+        .modal-box input, .modal-box select, .modal-box textarea {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #5d4037;
+            font-family: 'Courier Prime';
+            box-sizing: border-box; /* Essencial para o padding não "empurrar" o input pra fora */
+        }
+
+        /* Estilo para a barra de rolagem do modal (estilo envelhecido) */
+        .modal-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-box::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        .modal-box::-webkit-scrollbar-thumb {
+            background: #5d4037;
+            border-radius: 4px;
+        }
         .modal-box h2 { font-family: 'Rye'; margin-top: 0; color: var(--ink); text-align: center; }
+
+        .form-row { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+            flex-wrap: wrap; /* Faz os campos pularem de linha em telas muito pequenas */
+        }
+
+        .form-group { 
+            display: flex; 
+            flex-direction: column; 
+            min-width: 120px; /* Evita que os campos fiquem esmagados */
+            flex: 1; 
+        }
+
+        .form-group label {
+            font-family: 'Rye';
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            color: #2b1b12; /* Marrom bem escuro (cor de tinta) */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Correção do Checkbox */
+        .food-wrapper {
+            display: flex; 
+            align-items: center; 
+            gap: 4px; 
+            margin-right: 8px;
+            cursor: pointer;
+            background: rgba(0,0,0,0.05);
+            padding: 2px 5px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+
+        .food-wrapper:hover {
+            border-color: #5d4037;
+            background: rgba(0,0,0,0.1);
+        }
+
+        /* O texto "Alimento" */
+        .food-label-text {
+            font-size: 0.7rem;
+            font-family: 'Rye';
+            color: #5d4037;
+            text-transform: uppercase;
+        }
+
+        /* Força o checkbox a ter tamanho normal e não 100% */
+        .food-wrapper input[type="checkbox"] {
+            width: auto !important; 
+            margin: 0;
+            cursor: pointer;
+            transform: scale(1.1); /* Levemente maior, mas não gigante */
+        }
+
+        /* Estilo da linha quando é alimento */
+        .row-alimento td {
+            background-color: #ffe0b2 !important;
+        }
+
 
         /* Responsividade: mobile e tablets */
         @media (max-width: 768px) {
@@ -284,44 +381,51 @@
 
     <div class="modal-overlay" id="modal-arma">
         <div class="modal-box">
-            <h2>NOVA ARMA</h2>
+            <h2 id="modal-arma-titulo">NOVA ARMA</h2>
             <div class="form-group">
                 <label>Nome da Arma</label>
                 <input type="text" id="new-nome" placeholder="Ex: Colt Navy">
             </div>
-            <div class="form-row">
+            
+            <div class="form-row" style="display:flex; gap:10px; margin-bottom:15px;">
                 <div class="form-group" style="flex:1">
-                    <label>Dano</label>
-                    <input type="number" id="new-dano" value="1">
+                    <label>Tipo de Alcance</label>
+                    <select id="new-alcance" onchange="toggleInputMunicao()" style="width:100%; padding:8px;">
+                        <option value="distancia">🏹 Distância (Usa Munição)</option>
+                        <option value="corpo">⚔️ Corpo a Corpo</option>
+                    </select>
                 </div>
                 <div class="form-group" style="flex:1">
-                    <label>Tipo</label>
-                    <select id="new-tipo">
+                    <label>Tipo de Dano</label>
+                    <select id="new-tipo" style="width:100%; padding:8px;">
                         <option value="💀 Letal">💀 Letal</option>
                         <option value="👊 Dor">👊 Dor</option>
                     </select>
                 </div>
             </div>
-            <div class="form-row">
+
+            <div class="form-row" style="display:flex; gap:10px; margin-bottom:15px;">
                 <div class="form-group" style="flex:1">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <label for="new-balas">Munição Max</label>
-                        <input type="checkbox" id="check-usa-municao" checked onchange="toggleInputMunicao()" style="width:auto; transform: scale(1.2);">
-                    </div>
+                    <label>Dano (Ex: 2d6)</label>
+                    <input type="text" id="new-dano" value="1">
+                </div>
+                <div class="form-group" id="container-municao-max" style="flex:1">
+                    <label>Munição Max</label>
                     <input type="number" id="new-balas" value="6">
                 </div>
-
                 <div class="form-group" style="flex:1">
-                    <label>Espaço (KG)</label>
+                    <label>Peso (KG)</label>
                     <input type="number" id="new-espaco" value="1" step="0.5">
                 </div>
             </div>
+
             <div class="form-group">
                 <label>Efeito Especial / Descrição</label>
-                <textarea id="new-desc" rows="3" placeholder="Ex: Pode atirar duas vezes..."></textarea>
+                <textarea id="new-desc" rows="3" placeholder="Ex: Crítico 19-20..."></textarea>
             </div>
-            <button class="btn-western" onclick="confirmarNovaArma()">CRIAR ARMA</button>
-            <button class="btn-western btn-cancel" onclick="fecharModalArma()">CANCELAR</button>
+            
+            <button class="btn-western" id="btn-confirmar-arma" onclick="confirmarNovaArma()">CRIAR ARMA</button>
+            <button class="btn-western btn-cancel" style="background:#444; margin-top:5px;" onclick="fecharModalArma()">CANCELAR</button>
         </div>
     </div>
 
@@ -349,15 +453,20 @@
         <div class="side-panel">
             <h3>MUNIÇÃO</h3>
             
-            <select id="ammo-type" onchange="atualizarLimiteBalas()" style="width:100%; background:rgba(0,0,0,0.3); color:#e6dccf; border:1px solid #5d4037; font-family:'Courier Prime'; margin-bottom:5px; font-size:0.8rem;">
-                <option value="bandoleira">Bandoleira</option>
-                <option value="cinturao">Cinturão</option>
-                <option value="aljava">Aljava</option>
-            </select>
+            <div style="text-align: left; font-size: 0.75rem; color: #e6dccf; margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border: 1px solid #5d4037;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="check-bandoleira" onchange="atualizarLimiteBalas()" style="width: auto;"> Bandoleira (+12)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="check-cinturao" onchange="atualizarLimiteBalas()" style="width: auto;"> Cinturão (+36)
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="check-aljava" onchange="atualizarLimiteBalas()" style="width: auto;"> Aljava (+10)
+                </label>
+            </div>
 
             <div class="space-display" id="ammo-display">0</div>
-            
-            <div style="color:#aaa; font-size:0.7rem; margin-bottom:5px;">BALAS NO CINTO</div>
+            <div id="ammo-label" style="color:#aaa; font-size:0.7rem; margin-bottom:5px;">CAPACIDADE TOTAL</div>
             
             <input type="number" id="ammo-qtd" class="panel-input" value="0" min="0" onchange="salvarMunicao()">
         </div>
@@ -391,7 +500,7 @@
             <h3>CARGA</h3>
             <div class="space-display" id="space-current">0</div>
             <div style="color:#aaa; font-size:0.7rem; margin-bottom:5px;">KG / ESPAÇOS</div>
-            <input type="number" id="space-max" class="panel-input" value="10" onchange="salvarFicha()">
+            <input type="number" id="space-max" class="panel-input" value="10" min="1" max="15" onchange="atualizarCargaMax()">
         </div>
 
     </div>
@@ -405,12 +514,47 @@
             // ==========================================
             let itensData = [];
             let armasData = [];
+            let editIndex = null;
 
             // ==========================================
             // 2. FUNÇÕES DO MODAL (SIMPLIFICADAS)
             // ==========================================
-            function abrirModalArma() { 
-                document.getElementById('modal-arma').classList.add('show'); 
+
+           function abrirModalArma(index = null) {
+                editIndex = index;
+                const titulo = document.getElementById('modal-arma-titulo');
+                const btn = document.getElementById('btn-confirmar-arma');
+
+                if (index !== null) {
+                    // MODO EDIÇÃO: Preenche os campos
+                    const arma = armasData[index];
+                    titulo.innerText = "EDITAR ARMA";
+                    btn.innerText = "SALVAR ALTERAÇÕES";
+                    
+                    document.getElementById('new-nome').value = arma.nome;
+                    document.getElementById('new-dano').value = arma.dano;
+                    document.getElementById('new-tipo').value = arma.tipo;
+                    document.getElementById('new-alcance').value = arma.balasMax > 0 ? 'distancia' : 'corpo';
+                    document.getElementById('new-balas').value = arma.balasMax;
+                    document.getElementById('new-espaco').value = arma.espaco;
+                    document.getElementById('new-desc').value = arma.descricao;
+                } else {
+                    // MODO CRIAÇÃO: Limpa os campos
+                    titulo.innerText = "NOVA ARMA";
+                    btn.innerText = "CRIAR ARMA";
+                    resetarCamposModal();
+                }
+
+                toggleInputMunicao();
+                document.getElementById('modal-arma').classList.add('show');
+            }
+
+            function resetarCamposModal() {
+                document.getElementById('new-nome').value = '';
+                document.getElementById('new-dano').value = '1';
+                document.getElementById('new-desc').value = '';
+                document.getElementById('new-balas').value = '6';
+                document.getElementById('new-alcance').value = 'distancia';
             }
             
             function fecharModalArma() { 
@@ -418,17 +562,17 @@
             }
 
             function toggleInputMunicao() {
-                const checkbox = document.getElementById('check-usa-municao');
+                const tipoAlcance = document.getElementById('new-alcance').value;
+                const containerMunicao = document.getElementById('container-municao-max');
                 const inputBalas = document.getElementById('new-balas');
                 
-                if (checkbox.checked) {
+                if (tipoAlcance === 'distancia') {
+                    containerMunicao.style.opacity = "1";
                     inputBalas.disabled = false;
-                    inputBalas.style.opacity = "1";
-                    if(inputBalas.value == 0) inputBalas.value = 6; // Restaura um valor padrão se estiver zerado
                 } else {
+                    containerMunicao.style.opacity = "0.3";
                     inputBalas.disabled = true;
-                    inputBalas.style.opacity = "0.3";
-                    inputBalas.value = 0; // Zera visualmente
+                    inputBalas.value = 0;
                 }
             }
 
@@ -436,40 +580,29 @@
             // ATUALIZAR A FUNÇÃO: CONFIRMAR NOVA ARMA
             // ==========================================
             async function confirmarNovaArma() {
-                const usaMunicao = document.getElementById('check-usa-municao').checked;
-                
-                // Se a checkbox estiver marcada, pega o valor do input. Se não, é 0.
-                const qtdBalas = usaMunicao ? (parseInt(document.getElementById('new-balas').value) || 0) : 0;
+                const tipoAlcance = document.getElementById('new-alcance').value;
+                const qtdBalas = parseInt(document.getElementById('new-balas').value) || 0;
 
-                // Cria o objeto da arma
-                const novaArma = {
+                const armaEditada = {
                     nome: document.getElementById('new-nome').value || 'Arma Sem Nome',
-                    dano: parseInt(document.getElementById('new-dano').value) || 1,
+                    dano: document.getElementById('new-dano').value,
                     tipo: document.getElementById('new-tipo').value,
                     balasMax: qtdBalas,
-                    balasAtual: qtdBalas, // Já começa carregada ou com 0 se não usar munição
+                    balasAtual: (editIndex !== null) ? armasData[editIndex].balasAtual : qtdBalas,
                     espaco: parseFloat(document.getElementById('new-espaco').value) || 1,
                     descricao: document.getElementById('new-desc').value,
-                    equipado: false
+                    equipado: (editIndex !== null) ? armasData[editIndex].equipado : false
                 };
 
-                // 1. Atualiza memória
-                armasData.push(novaArma);
-                
-                // 2. Fecha modal
+                if (editIndex !== null) {
+                    armasData[editIndex] = armaEditada;
+                } else {
+                    armasData.push(armaEditada);
+                }
+
                 fecharModalArma();
-                
-                // 3. Atualiza tela e salva
                 gerarTabelaArmas();
                 await salvarFicha();
-                
-                // 4. Limpa campos e reseta o checkbox
-                document.getElementById('new-nome').value = '';
-                document.getElementById('new-desc').value = '';
-                
-                // Reseta o estado da munição para o próximo uso
-                document.getElementById('check-usa-municao').checked = true;
-                toggleInputMunicao(); // Garante que o input volta a ficar habilitado
             }
 
             // ==========================================
@@ -481,23 +614,35 @@
                 const tbody = document.getElementById('items-body');
                 tbody.innerHTML = '';
                 
-                for(let i=0; i<maxEspaco; i++) {
-                    // Se não existir, cria objeto vazio na memória
-                    if(!itensData[i]) itensData[i] = { nome: '', espaco: 0, descricao: '' };
+                for(let i=0; i < maxEspaco; i++) {
+                    if(!itensData[i]) itensData[i] = { nome: '', espaco: 0, descricao: '', alimento: false };
                     const dados = itensData[i];
 
                     const tr = document.createElement('tr');
-                    tr.className = 'item-row';
-                    // Note o onchange chamando 'atualizarItem'
+                    tr.className = dados.alimento ? 'item-row row-alimento' : 'item-row';
+                    
                     tr.innerHTML = `
                         <td class="col-expand"><button class="btn-expand" onclick="toggleDescricao(this, 'desc-item-${i}')">▼</button></td>
-                        <td><input type="text" value="${escapeHtml(dados.nome)}" placeholder="..." onchange="atualizarItem(${i}, 'nome', this.value)"></td>
+                        
+                        <td style="display: flex; align-items: center;">
+                            <label class="food-wrapper" title="Marcar como item consumível">
+                                <input type="checkbox" 
+                                    ${dados.alimento ? 'checked' : ''} 
+                                    onchange="atualizarItem(${i}, 'alimento', this.checked)">
+                                <span class="food-label-text">Alimento</span>
+                            </label>
+
+                            <span style="font-size: 1.2rem; margin-right: 5px; display: ${dados.alimento ? 'block' : 'none'}">🍗</span>
+                            
+                            <input type="text" value="${escapeHtml(dados.nome)}" placeholder="..." onchange="atualizarItem(${i}, 'nome', this.value)">
+                        </td>
+                        
                         <td class="col-espaco"><input type="number" value="${dados.espaco}" step="0.5" onchange="atualizarItem(${i}, 'espaco', this.value)"></td>
                     `;
                     tbody.appendChild(tr);
                     
                     const trDesc = document.createElement('tr');
-                    trDesc.className = 'desc-row';
+                    trDesc.className = dados.alimento ? 'desc-row row-alimento' : 'desc-row';
                     trDesc.id = `desc-item-${i}`;
                     trDesc.innerHTML = `<td colspan="3"><textarea placeholder="Descrição..." onchange="atualizarItem(${i}, 'descricao', this.value)">${escapeHtml(dados.descricao)}</textarea></td>`;
                     tbody.appendChild(trDesc);
@@ -511,31 +656,28 @@
 
                 armasData.forEach((arma, index) => {
                     const tr = document.createElement('tr');
-                    
-                    // Mantém o verde bem suave se estiver equipado
                     const bg = arma.equipado ? 'rgba(46, 125, 50, 0.2)' : 'transparent';
                     tr.style.background = bg;
 
-                    // Verifica munição
                     const textoMunicao = arma.balasMax > 0 
                         ? `(${arma.balasAtual}/${arma.balasMax} 💥)` 
                         : '(Corpo-a-Corpo ⚔️)';
 
                     tr.innerHTML = `
                         <td colspan="2" style="padding:10px;">
-                            <div style="font-family:'Rye'; color:#2b1b12; font-size:1.3rem; text-shadow: 0px 0px 1px rgba(0,0,0,0.1);">
+                            <div style="font-family:'Rye'; color:#2b1b12; font-size:1.3rem;">
                                 ${escapeHtml(arma.nome)} 
-                                
                                 <span style="font-size:0.85rem; font-family:'Courier Prime'; color:#8d6e63; font-weight:bold;">
                                     ${textoMunicao}
                                 </span>
                             </div>
-
-                            <div style="font-size:0.9rem; color:#3e2723; margin-top:4px; font-weight: 600;">
+                            <div style="font-size:0.9rem; color:#3e2723; margin-top:4px;">
                                 Dano: <b>${arma.dano}</b> [${arma.tipo}] | ${escapeHtml(arma.descricao)}
                             </div>
-
-                            <button onclick="removerArma(${index})" style="font-size:0.75rem; color:#c62828; background:none; border:none; cursor:pointer; margin-top:8px; font-weight:bold;">[X] Descartar</button>
+                            <div style="margin-top:8px;">
+                                <button onclick="abrirModalArma(${index})" style="font-size:0.75rem; color:#2e7d32; background:none; border:none; cursor:pointer; font-weight:bold; margin-right:10px;">[✎] Editar</button>
+                                <button onclick="removerArma(${index})" style="font-size:0.75rem; color:#c62828; background:none; border:none; cursor:pointer; font-weight:bold;">[X] Descartar</button>
+                            </div>
                         </td>
                         <td style="vertical-align:middle; text-align:center;">
                             <button class="btn-equipar ${arma.equipado ? 'equipado' : ''}" onclick="toggleEquipar(${index})">
@@ -555,7 +697,15 @@
 
             function atualizarItem(index, campo, valor) {
                 if(!itensData[index]) itensData[index] = {};
-                itensData[index][campo] = campo === 'espaco' ? parseFloat(valor) : valor;
+                
+                // Atualiza o valor na memória
+                itensData[index][campo] = (campo === 'espaco') ? parseFloat(valor) : valor;
+                
+                // Se mudou se é alimento ou não, redesenhamos a tabela para mostrar o emoji/cor
+                if (campo === 'alimento') {
+                    gerarLinhasItens(); 
+                }
+                
                 calcularCarga();
                 salvarFicha();
             }
@@ -593,60 +743,55 @@
             }
 
             // --- VARIÁVEIS GLOBAIS ---
-            let municaoData = { tipo: 'bandoleira', qtd: 0 };
+            let municaoData = {
+                equipados: { bandoleira: false, cinturao: false, aljava: false },
+                qtd: 0
+            };
 
             // --- FUNÇÕES DE MUNIÇÃO ---
             function atualizarLimiteBalas() {
-                const tipo = document.getElementById('ammo-type').value;
+                const bando = document.getElementById('check-bandoleira').checked;
+                const cinto = document.getElementById('check-cinturao').checked;
+                const aljava = document.getElementById('check-aljava').checked;
                 const input = document.getElementById('ammo-qtd');
-                
-                // Define limites baseados no tipo
-                let max = 12; // Padrão (Bandoleira)
-                if (tipo === 'cinturao') max = 24;
-                if (tipo === 'aljava') max = 10;
 
-                input.max = max;
+                // Calcula o limite total somando os recipientes marcados
+                let maxTotal = 0;
+                if (bando) maxTotal += 12;
+                if (cinto) maxTotal += 36;
+                if (aljava) maxTotal += 10;
 
-                // Se tiver mais munição do que cabe no novo recipiente, corta o excesso
-                // Ex: Tinha 24 balas, trocou pra Aljava, cai pra 10.
-                if(parseInt(input.value) > max) {
-                    input.value = max;
+                // Se nada estiver equipado, o limite é 0 (ou você pode definir um mínimo de "bolso")
+                input.max = maxTotal;
+
+                // Se a munição atual estourar o novo limite, reduzimos para o máximo
+                if (parseInt(input.value) > maxTotal) {
+                    input.value = maxTotal;
                 }
-                
-                // Atualiza visual
+
+                // Atualiza o display visual
                 document.getElementById('ammo-display').innerText = input.value;
                 
-                // Muda o texto descritivo dependendo do tipo
-                const labelTexto = (tipo === 'aljava') ? 'FLECHAS NA ALJAVA' : 'BALAS NO CINTO';
-                // Acha a div logo abaixo do display para mudar o texto (opcional, mas fica legal)
-                document.getElementById('ammo-display').nextElementSibling.innerText = labelTexto;
-
-                // Atualiza dados globais
-                municaoData.tipo = tipo;
+                // Atualiza o objeto global para salvar
+                municaoData.equipados = { bandoleira: bando, cinturao: cinto, aljava: aljava };
                 municaoData.qtd = parseInt(input.value);
-                
+
                 salvarFicha();
             }
 
             function salvarMunicao() {
-            const input = document.getElementById('ammo-qtd');
-            let val = parseInt(input.value);
-            const max = parseInt(input.max);
+                const input = document.getElementById('ammo-qtd');
+                let val = parseInt(input.value) || 0;
+                const max = parseInt(input.max) || 0;
 
-            // Garante que não ultrapasse o limite
-            if(val > max) {
-                val = max;
-                input.value = max;
-            }
-            if(val < 0) {
-                val = 0;
-                input.value = 0;
-            }
+                if (val > max) val = max;
+                if (val < 0) val = 0;
 
-            document.getElementById('ammo-display').innerText = val;
-            municaoData.qtd = val;
-            salvarFicha();
-        }
+                input.value = val;
+                document.getElementById('ammo-display').innerText = val;
+                municaoData.qtd = val;
+                salvarFicha();
+            }
 
             function calcularCarga() {
                 let total = 0;
@@ -716,16 +861,51 @@
                     document.getElementById('space-max').value = inv.maxLoad || 10;
                 }
 
+                // Dentro da função carregar(), localize a parte da munição e substitua:
                 if (data.atributos.inventario.municao) {
                     municaoData = data.atributos.inventario.municao;
-                    document.getElementById('ammo-type').value = municaoData.tipo;
-                    document.getElementById('ammo-qtd').value = municaoData.qtd;
-                    atualizarLimiteBalas(); // Para setar o max correto visualmente
+                    
+                    // Seta o estado dos checkboxes
+                    document.getElementById('check-bandoleira').checked = !!municaoData.equipados?.bandoleira;
+                    document.getElementById('check-cinturao').checked = !!municaoData.equipados?.cinturao;
+                    document.getElementById('check-aljava').checked = !!municaoData.equipados?.aljava;
+                    
+                    document.getElementById('ammo-qtd').value = municaoData.qtd || 0;
+                    
+                    // Roda a lógica para definir o input.max corretamente
+                    atualizarLimiteBalas(); 
                 }
                 
                 gerarLinhasItens();
                 gerarTabelaArmas();
                 status.innerText = 'Pronto';
+            }
+
+            function atualizarCargaMax() {
+                const input = document.getElementById('space-max');
+                let valor = parseInt(input.value);
+
+                // TRAVA DE SEGURANÇA: Limite máximo de 15
+                if (valor > 15) {
+                    alert("⚠️ O limite máximo de inventário é 15 espaços.");
+                    valor = 15;
+                    input.value = 15;
+                }
+
+                // Impede valores negativos ou zero
+                if (valor < 1 || isNaN(valor)) {
+                    valor = 1;
+                    input.value = 1;
+                }
+
+                // 1. Redesenha as linhas da tabela (agora com o limite aplicado)
+                gerarLinhasItens(); 
+                
+                // 2. Recalcula o peso total visualmente
+                calcularCarga(); 
+                
+                // 3. Salva no banco de dados
+                salvarFicha(); 
             }
 
             // Inicialização

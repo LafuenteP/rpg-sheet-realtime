@@ -54,7 +54,6 @@
         }
 
         // VARIAVEL GLOBAL PARA O SALVAMENTO COM ATRASO
-        // Será definida corretamente lá embaixo, quando a função salvarFicha existir
         var acionarSalvarComDelay; 
     </script>
 
@@ -83,7 +82,7 @@
         .password-box input { width: 100%; padding: 10px; margin-bottom: 15px; font-family: 'Courier Prime'; font-size: 1.2rem; text-align: center; }
         .password-box button { width: 100%; padding: 10px; font-family: 'Rye'; font-size: 1.1rem; background: #5d4037; color: #fff; cursor: pointer; border: none; }
 
-        /* LAYOUT */
+        /* LAYOUT NAVBAR (ATUALIZADO) */
         .western-nav { display: flex; justify-content: center; gap: 15px; padding: 15px; background: rgba(43, 27, 18, 0.95); border-bottom: 2px solid #5d4037; width: 100%; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .western-nav a { color: #aaa; text-decoration: none; font-family: 'Rye'; font-size: 1rem; padding: 5px 10px; border: 1px solid transparent; text-transform: uppercase; transition: 0.2s; }
         .western-nav a:hover, .western-nav a.active { color: var(--gold); border-color: var(--gold); }
@@ -174,10 +173,11 @@
             margin: 0; 
         }
 
-        /* RESPONSIVIDADE */
-       /* RESPONSIVIDADE ATUALIZADA - SUBSTITUA A ANTIGA POR ESSA */
+        /* RESPONSIVIDADE (MEDIA QUERIES) */
+        
+        /* 1. MUDANÇA NA NAVBAR - Igual à Montaria */
         @media (max-width: 1024px) {
-            /* Layout principal vira coluna */
+            /* Layout principal do inventário vira coluna */
             .inventory-layout { 
                 flex-direction: column; 
                 align-items: stretch; /* Estica para ocupar a largura */
@@ -193,66 +193,121 @@
             /* Mágica do Painel (Munição e Carga) */
             .side-panel, .space-panel { 
                 width: 100%; /* Ocupa a largura toda */
-                max-width: none; /* Remove limite de largura */
+                max-width: none; 
                 margin: 0; 
                 position: relative; 
                 top: 0; 
-                box-sizing: border-box; /* Garante que padding não estoura */
-
-                /* Transforma em uma régua horizontal organizada */
+                box-sizing: border-box; 
                 display: grid;
-                /* Colunas: 
-                1. Título/Select (ocupa o espaço que precisar)
-                2. O resto do espaço livre (fr)
-                3. O Input (tamanho fixo) 
-                */
                 grid-template-columns: auto 1fr auto; 
                 align-items: center;
                 padding: 10px 15px;
                 gap: 15px;
             }
 
-            /* Ajuste do Título e Select para ficarem juntos ou empilhados compactos */
             .side-panel h3, .space-panel h3 {
                 font-size: 0.9rem;
                 margin: 0;
                 text-align: left;
-                grid-column: 1; /* Fica na primeira coluna */
+                grid-column: 1; 
             }
 
-            /* O Select de munição não pode ser gigante */
             .side-panel select {
                 width: 100px;
                 font-size: 0.8rem;
                 margin-top: 5px;
-                display: block; /* Garante que fique embaixo do título se precisar */
+                display: block; 
             }
 
-            /* O Número Grande (Display) fica centralizado no espaço que sobrar */
             .space-display {
-                grid-column: 2; /* Fica na coluna do meio */
+                grid-column: 2; 
                 font-size: 1.8rem;
                 margin: 0;
                 text-align: center;
                 line-height: 1;
             }
 
-            /* O Input fica na direita, fixo */
             .panel-input, .space-max input {
-                grid-column: 3; /* Fica na última coluna */
-                width: 50px; /* Largura fixa compacta */
-                height: 40px; /* Altura boa para o dedo */
-                margin: 0 !important; /* Remove margens antigas */
+                grid-column: 3; 
+                width: 50px; 
+                height: 40px; 
+                margin: 0 !important; 
                 font-size: 1rem;
             }
 
-            /* O SEGREDO: Esconder a legenda pequena ("Balas no cinto" / "KG") no mobile */
-            /* Isso libera o espaço que estava faltando e evita a quebra de linha */
             .side-panel div[style*="font-size:0.7rem"],
             .space-panel div[style*="font-size:0.7rem"] {
                 display: none !important;
             }
         }
+
+        /* 2. RESPONSIVIDADE DA NAV IGUAL MONTARIA */
+        @media (max-width: 768px) {
+            .western-nav {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .western-nav a {
+                font-size: 0.85rem;
+                padding: 5px 8px;
+            }
+
+            .inventory-container { padding: 20px 5px; }
+            .inventory-table { font-size: 0.95rem; }
+            .section-header { font-size: 1rem; }
+            .section-header.small { font-size: 0.8rem; }
+        }
+
+        @media (max-width: 480px) {
+            .inventory-container { padding: 10px 2px; }
+            .space-panel { padding: 10px; }
+            .inventory-table { font-size: 0.9rem; }
+            .section-header { font-size: 0.95rem; }
+            .section-header.small { font-size: 0.7rem; }
+            .space-display { font-size: 1.3rem; }
+            
+            /* Ajuste extra para a nav em telas muito pequenas */
+            .western-nav a {
+                font-size: 0.8rem;
+                padding: 4px 6px;
+            }
+        }
+
+        /* Tabelas com rolagem horizontal em telas pequenas */
+        .tables-column { overflow-x: auto; }
+        .inventory-table { min-width: 320px; }
+
+        /* TABELAS */
+        .inventory-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .section-header { font-family: 'Rye'; color: #fff; background: #222; padding: 10px; border-bottom: 2px solid #5d4037; font-size: 1.2rem; letter-spacing: 1px; text-shadow: 1px 1px 0 #000; }
+        .section-header.small { font-size: 0.9rem; text-align: center; width: 80px; }
+        .inventory-table td { background: rgba(220, 220, 220, 0.93); padding: 8px; border: 1px solid #000; }
+        .inventory-table input { width: 100%; background: transparent; border: none; font-family: 'Courier Prime'; font-size: 1rem; outline: none; color: #1a1a1a; padding: 2px 4px; font-weight: bold; }
+        .arma-name, .arma-dano, .arma-space {
+            color: #222 !important;
+            font-weight: bold !important;
+            background: #fffbe8;
+            border-radius: 3px;
+        }
+        
+        /* DESCRIÇÃO */
+        .col-expand { width: 30px; padding: 0 !important; text-align: center; background: #3e2723 !important; }
+        .btn-expand { background: transparent; border: none; color: #fff; width: 100%; height: 100%; cursor: pointer; font-weight: bold; }
+        .desc-row { display: none; }
+        .desc-row.show { display: table-row; }
+        .desc-row td { background: #fff8e1 !important; padding: 5px !important; }
+        .desc-row textarea { width: 100%; min-height: 50px; border: none; background: transparent; font-family: 'Courier Prime'; resize: vertical; outline: none; }
+
+        /* PAINEL CARGA */
+        .space-panel { background: rgba(0, 0, 0, 0.6); padding: 20px; border: 2px solid #5d4037; border-radius: 8px; text-align: center; min-width: 150px; position: sticky; top: 80px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-left: 10px; }
+        .space-panel h3 { font-family: 'Rye'; color: #e6dccf; margin: 0 0 10px 0; letter-spacing: 1px; }
+        .space-display { font-family: 'Rye'; font-size: 2.5rem; color: #e6dccf; margin-bottom: 5px; }
+        .space-display.over { color: #ff5555; }
+        .space-max input { width: 60px; text-align: center; font-family: 'Rye'; font-size: 1.2rem; margin-top: 10px; background: rgba(255,255,255,0.9); border: 2px solid #5d4037; border-radius: 5px; }
+        
+        #status { position: fixed; bottom: 10px; right: 10px; color: #fff; opacity: 0.7; font-size: 0.8rem; z-index: 999; }
 
         /* MODAL DE NOVA ARMA */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; }
@@ -355,63 +410,6 @@
         .row-alimento td {
             background-color: #ffe0b2 !important;
         }
-
-
-        /* Responsividade: mobile e tablets */
-        @media (max-width: 768px) {
-            .inventory-container { padding: 20px 5px; }
-            .inventory-layout { flex-direction: column; align-items: stretch; gap: 0; }
-            .tables-column { width: 100%; max-width: 100%; }
-            .space-panel { width: 100%; min-width: unset; max-width: 100%; margin-bottom: 20px; }
-            .inventory-table { font-size: 0.95rem; }
-            .section-header { font-size: 1rem; }
-            .section-header.small { font-size: 0.8rem; }
-            .space-display { font-size: 2rem; }
-        }
-        @media (max-width: 480px) {
-            .inventory-container { padding: 10px 2px; }
-            .space-panel { padding: 10px; }
-            .inventory-table { font-size: 0.9rem; }
-            .section-header { font-size: 0.95rem; }
-            .section-header.small { font-size: 0.7rem; }
-            .space-display { font-size: 1.3rem; }
-        }
-
-        /* Tabelas com rolagem horizontal em telas pequenas */
-        .tables-column { overflow-x: auto; }
-        .inventory-table { min-width: 320px; }
-
-        /* TABELAS */
-        .inventory-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-        .section-header { font-family: 'Rye'; color: #fff; background: #222; padding: 10px; border-bottom: 2px solid #5d4037; font-size: 1.2rem; letter-spacing: 1px; text-shadow: 1px 1px 0 #000; }
-        .section-header.small { font-size: 0.9rem; text-align: center; width: 80px; }
-        .inventory-table td { background: rgba(220, 220, 220, 0.93); padding: 8px; border: 1px solid #000; }
-        .inventory-table input { width: 100%; background: transparent; border: none; font-family: 'Courier Prime'; font-size: 1rem; outline: none; color: #1a1a1a; padding: 2px 4px; font-weight: bold; }
-        .arma-name, .arma-dano, .arma-space {
-            color: #222 !important;
-            font-weight: bold !important;
-            background: #fffbe8;
-            border-radius: 3px;
-        }
-        
-        /* DESCRIÇÃO */
-        .col-expand { width: 30px; padding: 0 !important; text-align: center; background: #3e2723 !important; }
-        .btn-expand { background: transparent; border: none; color: #fff; width: 100%; height: 100%; cursor: pointer; font-weight: bold; }
-        .desc-row { display: none; }
-        .desc-row.show { display: table-row; }
-        .desc-row td { background: #fff8e1 !important; padding: 5px !important; }
-        .desc-row textarea { width: 100%; min-height: 50px; border: none; background: transparent; font-family: 'Courier Prime'; resize: vertical; outline: none; }
-
-        /* PAINEL CARGA */
-        .space-panel { background: rgba(0, 0, 0, 0.6); padding: 20px; border: 2px solid #5d4037; border-radius: 8px; text-align: center; min-width: 150px; position: sticky; top: 80px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-left: 10px; }
-        .space-panel h3 { font-family: 'Rye'; color: #e6dccf; margin: 0 0 10px 0; letter-spacing: 1px; }
-        .space-display { font-family: 'Rye'; font-size: 2.5rem; color: #e6dccf; margin-bottom: 5px; }
-        .space-display.over { color: #ff5555; }
-        .space-max input { width: 60px; text-align: center; font-family: 'Rye'; font-size: 1.2rem; margin-top: 10px; background: rgba(255,255,255,0.9); border: 2px solid #5d4037; border-radius: 5px; }
-        
-        #status { position: fixed; bottom: 10px; right: 10px; color: #fff; opacity: 0.7; font-size: 0.8rem; z-index: 999; }
-
-        @media (max-width: 768px) { .inventory-layout { flex-direction: column-reverse; align-items: center; } .space-panel { width: 100%; position: relative; top: 0; } }
     </style>
 </head>
 
@@ -462,8 +460,8 @@
                 <textarea id="new-desc" rows="3" placeholder="Ex: Crítico 19-20..."></textarea>
             </div>
             
-            <button class="btn-western" id="btn-confirmar-arma" onclick="confirmarNovaArma()">CRIAR ARMA</button>
-            <button class="btn-western btn-cancel" style="background:#444; margin-top:5px;" onclick="fecharModalArma()">CANCELAR</button>
+            <button class="btn-western" id="btn-confirmar-arma" onclick="confirmarNovaArma()" style="width:100%; padding:10px; font-family:'Rye'; font-size:1.1rem; background:#2e7d32; color:#fff; cursor:pointer; border:none; margin-top:10px;">CRIAR ARMA</button>
+            <button class="btn-western btn-cancel" style="width:100%; padding:10px; font-family:'Rye'; font-size:1.1rem; background:#444; color:#fff; cursor:pointer; border:none; margin-top:5px;" onclick="fecharModalArma()">CANCELAR</button>
         </div>
     </div>
 
@@ -527,7 +525,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="3" style="padding:10px;">
-                            <button class="btn-western" onclick="abrirModalArma()">+ ADICIONAR ARMA</button>
+                            <button class="btn-western" onclick="abrirModalArma()" style="width:100%; padding:10px; font-family:'Rye'; font-size:1rem; background:#5d4037; color:#fff; cursor:pointer; border:none;">+ ADICIONAR ARMA</button>
                         </td>
                     </tr>
                 </tfoot>
@@ -738,7 +736,7 @@
                             </div>
                         </td>
                         <td style="vertical-align:middle; text-align:center;">
-                            <button class="btn-equipar ${arma.equipado ? 'equipado' : ''}" onclick="toggleEquipar(${index})">
+                            <button class="btn-equipar ${arma.equipado ? 'equipado' : ''}" onclick="toggleEquipar(${index})" style="padding:5px; font-family:'Rye'; background:${arma.equipado ? '#2e7d32' : '#5d4037'}; color:#fff; border:none; cursor:pointer;">
                                 ${arma.equipado ? 'EQUIPADO' : 'EQUIPAR'}
                             </button>
                             <div style="font-size:0.9rem; margin-top:5px; color:#3e2723; font-weight:bold;">

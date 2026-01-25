@@ -532,6 +532,18 @@ body.locked #status {
     margin: 0;
 }
 
+#input-dinheiro {
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    border-bottom: 2px solid #2e7d32; /* Verde Dólar */
+    border-radius: 0;
+}
+#input-dinheiro:focus {
+    outline: none;
+    background: rgba(46, 125, 50, 0.1);
+}
+
+
 /* ===== MODAL DE CONDIÇÃO ===== */
 .modal-overlay {
     position: fixed;
@@ -1188,6 +1200,50 @@ body.locked #status {
     transition: width 0.3s;
 }
 
+/* Efeito visual de Exaustão/Fome */
+body.status-faminto {
+    box-shadow: inset 0 0 100px rgba(100, 0, 0, 0.4);
+    filter: grayscale(0.8); /* Tira a cor da vida, deixa tudo cinza */
+}
+
+/* Estado de Fome: Borda vermelha pulsante e tela levemente cinza */
+body.faminto {
+    box-shadow: inset 0 0 80px rgba(139, 0, 0, 0.5);
+    filter: sepia(0.2);
+}
+
+/* Indicador de Limite de Dor */
+.dor-limit-indicator {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #000;
+    border: 4px solid #d32f2f;
+    color: #ff5555;
+    padding: 20px;
+    font-family: 'Rye';
+    font-size: 1.5rem;
+    z-index: 9999;
+    text-align: center;
+    display: none;
+    box-shadow: 0 0 50px rgba(0,0,0,0.9);
+}
+
+#aviso-fome {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    border: 4px solid #8b0000;
+    color: #ff5555;
+    padding: 20px;
+    font-family: 'Rye';
+    font-size: 2rem;
+    z-index: 9999;
+    text-align: center;
+}
+
 /* ESTILO DA BARRA DE NÍVEL */
 /* ESTILO DA BARRA DE NÍVEL (ATUALIZADO) */
 .level-strip {
@@ -1223,6 +1279,136 @@ body.locked #status {
     height: 100%;
     width: 0%;
     transition: width 0.5s ease-in-out;
+}
+
+
+/* ===== ESTILO PREMIUM DA CARTEIRA ===== */
+
+/* Container do Valor Principal */
+.wallet-display-container {
+    background: rgba(20, 10, 5, 0.6);
+    border: 3px double #ffcc80; /* Borda dupla dourada */
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px auto;
+    width: 80%;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+#input-dinheiro {
+    background: transparent !important;
+    border: none !important;
+    color: #ffcc80 !important; /* Texto Dourado */
+    font-family: 'Rye', serif !important;
+    font-size: 3.5rem !important;
+    text-align: center;
+    text-shadow: 2px 2px 0px #000, 0 0 10px rgba(255, 204, 128, 0.3);
+    width: 180px !important;
+    border-bottom: 2px dashed rgba(255, 204, 128, 0.3) !important;
+}
+
+#input-dinheiro:focus {
+    outline: none;
+    border-bottom: 2px solid #ffcc80 !important;
+}
+
+/* Área dos Botões (Moedas/Fichas) */
+.wallet-actions {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    margin-top: 20px;
+    gap: 20px;
+}
+
+.wallet-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 250, 240, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(93, 64, 55, 0.3);
+    width: 45%;
+}
+
+.wallet-group h4 {
+    font-family: 'Rye';
+    color: #e6dccf;
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Estilo das "Moedas" (Botões) */
+.coin-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-family: 'Rye';
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efeito elástico */
+    box-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.3);
+    position: relative;
+    border: 2px dashed rgba(0,0,0,0.3);
+}
+
+.coin-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 rgba(0,0,0,0.5);
+}
+
+.coin-btn:hover {
+    filter: brightness(1.2);
+    transform: scale(1.05) translateY(-2px);
+}
+
+/* Moedas de Ganho (Douradas/Verdes) */
+.coin-gain {
+    background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
+    color: #2b1b12;
+    border-color: #8b6508;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+}
+
+/* Moedas de Gasto (Cobre/Vermelhas) */
+.coin-loss {
+    background: radial-gradient(circle at 30% 30%, #e57373, #b71c1c);
+    color: #fff;
+    border-color: #7f0000;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+}
+
+.coin-value {
+    pointer-events: none;
+}
+
+/* Responsividade para carteira */
+@media (max-width: 480px) {
+    .wallet-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    .wallet-group {
+        width: 100%;
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .wallet-group h4 {
+        width: 100%;
+    }
 }
 
 /* =========================================
@@ -1547,6 +1733,7 @@ body.locked #status {
 
 <body>
 
+
 <div id="tela-senha">
     <div style="background:url('assets/locked.jpg') center center/contain no-repeat, #1a1411; padding:40px; border:5px solid #2b1b12; text-align:center; max-width:400px; border-radius:8px;">
         <h2 style="font-family:'Rye'; margin-top:0;">🔒 ACESSO RESTRITO</h2>
@@ -1567,6 +1754,13 @@ body.locked #status {
         // Atualiza o nome na tela de bloqueio
         document.getElementById('nome-lock').innerText = NOME_PERSONAGEM || 'Desconhecido';
     </script>
+</div>
+
+<div id="aviso-fragil" class="dor-limit-indicator">
+    💀 FOME 💀<br>
+    <span style="font-size:1rem; font-family:'Courier Prime'; color:#ccc;">
+        Seu limite de Dor caiu para 3.
+    </span>
 </div>
 
 <nav class="western-nav">
@@ -1770,6 +1964,11 @@ body.locked #status {
     <button class="btn-float" id="btn-redencao" onclick="abrirPopupRedencao()" title="Redenção">
         ⛪
     </button>
+
+    <button class="btn-float" id="btn-carteira" onclick="abrirPopupCarteira()" title="Carteira">
+        💰
+    </button>
+
 </div>
 
 <!-- Popup de Recursos/Alimentação -->
@@ -1848,6 +2047,68 @@ body.locked #status {
     </div>
 </div>
 
+
+<div class="popup-overlay" id="popup-carteira">
+    <div class="popup-content" style="background: linear-gradient(rgba(20, 10, 5, 0.9), rgba(20, 10, 5, 0.9)), url('assets/fundocarteira.png') center/cover; border-color: #8b6914;">
+        
+        <div class="popup-header" style="border-bottom-color: #8b6914;">
+            <h2 style="color: #ffcc80; text-shadow: 2px 2px 0 #000;">💰 CARTEIRA</h2>
+            <button class="btn-close-popup" onclick="fecharPopupCarteira()">✕</button>
+        </div>
+        
+        <div class="recursos-section">
+            
+            <div class="wallet-display-container">
+                <span style="font-size: 3rem; font-family: 'Rye'; color: #b8860b; text-shadow: 1px 1px 0 #000;">$</span>
+                <input type="number" id="input-dinheiro" 
+                    value="0" 
+                    oninput="interacaoManualDinheiro(this.value)"
+                    placeholder="0">
+            </div>
+
+            <div style="font-family: 'Courier Prime'; color: #ccc; font-size: 0.9rem; margin-bottom: 20px; font-style: italic;">
+                "O dinheiro fala, a pólvora sussurra."
+            </div>
+
+            <div class="wallet-actions">
+                
+                <div class="wallet-group">
+                    <h4>LUCRO</h4>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="somarDinheiro(1)" class="coin-btn coin-gain" title="Ganhar $1">
+                            +$1
+                        </button>
+                        <button onclick="somarDinheiro(10)" class="coin-btn coin-gain" title="Ganhar $10">
+                            +$10
+                        </button>
+                        <button onclick="somarDinheiro(50)" class="coin-btn coin-gain" title="Ganhar $50">
+                            +$50
+                        </button>
+                    </div>
+                </div>
+
+                <div class="wallet-group">
+                    <h4>DESPESA</h4>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="somarDinheiro(-1)" class="coin-btn coin-loss" title="Gastar $1">
+                            -$1
+                        </button>
+                        <button onclick="somarDinheiro(-10)" class="coin-btn coin-loss" title="Gastar $10">
+                            -$10
+                        </button>
+                        <button onclick="somarDinheiro(-50)" class="coin-btn coin-loss" title="Gastar $50">
+                            -$50
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 <div class="modal-overlay" id="modal-tutorial">
     <div class="modal-tutor" style="max-width: 550px;">
         <h2 id="tut-titulo" style="color:var(--ink); margin-bottom:15px;">BEM-VINDO AO OESTE</h2>
@@ -1871,6 +2132,8 @@ body.locked #status {
     </div>
 </div>
 
+
+
 <div id="status" class="status-indicator"></div>
 
 <script>
@@ -1878,6 +2141,8 @@ body.locked #status {
 let dadosLocais = { vida: 0, dor: 0, xp: 0 };
 let inventarioGlobal = { items: [], weapons: [], municao: {} };
 let itemAlimentoSelecionadoIndex = null; // Para saber qual índice apagar
+let dinheiroAtual = 0;
+let timeoutDinheiro = null;
 
 const TABELA_NIVEL = [
     { nivel: 1, xp: 0 },
@@ -2075,6 +2340,11 @@ function preencherTela(attr) {
             municao: attr.inventario.municao || {}
         };
     }
+
+    if (attr.dinheiro !== undefined) {
+        dinheiroAtual = parseInt(attr.dinheiro);
+        document.getElementById('input-dinheiro').value = dinheiroAtual;
+    }
     
 
     // Atributos Básicos
@@ -2103,9 +2373,26 @@ function preencherTela(attr) {
     document.getElementById('anotacoes').value = attr.anotacoes || '';
 
     // Recursos
+    // Recursos
     if (attr.recursos) {
         recursosData = attr.recursos;
         atualizarBotaoRecursos();
+        
+        // ATUALIZAÇÃO: Checa se está faminto
+        if (recursosData.faminto) {
+            document.body.classList.add('faminto');
+            
+            // CORREÇÃO: Só mostra o popup na primeira carga, não a cada salvamento
+            if (primeiraCarga) { 
+                const aviso = document.getElementById('aviso-fragil');
+                if(aviso) {
+                    aviso.style.display = 'block';
+                    setTimeout(() => aviso.style.display = 'none', 3000);
+                }
+            }
+        } else {
+            document.body.classList.remove('faminto');
+        }
     }
     
     // Vestimentas e Redenção
@@ -2312,7 +2599,8 @@ async function salvarFicha() {
         redencao: redencaoData,
 
         // ADIÇÃO IMPORTANTE: Envia o inventário modificado junto!
-        inventario: inventarioGlobal 
+        inventario: inventarioGlobal,
+        dinheiro: dinheiroAtual 
     };
 
     // Pega o cache atual pra não perder Habilidades/Montaria/Inventário
@@ -2370,10 +2658,22 @@ function setupAutoSave() {
     fists.forEach((img, index) => {
         img.onclick = () => {
             const novoValor = index + 1;
+            // Toggle: Se clicar no atual, zera
             dadosLocais.dor = (dadosLocais.dor === novoValor) ? 0 : novoValor;
+            
+            // --- NOVA MECÂNICA DE FOME ---
+            // Se estiver faminto, o limite é 3. Se não, é 6.
+            const limiteDor = (recursosData.faminto === true) ? 3 : 6;
+
             atualizarVisual();
             salvarFicha();
-            if (dadosLocais.dor >= 6) converterDorEmVida();
+
+            // Se atingiu o limite (3 ou 6 dependendo da fome)
+            if (dadosLocais.dor >= limiteDor) {
+                converterDorEmVida();
+                // Aviso extra pro jogador entender pq tomou dano com pouca dor
+                if(limiteDor === 3) alert("Por estar FAMINTO, 3 de Dor foram suficientes para ferir você!");
+            }
         };
     });
 }
@@ -2978,6 +3278,117 @@ function abrirModalLevelUp(novoNivel) {
 function fecharLevelUp() {
     document.getElementById('modal-levelup').classList.remove('show');
 }
+
+
+function abrirPopupCarteira() {
+    document.getElementById('popup-carteira').classList.add('show');
+}
+
+function fecharPopupCarteira() {
+    document.getElementById('popup-carteira').classList.remove('show');
+}
+
+// 1. Quando VOCÊ mexe nas setinhas ou digita
+function interacaoManualDinheiro(valor) {
+    let novoValor = parseInt(valor);
+    if (isNaN(novoValor) || novoValor < 0) novoValor = 0;
+    
+    // Atualiza apenas a memória, NÃO mexe no input (pois você já está mexendo nele)
+    dinheiroAtual = novoValor;
+    
+    agendarSalvamentoDinheiro();
+}
+
+// 2. Quando você clica nos botões coloridos (+ $10, - $50)
+function somarDinheiro(quantia) {
+    let novoTotal = dinheiroAtual + quantia;
+    if (novoTotal < 0) novoTotal = 0;
+    
+    dinheiroAtual = novoTotal;
+    
+    // Aqui sim precisamos atualizar o input visualmente
+    document.getElementById('input-dinheiro').value = dinheiroAtual;
+
+    // Animaçãozinha visual
+    const input = document.getElementById('input-dinheiro');
+    input.style.transform = "scale(1.1)";
+    setTimeout(() => input.style.transform = "scale(1)", 100);
+
+    agendarSalvamentoDinheiro();
+}
+
+// 3. O "Maestro" do tempo (Debounce)
+function agendarSalvamentoDinheiro() {
+    // Feedback visual
+    const status = document.getElementById('status');
+    if(status) {
+        status.innerText = 'Contando moedas...';
+        status.style.opacity = 1;
+    }
+
+    // Cancela o salvamento anterior se você ainda estiver clicando
+    clearTimeout(timeoutDinheiro);
+
+    // Agenda o salvamento real para daqui a 1.5 segundos
+    timeoutDinheiro = setTimeout(() => {
+        salvarFicha();
+    }, 1500); 
+}
+
+// Função atualizada: EXAUSTÃO
+async function passarODia() {
+    if (!confirm("Encerrar o dia e descansar?")) return;
+
+    // 1. Verifica alimentação
+    if (recursosData.alimentadoHoje) {
+        // --- CENÁRIO: ALIMENTADO ---
+        statusMsg("Descanso revigorante.");
+        
+        // Remove status de fome visual
+        document.body.classList.remove('status-faminto');
+        document.getElementById('aviso-fome').style.display = 'none';
+
+        // RECUPERAÇÃO (Regra padrão: zera dor ou cura vida?)
+        // Vamos assumir que comer limpa a Dor acumulada do dia
+        dadosLocais.dor = 0; 
+
+    } else {
+        // --- CENÁRIO: FAMINTO (Hardcore) ---
+        
+        // Efeito Visual
+        document.body.classList.add('status-faminto');
+        document.getElementById('aviso-fome').style.display = 'block';
+        setTimeout(() => document.getElementById('aviso-fome').style.display = 'none', 4000); // Some depois de 4s
+
+        // Lógica de Dano: Limite de 3 de Dor
+        if (dadosLocais.dor >= 3) {
+            // Se já tem 3 ou mais de dor, o corpo consome a própria vida
+            if (dadosLocais.vida > 0) {
+                dadosLocais.vida -= 1; // Dano real
+                
+                // Mostra aviso de dano
+                alert("⚠️ FOME EXTREMA!\nSeu corpo não aguenta mais.\n-1 VIDA");
+            } else {
+                // Se vida já era 0 e tomou dano... Check de morte
+                document.getElementById('modal-morte').classList.add('show');
+            }
+        } else {
+            // Se tem menos de 3 de dor, ganha +1 de Dor pela fome
+            dadosLocais.dor += 1;
+            statusMsg("A fome aumenta sua Dor...");
+        }
+    }
+
+    // Reseta flag de comida
+    recursosData.alimentadoHoje = false;
+    
+    // Atualiza UI e Salva
+    atualizarVisual();
+    atualizarStatusAlimentacao();
+    atualizarBotaoRecursos();
+    await salvarFicha();
+}
+
 
 // INICIALIZAÇÃO
 setupAutoSave();

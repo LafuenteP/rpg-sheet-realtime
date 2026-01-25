@@ -11,140 +11,383 @@
     <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
-        :root { --bg-dark: #1a1411; --panel-bg: #2b221e; --text-light: #e6dccf; --gold: #ffcc80; --red: #ff5555; --green: #55ff55; }
-        body { background-color: var(--bg-dark); color: var(--text-light); font-family: 'Courier Prime', monospace; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        h1 { font-family: 'Rye', serif; color: var(--gold); text-align: center; border-bottom: 2px solid var(--gold); padding-bottom: 10px; width: 100%; max-width: 1000px; }
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 350px; gap: 20px; width: 100%; max-width: 1200px; margin-top: 20px; }
-        
-        /* PAINEL JOGADORES */
-        .players-panel { background: var(--panel-bg); border: 2px solid #5d4037; padding: 15px; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; font-family: 'Rye'; color: var(--gold); border-bottom: 1px solid #555; padding: 10px; }
-        td { padding: 10px; border-bottom: 1px solid #333; }
-        .status-ok { color: var(--green); font-weight: bold; }
-        .status-bad { color: var(--red); font-weight: bold; }
-        .status-neutral { color: #aaa; }
-        .btn-mini-xp { background: var(--gold); color: #000; border: none; font-family: 'Rye'; cursor: pointer; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; }
-        .btn-mini-xp:hover { background: #ffaa00; }
+        :root {
+            --bg-texture: url('assets/dashboard.jpg'); /* Se não tiver, vai usar a cor sólida */
+            --bg-dark: #140d0a; 
+            --panel-bg: rgba(30, 20, 15, 0.95);
+            --border-color: #8b6914;
+            --text-main: #e6dccf;
+            --gold: #ffcc80;
+            --red: #d32f2f;
+            --green: #388e3c;
+            --shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
 
-        /* PAINEL CONTROLES */
-        .controls-panel { display: flex; flex-direction: column; gap: 20px; }
-        .control-box { background: var(--panel-bg); border: 2px solid #5d4037; padding: 20px; border-radius: 8px; text-align: center; }
-        .control-box h3 { font-family: 'Rye'; margin: 0 0 15px 0; color: var(--gold); }
-        .gm-select { width: 100%; padding: 10px; margin-bottom: 10px; background: #1a1411; color: var(--gold); border: 1px solid #5d4037; font-family: 'Rye'; font-size: 1rem; cursor: pointer; }
-        .gm-btn { width: 100%; padding: 15px; font-family: 'Rye'; font-size: 1.2rem; cursor: pointer; border: none; border-radius: 5px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.1s; }
-        .gm-btn:active { transform: translateY(2px); }
-        .btn-day { background: #2e4053; color: #fff; border: 2px solid #5d6d7e; } .btn-day:hover { background: #34495e; }
-        .btn-damage { background: #641e16; color: #fff; border: 2px solid #922b21; } .btn-damage:hover { background: #7b241c; }
-        .btn-roll { background: #7d6608; color: #fff; border: 2px solid #b7950b; }
+        body {
+            background-color: var(--bg-dark);
+            background-image: var(--bg-texture);
+            background-size: cover;
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: 'Courier Prime', monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* TÍTULO PRINCIPAL */
+        h1 {
+            font-family: 'Rye', serif;
+            color: var(--gold);
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            width: 100%;
+            max-width: 1200px;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 30px;
+            background: linear-gradient(to right, transparent, rgba(139, 105, 20, 0.2), transparent);
+        }
+
+        /* GRID PRINCIPAL */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 25px;
+            width: 100%;
+            max-width: 1400px;
+        }
+
+        /* ESTILO DOS PAINÉIS */
+        .panel-container {
+            background: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        /* Detalhe nos cantos dos painéis (Cantoneiras) */
+        .panel-container::before {
+            content: '';
+            position: absolute; top: -2px; left: -2px; width: 15px; height: 15px;
+            border-top: 2px solid var(--gold); border-left: 2px solid var(--gold);
+        }
+        .panel-container::after {
+            content: '';
+            position: absolute; bottom: -2px; right: -2px; width: 15px; height: 15px;
+            border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold);
+        }
+
+        h3 {
+            font-family: 'Rye';
+            margin: 0 0 20px 0;
+            color: var(--gold);
+            text-shadow: 1px 1px 0 #000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px dashed #555;
+            padding-bottom: 10px;
+        }
+
+        /* TABELA DE JOGADORES */
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        
+        th {
+            text-align: left;
+            font-family: 'Rye';
+            color: #aaa;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        /* Linha do Jogador (Card look) */
+        tbody tr {
+            background: rgba(255, 255, 255, 0.03);
+            transition: transform 0.2s, background 0.2s;
+        }
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        td {
+            padding: 15px;
+            border-top: 1px solid rgba(139, 105, 20, 0.3);
+            border-bottom: 1px solid rgba(139, 105, 20, 0.3);
+        }
+        
+        /* Bordas arredondadas nas laterais da linha */
+        td:first-child { border-left: 4px solid var(--border-color); border-radius: 6px 0 0 6px; }
+        td:last-child { border-right: 1px solid rgba(139, 105, 20, 0.3); border-radius: 0 6px 6px 0; }
+
+        .char-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--gold);
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-ok { background: rgba(56, 142, 60, 0.2); color: #66bb6a; border: 1px solid #388e3c; }
+        .status-bad { background: rgba(211, 47, 47, 0.2); color: #ef5350; border: 1px solid #d32f2f; }
+        .status-neutral { color: #888; font-style: italic; }
+
+        /* BOTÕES GERAIS */
+        .gm-btn {
+            width: 100%;
+            padding: 12px;
+            font-family: 'Rye';
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        .gm-btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .gm-btn:active { transform: translateY(1px); box-shadow: none; }
+
+        .btn-day { background: #263238; color: #fff; border: 1px solid #455a64; }
+        .btn-damage { background: #5d1010; color: #ffcccc; border: 1px solid #8b0000; }
+        .btn-roll { background: #5d4037; color: #ffcc80; border: 1px solid #8d6e63; }
+        
+        .btn-mini-xp {
+            background: linear-gradient(45deg, #ffb300, #ff6f00);
+            color: #2b1b12;
+            border: 1px solid #ff6f00;
+            font-family: 'Rye';
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .btn-mini-xp:hover { transform: scale(1.1); box-shadow: 0 0 10px #ffb300; }
+
+        .btn-edit-mini {
+            background: transparent; border: none; color: #aaa; cursor: pointer;
+            font-size: 1rem; transition: color 0.2s;
+        }
+        .btn-edit-mini:hover { color: #fff; }
+
+        /* CONTROLES E INPUTS */
+        .gm-select {
+            width: 100%; padding: 10px; margin-bottom: 10px;
+            background: rgba(0,0,0,0.3); color: var(--gold);
+            border: 1px solid #5d4037; font-family: 'Rye';
+            cursor: pointer;
+        }
+
+        /* SPLIT ROW */
+        .split-row { display: flex; gap: 15px; width: 100%; margin-bottom: 20px; }
+        .split-item { flex: 1; display: flex; flex-direction: column; }
+
+        /* RELÓGIO E NPC */
+        .widget-box {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(139, 105, 20, 0.2);
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .clock-visual {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            border: 4px solid #3e2723;
+            margin: 10px auto;
+            box-shadow: inset 0 0 10px #000;
+            transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #npc-result {
+            background: url('assets/npcalea.jpg') no-repeat center; /* Opcional */
+            background-size: cover;
+            background-color: #eaddcf; /* Cor de papel */
+            color: #3e2723; /* Texto escuro */
+            padding: 10px;
+            border-radius: 2px;
+            min-height: 90px;
+            font-size: 0.95rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            transform: rotate(-1deg);
+        }
 
         /* LOG */
-        .log-box { background: #000; color: #0f0; font-family: monospace; padding: 10px; height: 200px; overflow-y: auto; border: 1px solid #333; font-size: 0.9rem; text-align: left; margin-top: 10px; }
-        .log-entry { margin-bottom: 5px; border-bottom: 1px dashed #333; padding-bottom: 2px; }
-        .log-time { color: #666; margin-right: 5px; }
+        .log-box {
+            background: #000;
+            color: #4caf50; /* Verde terminal retro */
+            font-family: 'Courier Prime', monospace;
+            padding: 15px;
+            height: 250px;
+            overflow-y: auto;
+            border: 2px solid #333;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            text-align: left;
+            margin-top: auto;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+        .log-entry { margin-bottom: 6px; border-bottom: 1px dashed #222; padding-bottom: 4px; }
+        .log-time { color: #666; margin-right: 8px; font-size: 0.75rem; }
 
-        /* MODAL XP */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-xp { background: url('assets/paper-bg.jpg') center/cover; padding: 30px; border: 4px solid var(--gold); width: 90%; max-width: 500px; text-align: left; color: #1a1a1a; box-shadow: 0 0 50px rgba(0,0,0,1); }
-        .modal-xp h2 { font-family: 'Rye'; margin: 0 0 20px 0; border-bottom: 2px solid #1a1a1a; padding-bottom: 10px; text-align: center; }
+        /* MODAIS */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(2px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-xp {
+            background: url('assets/paper-bg.jpg') center/cover;
+            background-color: #eaddcf;
+            padding: 30px;
+            border: 8px solid #2b1b12;
+            width: 95%; max-width: 500px;
+            text-align: left; color: #2b1b12;
+            box-shadow: 0 0 60px rgba(0,0,0,1);
+            border-radius: 2px;
+        }
+        .modal-xp h2 {
+            font-family: 'Rye'; margin: 0 0 20px 0;
+            border-bottom: 2px solid #2b1b12;
+            padding-bottom: 10px; text-align: center; color: #2b1b12;
+        }
         
-        .xp-question { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 5px; cursor: pointer; }
-        .xp-question:hover { background: rgba(255,255,255,0.8); }
-        .xp-question input { width: 20px; height: 20px; margin-top: 3px; cursor: pointer; }
-        .xp-question label { font-family: 'Courier Prime'; font-size: 1.1rem; cursor: pointer; font-weight: bold; line-height: 1.4; flex: 1; }
+        .xp-question {
+            display: flex; align-items: flex-start; gap: 10px;
+            margin-bottom: 10px; padding: 12px;
+            background: rgba(255,255,255,0.4);
+            border: 1px solid rgba(43, 27, 18, 0.2);
+            border-radius: 4px; cursor: pointer; transition: 0.2s;
+        }
+        .xp-question:hover { background: rgba(255,255,255,0.8); border-color: #2b1b12; }
+        .xp-question input { margin-top: 4px; accent-color: #2b1b12; width: 18px; height: 18px; }
+        .xp-question label { font-family: 'Courier Prime'; font-size: 1rem; cursor: pointer; line-height: 1.3; flex: 1; font-weight: bold; }
         
-        .xp-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-confirm-xp { flex: 1; background: #2e7d32; color: #fff; padding: 12px; font-family: 'Rye'; border: none; cursor: pointer; font-size: 1.1rem; }
-        .btn-cancel-xp { flex: 1; background: #555; color: #fff; padding: 12px; font-family: 'Rye'; border: none; cursor: pointer; font-size: 1.1rem; }
-
+        .xp-actions { display: flex; gap: 15px; margin-top: 25px; }
+        .btn-confirm-xp { flex: 2; background: #2e7d32; color: #fff; padding: 15px; font-family: 'Rye'; border: 2px solid #1b5e20; cursor: pointer; font-size: 1.1rem; }
+        .btn-cancel-xp { flex: 1; background: #5d4037; color: #fff; padding: 15px; font-family: 'Rye'; border: 2px solid #3e2723; cursor: pointer; font-size: 1.1rem; }
+        
         .btn-lvl-set {
-            flex: 1; background: #333; color: #aaa; border: 1px solid #555;
-            cursor: pointer; padding: 5px; font-family: 'Courier Prime'; font-size: 0.8rem;
+            flex: 1; background: #3e2723; color: #ffcc80; border: 1px solid #5d4037;
+            cursor: pointer; padding: 8px 0; font-family: 'Rye'; font-size: 0.9rem;
         }
-        .btn-lvl-set:hover { background: #444; color: #fff; border-color: #fff; }
-        
-        /* Botãozinho de editar ao lado do XP */
-        .btn-edit-mini {
-            background: transparent; border: none; cursor: pointer; font-size: 1rem;
-            opacity: 0.5; transition: 0.2s;
-        }
-        .btn-edit-mini:hover { opacity: 1; transform: scale(1.2); }
+        .btn-lvl-set:hover { background: #5d4037; color: #fff; }
 
-        @media (max-width: 800px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        /* RESPONSIVIDADE */
+        @media (max-width: 900px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .split-row { flex-direction: row; } 
+        }
+        @media (max-width: 600px) {
+            .split-row { flex-direction: column; }
+            td { display: block; text-align: right; border-left: none !important; border-right: none !important; border-bottom: 1px dashed #444; }
+            td::before { content: attr(data-label); float: left; font-weight: bold; color: #aaa; font-family: 'Rye'; }
+            td:first-child { text-align: center; border-bottom: 2px solid var(--gold); }
+            td:first-child::before { display: none; }
+        }
     </style>
 </head>
 <body>
 
-    <h1>DASHBOARD DO MESTRE</h1>
+    <h1>✦ DASHBOARD DO MESTRE ✦</h1>
 
     <div class="dashboard-grid">
         
-        <div class="players-panel">
-            <h3>Visão Geral do Bando</h3>
+        <div class="panel-container">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed #555; padding-bottom:10px; margin-bottom:20px;">
+                <h3 style="margin:0; border:none; padding:0;">Bando Reunido</h3>
+                <span style="font-size:0.8rem; color:#666;">Status em Tempo Real</span>
+            </div>
+            
             <table id="players-table">
                 <thead>
                     <tr>
-                        <th>Nome</th>
-                        <th>XP (Nível)</th> <th>Vida/Dor</th>
-                        <th>Status</th>
-                        <th>Ações</th> </tr>
+                        <th style="width:30%">Nome</th>
+                        <th>Nível (XP)</th>
+                        <th>Vitas</th>
+                        <th>Condição</th>
+                        <th style="width:100px">Ação</th>
+                    </tr>
                 </thead>
                 <tbody id="players-body">
-                    <tr><td colspan="5">Procurando fugitivos...</td></tr>
+                    <tr><td colspan="5" style="text-align:center; padding:30px;">Procurando fugitivos na rede...</td></tr>
                 </tbody>
             </table>
         </div>
 
-
-        <div class="modal-overlay" id="modal-edit-xp">
-            <div class="modal-xp" style="border-color: #555;">
-                <h2>🛠️ Ajuste Manual</h2>
-                <p style="text-align:center;">Editando: <b id="edit-target-name">...</b></p>
-                
-                <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:5px; margin-bottom:15px;">
-                    <label style="display:block; color:#aaa; font-size:0.8rem;">XP ATUAL:</label>
-                    <input type="number" id="input-manual-xp" style="width:100%; padding:10px; font-family:'Rye'; font-size:1.5rem; text-align:center; background:#222; color:#fff; border:1px solid #555;">
-                </div>
-
-                <div style="display:flex; justify-content:space-between; gap:5px; margin-bottom:20px;">
-                    <button onclick="setNivelManual(1)" class="btn-lvl-set">Lv.1</button>
-                    <button onclick="setNivelManual(2)" class="btn-lvl-set">Lv.2</button>
-                    <button onclick="setNivelManual(3)" class="btn-lvl-set">Lv.3</button>
-                    <button onclick="setNivelManual(4)" class="btn-lvl-set">Lv.4</button>
-                    <button onclick="setNivelManual(5)" class="btn-lvl-set">Lv.5</button>
-                    <button onclick="setNivelManual(6)" class="btn-lvl-set">Lv.6</button>
-                </div>
-
-                <div class="xp-actions">
-                    <button class="btn-cancel-xp" onclick="document.getElementById('modal-edit-xp').style.display='none'">Cancelar</button>
-                    <button class="btn-confirm-xp" onclick="salvarManualXP()">Salvar</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="controls-panel">
+        <div class="panel-container controls-panel" style="display:flex; flex-direction:column; gap:15px;">
             
-            <div class="control-box">
-                <h3>Passagem de Tempo</h3>
-                <p style="font-size: 0.8rem; color: #aaa;">Consome ração ou causa Dor.</p>
-                <button class="gm-btn btn-day" onclick="virarODia()">
-                    🌙 Virar o Dia
-                </button>
+            <div>
+                <h3>Ciclo & Sobrevivência</h3>
+                <p style="font-size: 0.8rem; color: #888; margin-top:-10px; margin-bottom:10px;">
+                    Consome recursos e aplica dano de Fome.
+                </p>
+                <button class="gm-btn btn-day" onclick="virarODia()">🌙 Encerrar o Dia</button>
             </div>
 
-            <div class="control-box">
-                <h3>Caos & Destruição</h3>
-                <label style="display:block; text-align:left; font-size:0.8rem; color:#aaa; margin-bottom:5px;">Alvo da Avaria:</label>
-                <select id="alvo-avaria" class="gm-select">
-                    <option value="random">🎲 Aleatório (Sorte)</option>
-                </select>
+            <div class="split-row">
+                
+                <div class="split-item widget-box">
+                    <span style="font-family:'Rye'; color:var(--gold); font-size:0.9rem;">TENSÃO</span>
+                    
+                    <input type="text" id="clock-title" placeholder="Ameaça..." 
+                           style="width:100%; background:transparent; border:none; border-bottom:1px solid #555; font-family:'Courier Prime'; text-align:center; color:#fff; font-size:0.9rem; margin-top:5px;">
+                    
+                    <div class="clock-visual" id="clock-visual" style="background:conic-gradient(#8b0000 0% 0%, transparent 0% 100%);"></div>
+                    
+                    <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                        <button class="gm-btn" style="padding:2px 10px; margin:0; width:auto; font-size:1.2rem; background:#333;" onclick="resetClock()">↺</button>
+                        <span id="clock-status" style="font-family:'Rye'; font-size:1.2rem; color:#fff;">0/6</span>
+                        <button class="gm-btn" style="padding:2px 10px; margin:0; width:auto; font-size:1.2rem; background:#d32f2f;" onclick="updateClock(1)">+</button>
+                    </div>
+                </div>
 
-                <button class="gm-btn btn-damage" onclick="causarAvaria()">
-                    🧥 Causar Avaria
-                </button>
-                <button class="gm-btn btn-roll" onclick="rolarEncontro()">
-                    🎲 Encontro (d6)
-                </button>
+                <div class="split-item widget-box">
+                    <span style="font-family:'Rye'; color:var(--gold); font-size:0.9rem;">VIVENTE</span>
+                    <div id="npc-result">
+                        <span style="opacity:0.6;">Gerar NPC...</span>
+                    </div>
+                    <button class="gm-btn btn-roll" style="margin:0; padding:8px;" onclick="gerarNPC()">👤 Novo</button>
+                </div>
+
+            </div>
+
+            <div>
+                <h3>Caos & Destruição</h3>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <select id="alvo-avaria" class="gm-select" style="margin:0; width: auto; flex: 2;">
+                        <option value="random">🎲 Aleatório</option>
+                    </select>
+                    <button class="gm-btn btn-damage" style="margin:0; flex:1;" onclick="causarAvaria()">🧥 Avaria</button>
+                </div>
+                <button class="gm-btn btn-roll" onclick="rolarEncontro()">🎲 Rolar Encontro (d6)</button>
             </div>
 
             <div class="log-box" id="gm-log">
@@ -154,26 +397,54 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="modal-edit-xp">
+        <div class="modal-xp" style="border-color: #3e2723; background-color: #1a1411; color: #e6dccf;">
+            <h2 style="color:#ffcc80; border-color:#5d4037;">🛠️ Ajuste Manual</h2>
+            <p style="text-align:center;">Editando: <b id="edit-target-name" style="color:#ffcc80;">...</b></p>
+            
+            <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:5px; margin-bottom:15px; text-align:center;">
+                <label style="display:block; color:#aaa; font-size:0.8rem; margin-bottom:5px;">XP ATUAL</label>
+                <input type="number" id="input-manual-xp" style="width:100px; padding:10px; font-family:'Rye'; font-size:2rem; text-align:center; background:transparent; color:#ffcc80; border:none; border-bottom:2px solid #5d4037;">
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px; margin-bottom:20px;">
+                <button onclick="setNivelManual(1)" class="btn-lvl-set">Lv.1</button>
+                <button onclick="setNivelManual(2)" class="btn-lvl-set">Lv.2</button>
+                <button onclick="setNivelManual(3)" class="btn-lvl-set">Lv.3</button>
+                <button onclick="setNivelManual(4)" class="btn-lvl-set">Lv.4</button>
+                <button onclick="setNivelManual(5)" class="btn-lvl-set">Lv.5</button>
+                <button onclick="setNivelManual(6)" class="btn-lvl-set">Lv.6</button>
+            </div>
+
+            <div class="xp-actions">
+                <button class="btn-cancel-xp" onclick="document.getElementById('modal-edit-xp').style.display='none'">Cancelar</button>
+                <button class="btn-confirm-xp" onclick="salvarManualXP()">Salvar Alteração</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="modal-xp">
         <div class="modal-xp">
             <h2>Sessão Encerrada</h2>
-            <p style="text-align:center; margin-bottom:20px;">Avaliando: <b id="xp-target-name">...</b></p>
+            <p style="text-align:center; margin-bottom:20px; font-family:'Courier Prime'; font-size:1.1rem;">
+                Avaliando o desempenho de: <br><b id="xp-target-name" style="font-size:1.4rem; color:#8b0000;">...</b>
+            </p>
             
             <div class="xp-question" onclick="toggleCheck('xp1')">
                 <input type="checkbox" id="xp1">
-                <label for="xp1">1. Seu PJ chegou vivo ao final da sessão?</label>
+                <label for="xp1">1. Terminou a sessão vivo?</label>
             </div>
             <div class="xp-question" onclick="toggleCheck('xp2')">
                 <input type="checkbox" id="xp2">
-                <label for="xp2">2. Seu PJ tem mais dinheiro do que no começo?</label>
+                <label for="xp2">2. Terminou com mais dinheiro?</label>
             </div>
             <div class="xp-question" onclick="toggleCheck('xp3')">
                 <input type="checkbox" id="xp3">
-                <label for="xp3">3. Seu PJ ajudou o bando de alguma forma?</label>
+                <label for="xp3">3. Ajudou o bando de alguma forma?</label>
             </div>
             <div class="xp-question" onclick="toggleCheck('xp4')">
                 <input type="checkbox" id="xp4">
-                <label for="xp4">4. Seu PJ resolveu o problema de alguém?</label>
+                <label for="xp4">4. Resolveu o problema de alguém?</label>
             </div>
             <div class="xp-question" onclick="toggleCheck('xp5')">
                 <input type="checkbox" id="xp5">
@@ -182,14 +453,14 @@
 
             <div class="xp-actions">
                 <button class="btn-cancel-xp" onclick="fecharModalXP()">Cancelar</button>
-                <button class="btn-confirm-xp" onclick="confirmarXP()">Confirmar XP</button>
+                <button class="btn-confirm-xp" onclick="confirmarXP()">Confirmar Pontos</button>
             </div>
         </div>
     </div>
 
     <script>
         let allPlayers = [];
-        let xpSession = { targetId: null, targetName: null }; // Guarda quem vai ganhar XP
+        let xpSession = { targetId: null, targetName: null };
 
         // 1. CARREGAR DADOS
         async function fetchPlayers() {
@@ -200,18 +471,18 @@
             atualizarSelectAlvos();
         }
 
-        // 2. RENDERIZAR TABELA (ATUALIZADO)
+        // 2. RENDERIZAR TABELA (ATUALIZADO COM VISUAL NOVO)
         function renderTable() {
             const tbody = document.getElementById('players-body');
             tbody.innerHTML = '';
 
             allPlayers.forEach(player => {
                 const attr = player.atributos || {};
-                const rec = attr.recursos || { racoes: 0, alimentadoHoje: false };
+                const rec = attr.recursos || { racoes: 0, alimentadoHoje: false, faminto: false };
                 const vest = attr.vestimentas || [];
                 const avarias = vest.filter(v => v.estado && v.estado !== 'bom').length;
                 
-                // Calcula XP e Nível para exibir
+                // Nível e XP
                 const xpAtual = attr.xp || 0;
                 let nivel = 1;
                 if(xpAtual >= 10) nivel = 2;
@@ -220,117 +491,213 @@
                 if(xpAtual >= 45) nivel = 5;
                 if(xpAtual >= 65) nivel = 6;
 
-                let foodStatus = rec.alimentadoHoje ? '<span class="status-ok">OK</span>' : '<span class="status-bad">FOME</span>';
-                if(avarias > 0) foodStatus += ` | ⚠️ ${avarias} avarias`;
+                // Status Visual
+                let statusHtml = "";
+                
+                if (rec.alimentadoHoje) {
+                    statusHtml += '<span class="status-badge status-ok">Cheio</span>';
+                } else {
+                    statusHtml += '<span class="status-badge status-neutral">Vazio</span>';
+                }
 
+                if (rec.faminto) {
+                    statusHtml += ' <span class="status-badge status-bad" title="Limite de Dor reduzido para 3">⚠️ FRÁGIL</span>';
+                }
+
+                if(avarias > 0) statusHtml += ` <span style="font-size:0.8rem; color:#aaa; margin-left:5px;">🧥 -${avarias}</span>`;
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="font-weight:bold; color:var(--gold)">${player.nome_personagem}</td>
-                    <td>
-                        Lv.${nivel} (${xpAtual} XP)
-                        <button class="btn-edit-mini" onclick="abrirEditManual('${player.id}', '${player.nome_personagem}', ${xpAtual})" title="Editar Manualmente">✏️</button>
+                    <td data-label="Nome" class="char-name">${player.nome_personagem}</td>
+                    <td data-label="Nível">
+                        <span style="color:#fff; font-weight:bold;">Lv.${nivel}</span> 
+                        <span style="color:#666; font-size:0.8rem;">(${xpAtual} XP)</span>
+                        <button class="btn-edit-mini" onclick="abrirEditManual('${player.id}', '${player.nome_personagem}', ${xpAtual})">✏️</button>
                     </td>
-                    <td>💀 ${attr.vida || 0} / 🩸 ${attr.dor || 0}</td>
-                    <td>${foodStatus}</td>
-                    <td>
-                        <button class="btn-mini-xp" onclick="abrirModalXP('${player.id}', '${player.nome_personagem}')">
-                            ★ DAR XP
-                        </button>
+                    <td data-label="Vitas">
+                        <span style="color:#d32f2f;">💀 ${attr.vida || 0}</span> 
+                        <span style="color:#666;">|</span> 
+                        <span style="color:#ffcc80;">🩸 ${attr.dor || 0}</span>
+                    </td>
+                    <td data-label="Status">${statusHtml}</td>
+                    <td data-label="Ação">
+                        <button class="btn-mini-xp" onclick="abrirModalXP('${player.id}', '${player.nome_personagem}')">★ DAR XP</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // 3. LÓGICA DE XP (NOVO)
-        function abrirModalXP(id, nome) {
-            xpSession.targetId = id;
-            xpSession.targetName = nome;
+        // --- LÓGICA DO RELÓGIO DE TENSÃO ---
+        let clockValue = 0;
+        const clockMax = 6; 
+
+        function updateClock(amount) {
+            clockValue += amount;
+            if(clockValue < 0) clockValue = 0;
+            if(clockValue > clockMax) clockValue = clockMax;
+
+            document.getElementById('clock-status').innerText = `${clockValue}/${clockMax}`;
             
-            // Reseta modal
-            document.getElementById('xp-target-name').innerText = nome;
-            for(let i=1; i<=5; i++) document.getElementById(`xp${i}`).checked = false;
+            const percentage = (clockValue / clockMax) * 100;
+            const color = clockValue >= clockMax ? '#d32f2f' : '#8b0000';
             
-            document.getElementById('modal-xp').style.display = 'flex';
-        }
+            document.getElementById('clock-visual').style.background = 
+                `conic-gradient(${color} 0% ${percentage}%, transparent ${percentage}% 100%)`;
 
-        function fecharModalXP() {
-            document.getElementById('modal-xp').style.display = 'none';
-        }
-
-        // Helper para clicar na div e marcar o checkbox
-        function toggleCheck(id) {
-            // Se clicar direto no input, não faz nada (evento padrão já resolve)
-            // Se clicar na div, inverte o input
-            // (Na verdade o evento onclick na div já pega tudo, mas precisamos evitar duplo toggle se clicar no label)
-        }
-
-        async function confirmarXP() {
-            let totalXP = 0;
-            for(let i=1; i<=5; i++) {
-                if(document.getElementById(`xp${i}`).checked) totalXP++;
-            }
-
-            if(totalXP === 0) {
-                if(!confirm("Nenhum ponto marcado. Confirmar 0 XP?")) return;
-            }
-
-            // Busca o jogador atualizado do array local
-            const player = allPlayers.find(p => p.id == xpSession.targetId);
-            if(player) {
-                const attr = player.atributos;
-                const xpAntigo = attr.xp || 0;
-                const xpNovo = xpAntigo + totalXP;
-                attr.xp = xpNovo;
-
-                // Salva no banco
-                await client.from('Fichas').update({ atributos: attr }).eq('id', player.id);
-                
-                log(`🌟 XP: ${player.nome_personagem} ganhou +${totalXP} XP (Total: ${xpNovo}).`);
-                fecharModalXP();
+            if(clockValue === clockMax) {
+                log(`⚠️ TENSÃO MÁXIMA! O relógio encheu.`);
             }
         }
 
-        // ... (Outras funções existentes: atualizarSelectAlvos, virarODia, causarAvaria, rolarEncontro, log) ...
+        function resetClock() {
+            clockValue = 0;
+            updateClock(0);
+            document.getElementById('clock-title').value = '';
+        }
+
+        // --- GERADOR DE NPC (VERSÃO BRASIL PROFUNDO) ---
+        const nomesH = [
+            "Tião", "Zé", "Severino", "Jesuíno", "Tonho", "Jurandir", "Chico", "Raimundo", "Bastião", "Lau", 
+            "Inocêncio", "Aderbal", "Gumercindo", "Juvenal", "Tibúrcio", "Ezequiel", "Isaías", "Jeremias",
+            "Euclides", "Hermógenes", "Valdomiro", "Olegário", "Firmino", "Justino", "Cícero", "Expedito",
+            "Damião", "Cosme", "Venâncio", "Gaudêncio", "Epaminondas", "Floriano", "Belchior", "Virgulino",
+            "Salustiano", "Agostinho", "Bento", "Vicente", "Otacílio", "Deocleciano", "Leôncio", "Ambrósio",
+            "Honório", "Januário", "Virgílio", "Manoel", "Joaquim", "Antônio", "Pedro", "Lázaro", "Dimas"
+        ];
+
+        const nomesM = [
+            "Maria", "Das Dores", "Socorro", "Cícera", "Luzia", "Dona Benta", "Rosinha", "Filinha", "Quitéria", 
+            "Toinha", "Conceição", "Aparecida", "Fátima", "Lourdes", "Graça", "Mercês", "Amparo", "Piedade",
+            "Generosa", "Blandina", "Filomena", "Carmelita", "Zulmira", "Etelvina", "Belarmina", "Santina",
+            "Jovelina", "Ernestina", "Jandira", "Iracema", "Moema", "Francisca", "Chica", "Benedita",
+            "Antônia", "Raimunda", "Josefa", "Severina", "Tereza", "Eulália", "Hortência", "Margarida",
+            "Violante", "Dadá", "Sinhá", "Moça", "Zefa", "Biá", "Donana", "Zezé"
+        ];
         
-        function atualizarSelectAlvos() {
-            const select = document.getElementById('alvo-avaria');
-            const valorAtual = select.value;
-            select.innerHTML = '<option value="random">🎲 Aleatório (Sorte)</option>';
-            allPlayers.forEach(p => {
-                const option = document.createElement('option');
-                option.value = p.id;
-                option.innerText = p.nome_personagem;
-                select.appendChild(option);
-            });
-            if (valorAtual && valorAtual !== 'random') select.value = valorAtual;
+        const apelidos = [
+            "da Peixeira", "do Facão", "Valente", "Corta-Vento", "Treme-Terra", "Boca-de-Fogo", "Gatilho",
+            "Chumbo-Grosso", "Sangue-Bom", "Mão-de-Onça", "Quebra-Osso", "Fura-Bucho", "Sete-Vidas",
+            "Beira-Rio", "da Venda", "Pé-de-Serra", "do Brejo", "da Caatinga", "do Crato", "do Norte",
+            "da Mata", "da Encruzilhada", "do Poço", "da Serra", "das Almas",
+            "Gavião", "Cobra-Verde", "Tatu", "Bode", "Onça", "Asa-Branca", "Sabiá", "Corisco", "Ventania",
+            "Trovão", "Jararaca", "Cascavel", "Lobo", "Raposo", "Preá", "Calango",
+            "Caolho", "Manco", "Gigante", "Pequeno", "Seco", "Ruivo", "Galego", "Preto", "Caboclo",
+            "Zarolho", "Mudo", "Surdo", "Cego", "Aleijadinho", "Dedo-Mole", "Pé-Leve",
+            "dos Anjos", "do Santo", "da Cruz", "Rezadore", "Milagreiro", "do Terço", "Padreco", "Beato",
+            "do Diabo", "Tinhoso", "Alma-Penada", "Corpo-Fechado",
+            "Ferreira", "Batista", "Alves", "Silva", "Santos", "Oliveira", "Souza", "Lima",
+            "Ferreiro", "Vaqueiro", "Tropeiro", "Cigano", "Doutor", "Capitão", "Sargento"
+        ];
+            
+        const tracos = [
+            "Masca fumo de corda o tempo todo.", "Limpa as unhas com a ponta da peixeira.", "Usa um chapéu de couro com furo de bala.",
+            "Tem um dente de ouro na frente.", "Carrega um terço enrolado no punho.", "Tem uma cicatriz feia que repuxa a boca.",
+            "Usa óculos com uma lente trincada.", "Tem as mãos calejadas e sujas de terra.", "Veste um gibão de couro surrado.",
+            "Tem marcas de varíola no rosto.", "Falta um pedaço da orelha esquerda.", "Tem o rosto queimado de sol.",
+            "Anda descalço, mas carrega botas no ombro.", "Usa um lenço vermelho encardido no pescoço.", "Tem tatuagem de santa desbotada no braço.",
+            "Carrega um bornal cheio de ervas.", "Tem o olho esquerdo branco (cego).", "Usa anéis roubados em vários dedos.",
+            "Cheira forte a cachaça e fumo.", "Tem a pele coberta de poeira da estrada.", "Reza baixinho sem parar.",
+            "Tosse seca e feia (tísica).", "Cospe no chão a cada frase.", "Não para de olhar para os lados.",
+            "Fala sussurrando, como se tivesse medo.", "Tem um tique nervoso no olho.", "Ri alto e fora de hora.",
+            "Fala arrastado, com muita calma.", "Gagueja quando fica nervoso.", "Brinca com uma moeda de prata entre os dedos.",
+            "Está sempre afiando uma faca.", "Fala olhando para o horizonte, nunca nos olhos.", "Faz o sinal da cruz toda vez que ouve um barulho.",
+            "As mãos tremem sem parar.", "Cantarola uma moda de viola triste.", "Tem um cachorro magro que não sai de perto.",
+            "Fala em enigmas e ditados populares.", "Parece estar sempre com sono.", "Tem pavio curto e se irrita fácil.",
+            "Chama todo mundo de 'doutor' ou 'patrão'."
+        ];
+        
+        const segredos = [
+            "Fugindo de um Coronel vingativo.", "Matou o próprio irmão por causa de terra.", "É um desertor da volância (polícia).",
+            "Roubou as esmolas da igreja local.", "É informante de um bando de cangaceiros.", "Ajudou a queimar uma fazenda vizinha.",
+            "Tem uma recompensa pela cabeça no estado vizinho.", "Matou um homem por engano em uma briga.", "Foi o único sobrevivente de um massacre.",
+            "Esconde um passado como jagunço famoso.", "Sabe onde o bando enterrou o butim.", "Carrega pepitas de ouro costuradas na bainha da calça.",
+            "Tem o mapa de um veio d'água secreto.", "Guarda a escritura roubada de uma fazenda.", "Achou uma arma muito valiosa e escondeu.",
+            "Sabe a senha para entrar no esconderijo dos bandidos.", "Deve uma fortuna para o agiota da cidade.", "Está guardando dinheiro para fugir para a capital.",
+            "Viu uma assombração na estrada ontem à noite.", "Fez um pacto na encruzilhada e se arrependeu.", "Acredita que está amaldiçoado a nunca dormir.",
+            "Está infectado com uma doença contagiosa.", "Está esperando um milagre para curar um filho.", "Diz que ouve a voz do Diabo no vento.",
+            "Carrega um amuleto feito de osso humano.", "Sabe quem envenenou o gado da região.", "É filho bastardo do homem mais rico da cidade.",
+            "Está apaixonado(a) pela pessoa errada.", "Finge ser cego ou mudo para ouvir conversas.", "Sabe que o padre não é quem diz ser.",
+            "Tem visões do futuro quando bebe.", "Acredita ser a reencarnação de um santo."
+        ];
+
+        // --- LÓGICA DE ALEATORIEDADE AVANÇADA (BARALHO) ---
+        const sacolas = {};
+
+        function pegarItemUnico(listaOriginal, nomeCategoria) {
+            if (!sacolas[nomeCategoria] || sacolas[nomeCategoria].length === 0) {
+                sacolas[nomeCategoria] = [...listaOriginal];
+                for (let i = sacolas[nomeCategoria].length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [sacolas[nomeCategoria][i], sacolas[nomeCategoria][j]] = [sacolas[nomeCategoria][j], sacolas[nomeCategoria][i]];
+                }
+            }
+            return sacolas[nomeCategoria].pop();
         }
 
+        function gerarNPC() {
+            const isHomem = Math.random() > 0.5;
+            const listaNomes = isHomem ? nomesH : nomesM;
+            const chaveGenero = isHomem ? 'nomesH' : 'nomesM';
+            
+            const nome = pegarItemUnico(listaNomes, chaveGenero);
+            const sobrenome = pegarItemUnico(apelidos, 'apelidos');
+            const traco = pegarItemUnico(tracos, 'tracos');
+            const segredo = pegarItemUnico(segredos, 'segredos');
+
+            const html = `
+                <div style="text-align:center;">
+                    <b style="color:#3e2723; font-size:1.1rem; font-family:'Rye'; text-transform:uppercase; display:block; margin-bottom:5px;">${nome} ${sobrenome}</b>
+                    <div style="font-size:0.85rem; color:#333; margin-bottom:5px; line-height:1.2;">👁️ ${traco}</div>
+                    <div style="font-size:0.8rem; color:#d32f2f; font-weight:bold; font-style:italic;">🤫 ${segredo}</div>
+                </div>
+            `;
+            
+            document.getElementById('npc-result').innerHTML = html;
+            log(`👤 NPC: ${nome} ${sobrenome} gerado.`);
+        }
+
+        // --- LÓGICA DO MESTRE PARA VIRAR O DIA (FRAGILIDADE) ---
         async function virarODia() {
-            if(!confirm("Virar o dia?")) return;
-            log("--- NOVO DIA ---");
+            if(!confirm("Encerrar o dia?\n\n- Quem comeu: Remove Fragilidade e zera Dor.\n- Quem NÃO comeu: Fica FRÁGIL (Max Dor 3) e ganha +1 Dor.")) return;
+            
+            log("--- A NOITE CAIU ---");
+            
             for (let player of allPlayers) {
                 let attr = player.atributos;
-                if (!attr.recursos) attr.recursos = { racoes: 0, alimentadoHoje: false };
+                if (!attr.recursos) attr.recursos = { racoes: 0, alimentadoHoje: false, faminto: false };
+                
                 let msg = "";
+                
                 if (attr.recursos.alimentadoHoje) {
                     attr.recursos.alimentadoHoje = false;
-                    msg = `✅ ${player.nome_personagem} ok.`;
+                    attr.recursos.faminto = false;
+                    attr.dor = 0; 
+                    msg = `✅ ${player.nome_personagem}: Descansado e Forte (Max Dor 6).`;
                 } else {
+                    attr.recursos.faminto = true; 
                     attr.dor = (attr.dor || 0) + 1;
-                    msg = `❌ ${player.nome_personagem} FOME (+1 Dor)`;
-                    if (attr.dor >= 6) {
-                        attr.dor = 0; attr.vida = (attr.vida || 0) + 1;
-                        msg += " -> 💥 FERIMENTO!";
+                    
+                    if (attr.dor >= 3) {
+                        attr.dor = 0;
+                        if (attr.vida > 0) {
+                            attr.vida = attr.vida - 1;
+                            msg = `🩸 ${player.nome_personagem}: Fome bateu 3 de Dor -> DANO (-1 Vida)`;
+                        } else {
+                            msg = `💀 ${player.nome_personagem}: COLAPSO DE FOME.`;
+                        }
+                    } else {
+                        msg = `⚠️ ${player.nome_personagem}: Com Fome e Frágil (+1 Dor).`;
                     }
                 }
+                
                 log(msg);
                 await client.from('Fichas').update({ atributos: attr }).eq('id', player.id);
             }
+            log("--- NOVO DIA INICIADO ---");
         }
 
-        // TABELA DE XP (Para setar nível rápido)
+        // TABELA DE XP
         const XP_POR_NIVEL = { 1: 0, 2: 10, 3: 20, 4: 30, 5: 45, 6: 65 };
         let editSession = { id: null };
 
@@ -342,71 +709,85 @@
         }
 
         function setNivelManual(nivel) {
-            // Preenche o input com o XP base daquele nível
             document.getElementById('input-manual-xp').value = XP_POR_NIVEL[nivel];
         }
 
         async function salvarManualXP() {
             const novoXP = parseInt(document.getElementById('input-manual-xp').value) || 0;
             const player = allPlayers.find(p => p.id == editSession.id);
-            
             if(player) {
                 const attr = player.atributos;
-                attr.xp = novoXP; // Sobrescreve direto
-
+                attr.xp = novoXP;
                 await client.from('Fichas').update({ atributos: attr }).eq('id', player.id);
                 log(`🛠️ AJUSTE: ${player.nome_personagem} definido para ${novoXP} XP.`);
                 document.getElementById('modal-edit-xp').style.display = 'none';
             }
         }
 
+        function abrirModalXP(id, nome) {
+            xpSession.targetId = id;
+            xpSession.targetName = nome;
+            document.getElementById('xp-target-name').innerText = nome;
+            for(let i=1; i<=5; i++) document.getElementById(`xp${i}`).checked = false;
+            document.getElementById('modal-xp').style.display = 'flex';
+        }
+
+        function fecharModalXP() { document.getElementById('modal-xp').style.display = 'none'; }
+        function toggleCheck(id) {} // Opcional se for clicar no label
+
+        async function confirmarXP() {
+            let totalXP = 0;
+            for(let i=1; i<=5; i++) if(document.getElementById(`xp${i}`).checked) totalXP++;
+            if(totalXP === 0 && !confirm("Confirmar 0 XP?")) return;
+            const player = allPlayers.find(p => p.id == xpSession.targetId);
+            if(player) {
+                const attr = player.atributos;
+                attr.xp = (attr.xp || 0) + totalXP;
+                await client.from('Fichas').update({ atributos: attr }).eq('id', player.id);
+                log(`🌟 XP: ${player.nome_personagem} ganhou +${totalXP} XP.`);
+                fecharModalXP();
+            }
+        }
+
+        function atualizarSelectAlvos() {
+            const select = document.getElementById('alvo-avaria');
+            const valorAtual = select.value;
+            select.innerHTML = '<option value="random">🎲 Aleatório (Sorte)</option>';
+            allPlayers.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id; opt.innerText = p.nome_personagem;
+                select.appendChild(opt);
+            });
+            if (valorAtual && valorAtual !== 'random') select.value = valorAtual;
+        }
 
         async function causarAvaria() {
             if (allPlayers.length === 0) return;
-            const select = document.getElementById('alvo-avaria');
-            const targetId = select.value;
-            let targetPlayer;
-            if (targetId === 'random') {
-                const randIndex = Math.floor(Math.random() * allPlayers.length);
-                targetPlayer = allPlayers[randIndex];
-            } else {
-                targetPlayer = allPlayers.find(p => p.id == targetId);
-            }
-            if (!targetPlayer) { log("Erro: Jogador não encontrado."); return; }
+            const targetId = document.getElementById('alvo-avaria').value;
+            let targetPlayer = (targetId === 'random') ? allPlayers[Math.floor(Math.random() * allPlayers.length)] : allPlayers.find(p => p.id == targetId);
+            if (!targetPlayer) return;
             const attr = targetPlayer.atributos;
-            if (!attr.vestimentas || attr.vestimentas.length === 0) {
-                log(`🤷‍♂️ ${targetPlayer.nome_personagem} não tem roupas.`);
-                return;
-            }
-            const validClothes = attr.vestimentas.map((v, i) => ({ ...v, index: i })).filter(v => v.nome && v.estado !== 'destruido');
-            if (validClothes.length === 0) {
-                log(`☠️ ${targetPlayer.nome_personagem} já está com tudo destruído!`);
-                return;
-            }
-            const randClothIndex = Math.floor(Math.random() * validClothes.length);
-            const targetCloth = validClothes[randClothIndex];
-            const originalIndex = targetCloth.index;
+            if (!attr.vestimentas) return log("Sem roupas.");
+            const valid = attr.vestimentas.map((v, i) => ({ ...v, i })).filter(v => v.nome && v.estado !== 'destruido');
+            if (valid.length === 0) return log("Tudo destruído!");
+            const chosen = valid[Math.floor(Math.random() * valid.length)];
             const estados = ['bom', 'usado', 'rasgado', 'destruido'];
-            const currentStateIndex = estados.indexOf(targetCloth.estado || 'bom');
-            const newState = estados[currentStateIndex + 1] || 'destruido';
-            attr.vestimentas[originalIndex].estado = newState;
-            log(`💥 ${targetPlayer.nome_personagem}: '${targetCloth.nome}' agora está [${newState.toUpperCase()}]!`);
+            const nextState = estados[estados.indexOf(chosen.estado || 'bom') + 1] || 'destruido';
+            attr.vestimentas[chosen.i].estado = nextState;
+            log(`💥 ${targetPlayer.nome_personagem}: ${chosen.nome} -> ${nextState.toUpperCase()}`);
             await client.from('Fichas').update({ atributos: attr }).eq('id', targetPlayer.id);
         }
 
         function rolarEncontro() {
-            const tab = ["Silêncio...", "Rastros frescos.", "Animal selvagem.", "Mudança de clima.", "Viajante/Comerciante.", "⚠️ EMBOSCADA!"];
-            const d6 = Math.floor(Math.random() * 6);
-            log(`🎲 (d6=${d6+1}): ${tab[d6]}`);
+            const tab = ["Silêncio...", "Rastros de animal.", "Mudança no Clima.", "Viajante perdido.", "Ruínas antigas.", "⚠️ EMBOSCADA!"];
+            log(`🎲 (d6): ${tab[Math.floor(Math.random() * 6)]}`);
         }
 
         function log(msg) {
             const box = document.getElementById('gm-log');
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            box.innerHTML = `<div class="log-entry"><span class="log-time">[${time}]</span> ${msg}</div>` + box.innerHTML;
+            box.innerHTML = `<div class="log-entry"><span class="log-time">[${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}]</span> ${msg}</div>` + box.innerHTML;
         }
 
-        // REALTIME
         client.channel('gm-dashboard').on('postgres_changes', { event: '*', schema: 'public', table: 'Fichas' }, 
             (payload) => {
                 const index = allPlayers.findIndex(p => p.id === payload.new.id);
@@ -414,12 +795,10 @@
                 else allPlayers.push(payload.new);
                 renderTable();
                 atualizarSelectAlvos();
-            })
-            .subscribe();
+            }).subscribe();
 
         fetchPlayers();
         log("Sistema conectado.");
-
     </script>
 </body>
 </html>

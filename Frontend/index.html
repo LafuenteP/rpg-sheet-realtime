@@ -2212,9 +2212,14 @@ function renderizarListaAlimentos() {
                 itemAlimentoSelecionadoIndex = index;
             };
             div.innerHTML = `
-                <input type="radio" name="food_selection" value="${index}" style="margin-right:10px; width:20px; height:20px;">
-                <span>🍗 <b>${item.nome}</b> <span style="font-size:0.8rem; color:#666;">(${item.espaco || 0} kg)</span></span>
-            `;
+                    <input type="radio" name="food_selection" value="${index}" style="margin-right:10px; width:20px; height:20px;">
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="color:#2b1b12; font-weight:bold; font-size:1.1rem;">
+                            🍗 ${item.nome} ${item.usos > 1 ? `<span style="color:#d32f2f;">(x${item.usos})</span>` : ''}
+                        </span>
+                        <span style="color:#666; font-size:0.8rem;">Peso: ${item.espaco || 0} kg</span>
+                    </div>
+                `;
             container.appendChild(div);
         }
     });
@@ -2242,28 +2247,37 @@ async function seAlimentar() {
         return;
     }
 
+    const item = inventarioGlobal.items[itemAlimentoSelecionadoIndex];
+
     // 3. EFEITO DE COMER
-    if(confirm("Comer este item? Ele será removido do inventário.")) {
+    if(confirm(`Comer ${item.nome}?`)) {
         
-        // Remove o item (Reseta o slot para vazio para manter a ordem da grade)
-        inventarioGlobal.items[itemAlimentoSelecionadoIndex] = { 
-            nome: '', 
-            espaco: 0, 
-            descricao: '', 
-            alimento: false 
-        };
+        // Verifica se tem quantidade (usos) maior que 1
+        if (item.usos && item.usos > 1) {
+            // Apenas diminui um uso
+            item.usos -= 1;
+            statusMsg(`Comeu 1. Restam ${item.usos}.`);
+        } else {
+            // Se for 1 ou não tiver o campo, remove o item
+            inventarioGlobal.items[itemAlimentoSelecionadoIndex] = { 
+                nome: '', 
+                espaco: 0, 
+                descricao: '', 
+                alimento: false,
+                usos: 1
+            };
+            statusMsg("Você comeu a última porção.");
+        }
 
         // Marca como alimentado
         recursosData.alimentadoHoje = true;
 
         // Atualiza UI e Salva
-        renderizarListaAlimentos(); // Atualiza a lista visualmente (o item some)
+        renderizarListaAlimentos(); 
         atualizarStatusAlimentacao();
         atualizarBotaoRecursos();
         
-        await salvarFicha(); // Salva no banco (incluindo o item removido)
-        
-        statusMsg("Você comeu e se sente melhor.");
+        await salvarFicha(); 
     }
 }
 
@@ -2454,40 +2468,47 @@ function fecharPopupVestimentas() {
 }
 
 async function seAlimentar() {
-    // 1. Verifica se já comeu
+    // 1. Verificações básicas
     if (recursosData.alimentadoHoje) {
         alert('Você já está satisfeito por hoje!');
         return;
     }
-
-    // 2. Verifica se selecionou algo
     if (itemAlimentoSelecionadoIndex === null) {
         alert('Selecione um item da lista para comer.');
         return;
     }
 
-    // 3. EFEITO DE COMER
-    if(confirm("Comer este item? Ele será removido do inventário.")) {
-        
-        // Remove o item (Reseta o slot para vazio para manter a ordem da grade)
-        inventarioGlobal.items[itemAlimentoSelecionadoIndex] = { 
-            nome: '', 
-            espaco: 0, 
-            descricao: '', 
-            alimento: false 
-        };
+    // Pega o objeto do item
+    const item = inventarioGlobal.items[itemAlimentoSelecionadoIndex];
 
-        // Marca como alimentado
+    // 2. Confirmação dinâmica
+    if(confirm(`Comer ${item.nome}?`)) {
+        
+        // --- NOVA LÓGICA DE QUANTIDADE ---
+        if (item.usos && item.usos > 1) {
+            // Se tem mais de 1, apenas diminui
+            item.usos = parseInt(item.usos) - 1;
+            statusMsg(`Comeu 1. Restam ${item.usos}.`);
+        } else {
+            // Se for 1 ou não tiver contagem, apaga o item (reseta o slot)
+            inventarioGlobal.items[itemAlimentoSelecionadoIndex] = { 
+                nome: '', 
+                espaco: 0, 
+                descricao: '', 
+                alimento: false,
+                usos: 1
+            };
+            statusMsg("Você comeu a última porção.");
+        }
+
+        // 3. Finalização
         recursosData.alimentadoHoje = true;
 
-        // Atualiza UI e Salva
         renderizarListaAlimentos(); 
         atualizarStatusAlimentacao();
         atualizarBotaoRecursos();
         
         await salvarFicha(); 
-        
-        statusMsg("Você comeu e se sente melhor.");
     }
 }
 

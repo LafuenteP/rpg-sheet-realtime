@@ -136,6 +136,44 @@
             border: 2px solid #5d4037; border-radius: 5px; 
         }
 
+        /* Estilo da caixa de quantidade (Usos) */
+        .qtd-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 250, 240, 0.8);
+            border: 1px solid #5d4037;
+            border-radius: 4px;
+            margin-left: 5px;
+            padding: 0 5px;
+            height: 34px; /* Mesma altura dos inputs */
+        }
+
+        .qtd-label {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #5d4037;
+            margin-right: 2px;
+            font-family: 'Courier Prime';
+        }
+
+        .qtd-input {
+            width: 35px !important; /* Força largura pequena */
+            text-align: center;
+            border: none !important;
+            background: transparent !important;
+            font-weight: bold;
+            font-size: 1.1rem !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* Ajuste para inputs do tipo number não terem setinhas feias */
+        .qtd-input::-webkit-inner-spin-button, 
+        .qtd-input::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
         /* RESPONSIVIDADE */
        /* RESPONSIVIDADE ATUALIZADA - SUBSTITUA A ANTIGA POR ESSA */
         @media (max-width: 1024px) {
@@ -615,15 +653,15 @@
                 tbody.innerHTML = '';
                 
                 for(let i=0; i < maxEspaco; i++) {
-                    if(!itensData[i]) itensData[i] = { nome: '', espaco: 0, descricao: '', alimento: false };
+                    // Agora inicializamos 'usos' com 1 por padrão
+                    if(!itensData[i]) itensData[i] = { nome: '', espaco: 0, descricao: '', alimento: false, usos: 1 };
                     const dados = itensData[i];
 
                     const tr = document.createElement('tr');
                     tr.className = dados.alimento ? 'item-row row-alimento' : 'item-row';
                     
-                    tr.innerHTML = `
-                        <td class="col-expand"><button class="btn-expand" onclick="toggleDescricao(this, 'desc-item-${i}')">▼</button></td>
-                        
+                    // HTML da linha
+                    let htmlMeio = `
                         <td style="display: flex; align-items: center;">
                             <label class="food-wrapper" title="Marcar como item consumível">
                                 <input type="checkbox" 
@@ -634,13 +672,33 @@
 
                             <span style="font-size: 1.2rem; margin-right: 5px; display: ${dados.alimento ? 'block' : 'none'}">🍗</span>
                             
-                            <input type="text" value="${escapeHtml(dados.nome)}" placeholder="..." onchange="atualizarItem(${i}, 'nome', this.value)">
-                        </td>
-                        
+                            <input type="text" value="${escapeHtml(dados.nome)}" placeholder="..." onchange="atualizarItem(${i}, 'nome', this.value)" style="flex:1;">
+                    `;
+
+                    // SE FOR ALIMENTO, ADICIONA O CAMPO DE USOS
+                    if (dados.alimento) {
+                        htmlMeio += `
+                            <div class="qtd-wrapper" title="Quantidade / Usos">
+                                <span class="qtd-label">QTD:</span>
+                                <input type="number" class="qtd-input" 
+                                    value="${dados.usos || 1}" 
+                                    min="1" 
+                                    onchange="atualizarItem(${i}, 'usos', this.value)">
+                            </div>
+                        `;
+                    }
+
+                    htmlMeio += `</td>`;
+
+                    tr.innerHTML = `
+                        <td class="col-expand"><button class="btn-expand" onclick="toggleDescricao(this, 'desc-item-${i}')">▼</button></td>
+                        ${htmlMeio}
                         <td class="col-espaco"><input type="number" value="${dados.espaco}" step="0.5" onchange="atualizarItem(${i}, 'espaco', this.value)"></td>
                     `;
+                    
                     tbody.appendChild(tr);
                     
+                    // Linha de descrição
                     const trDesc = document.createElement('tr');
                     trDesc.className = dados.alimento ? 'desc-row row-alimento' : 'desc-row';
                     trDesc.id = `desc-item-${i}`;
@@ -700,11 +758,24 @@
             function atualizarItem(index, campo, valor) {
                 if(!itensData[index]) itensData[index] = {};
                 
-                // Atualiza o valor na memória
-                itensData[index][campo] = (campo === 'espaco') ? parseFloat(valor) : valor;
+                // Lógica para salvar o tipo correto de dado
+                if (campo === 'espaco') {
+                    itensData[index][campo] = parseFloat(valor);
+                } else if (campo === 'usos') {
+                    // Garante que usos seja pelo menos 1
+                    let qtd = parseInt(valor);
+                    if (qtd < 1 || isNaN(qtd)) qtd = 1;
+                    itensData[index][campo] = qtd;
+                } else {
+                    itensData[index][campo] = valor;
+                }
                 
-                // Se mudou se é alimento ou não, redesenhamos a tabela para mostrar o emoji/cor
+                // Se mudou o checkbox de alimento, redesenha para mostrar/esconder o campo QTD
                 if (campo === 'alimento') {
+                    // Se marcou como alimento, garante que usos comece em 1
+                    if (valor === true && !itensData[index].usos) {
+                        itensData[index].usos = 1;
+                    }
                     gerarLinhasItens(); 
                 }
                 

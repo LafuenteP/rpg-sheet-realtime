@@ -61,7 +61,9 @@ const BIBLIOTECA = [
     {
         titulo: "Parrudeza",
         tipo: "combate",
-        descricao: "Você tem o couro grosso. Soma <b>2💀</b> à sua vida máxima. Esta Habilidade pode ser escolhida várias vezes."
+        descricao: "Você tem o couro grosso. Soma <b>2💀</b> à sua vida máxima. Esta Habilidade pode ser escolhida várias vezes.",
+        bonusVida: 2,
+        podeRepetir: true
     },
     {
         titulo: "Punhos do Oriente",

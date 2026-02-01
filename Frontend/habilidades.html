@@ -784,7 +784,7 @@
             }
         }
 
-        // 2. RENDERIZAR LISTA DO PERSONAGEM (Simples, tudo de uma vez)
+        // 2. RENDERIZAR LISTA DO PERSONAGEM (Agrupa habilidades repetidas)
         function renderizar() {
             const container = document.getElementById('lista-principal');
             container.innerHTML = '';
@@ -796,18 +796,45 @@
                 return;
             }
 
+            // Agrupa habilidades por título para contar repetições
+            const agrupadas = {};
             lista.forEach((skill, index) => {
+                if (!agrupadas[skill.titulo]) {
+                    agrupadas[skill.titulo] = {
+                        skill: skill,
+                        count: 1,
+                        indices: [index]
+                    };
+                } else {
+                    agrupadas[skill.titulo].count++;
+                    agrupadas[skill.titulo].indices.push(index);
+                }
+            });
+
+            // Renderiza cada grupo
+            Object.values(agrupadas).forEach((grupo) => {
+                const skill = grupo.skill;
+                const count = grupo.count;
+                const indices = grupo.indices;
+                
                 const card = document.createElement('div');
                 const tipo = skill.tipo || 'outros';
                 card.className = `skill-card ${tipo}`;
                 
+                // Mostra contador se tiver mais de 1
+                const contadorHTML = count > 1 ? `<span style="background:#ffcc80; color:#000; padding:2px 8px; border-radius:10px; font-size:0.7rem; margin-left:5px;">x${count}</span>` : '';
+                
+                // Mostra bônus total se for habilidade com bonusVida
+                const bonusTotal = (skill.bonusVida || 0) * count;
+                const bonusHTML = bonusTotal > 0 ? `<span style="color:#4caf50; font-size:0.8rem; margin-left:10px;">+${bonusTotal}💀</span>` : '';
+                
                 card.innerHTML = `
                     <h3>
-                        ${skill.titulo} 
+                        ${skill.titulo} ${contadorHTML} ${bonusHTML}
                         <span class="skill-type-badge">${tipo}</span>
                     </h3>
                     <div style="white-space: pre-wrap;">${skill.descricao}</div>
-                    <button class="btn-delete" onclick="remover(${index})">×</button>
+                    <button class="btn-delete" onclick="removerUma('${skill.titulo}')" title="Remover uma">×</button>
                 `;
                 container.appendChild(card);
             });
@@ -893,17 +920,21 @@
                     const item = document.createElement('div');
                     item.className = 'lib-item';
                     
+                    // Indicador de habilidade que pode repetir
+                    const podeRepetirIcon = skill.podeRepetir ? '<span style="color:#4caf50; font-size:0.7rem; margin-left:5px;" title="Pode pegar múltiplas vezes">♾️</span>' : '';
+                    
                     item.innerHTML = `
                         <div class="lib-header" onclick="toggleDetalhes(${indexOriginal})">
                             <div class="lib-info">
                                 <span class="lib-dot ${skill.tipo}"></span>
-                                <span class="lib-title">${skill.titulo}</span>
+                                <span class="lib-title">${skill.titulo}${podeRepetirIcon}</span>
                                 <span class="lib-toggle-icon" id="icon-${indexOriginal}">▼</span>
                             </div>
                             <button class="btn-add-quick" onclick="adicionarDireto(event, ${indexOriginal})">PEGAR +</button>
                         </div>
                         <div class="lib-details" id="desc-${indexOriginal}">
                             <p>${skill.descricao}</p>
+                            ${skill.podeRepetir ? '<small style="color:#4caf50">♾️ Esta habilidade pode ser pega várias vezes!</small><br>' : ''}
                             ${skill.tabela ? '<small style="color:var(--gold)">* Contém tabela de evolução</small>' : ''}
                         </div>
                     `;
@@ -982,10 +1013,17 @@
 
             if (!fichaCache.habilidades) fichaCache.habilidades = [];
             
+            // Se a habilidade dá bônus de vida, aplica automaticamente
+            if (skillOriginal.bonusVida && skillOriginal.bonusVida > 0) {
+                if (!fichaCache.bonusVidaHabilidades) fichaCache.bonusVidaHabilidades = 0;
+                fichaCache.bonusVidaHabilidades += skillOriginal.bonusVida;
+            }
+            
             fichaCache.habilidades.push({
                 titulo: skillOriginal.titulo,
                 tipo: skillOriginal.tipo,
-                descricao: descricaoFinal
+                descricao: descricaoFinal,
+                bonusVida: skillOriginal.bonusVida || 0
             });
 
             // Feedback Visual
@@ -1065,8 +1103,48 @@
         }
 
         // 6. BANCO DE DADOS
+        // Remove UMA instância de uma habilidade pelo título
+        async function removerUma(titulo) {
+            if(confirm(`Remover uma unidade de ${titulo}?`)) {
+                // Encontra o último índice dessa habilidade (remove do final)
+                let indexParaRemover = -1;
+                for (let i = fichaCache.habilidades.length - 1; i >= 0; i--) {
+                    if (fichaCache.habilidades[i].titulo === titulo) {
+                        indexParaRemover = i;
+                        break;
+                    }
+                }
+                
+                if (indexParaRemover >= 0) {
+                    const habilidadeRemovida = fichaCache.habilidades[indexParaRemover];
+                    
+                    // Se a habilidade dava bônus de vida, remove o bônus
+                    if (habilidadeRemovida && habilidadeRemovida.bonusVida && habilidadeRemovida.bonusVida > 0) {
+                        if (fichaCache.bonusVidaHabilidades) {
+                            fichaCache.bonusVidaHabilidades -= habilidadeRemovida.bonusVida;
+                            if (fichaCache.bonusVidaHabilidades < 0) fichaCache.bonusVidaHabilidades = 0;
+                        }
+                    }
+                    
+                    fichaCache.habilidades.splice(indexParaRemover, 1);
+                    renderizar();
+                    salvarNoBanco();
+                }
+            }
+        }
+        
         async function remover(index) {
             if(confirm("Remover habilidade?")) {
+                const habilidadeRemovida = fichaCache.habilidades[index];
+                
+                // Se a habilidade dava bônus de vida, remove o bônus
+                if (habilidadeRemovida && habilidadeRemovida.bonusVida && habilidadeRemovida.bonusVida > 0) {
+                    if (fichaCache.bonusVidaHabilidades) {
+                        fichaCache.bonusVidaHabilidades -= habilidadeRemovida.bonusVida;
+                        if (fichaCache.bonusVidaHabilidades < 0) fichaCache.bonusVidaHabilidades = 0;
+                    }
+                }
+                
                 fichaCache.habilidades.splice(index, 1);
                 renderizar();
                 salvarNoBanco();

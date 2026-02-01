@@ -2144,6 +2144,7 @@ let inventarioGlobal = { items: [], weapons: [], municao: {} };
 let itemAlimentoSelecionadoIndex = null; // Para saber qual índice apagar
 let dinheiroAtual = 0;
 let timeoutDinheiro = null;
+let atributosCache = null; // Cache dos atributos para bônus de habilidades
 
 const TABELA_NIVEL = [
     { nivel: 1, xp: 0 },
@@ -2201,6 +2202,11 @@ function gerarCaveirasVida() {
     if (nivel >= 4) totalVida += bonusPorFisico; // Ganha no Nível 4
     if (nivel >= 5) totalVida += bonusPorFisico; // Ganha no Nível 5
     if (nivel >= 6) totalVida += 3;              // Ganha +3 fixo no Nível 6
+    
+    // 3. Bônus de Habilidades (ex: Parrudeza dá +2💀)
+    if (atributosCache && atributosCache.bonusVidaHabilidades) {
+        totalVida += atributosCache.bonusVidaHabilidades;
+    }
 
     // 3. Renderização das Caveiras
     const vidaTrack = document.querySelector('.vida-track');
@@ -2305,6 +2311,9 @@ async function buscarDados() {
 // PREENCHER TELA (ATUALIZADA)
 function preencherTela(attr) {
     if (!attr) return;
+    
+    // Salva os atributos no cache global para uso em gerarCaveirasVida
+    atributosCache = attr;
 
     // === NOVO: CHECK DE LEVEL UP ===
     const xpNovo = attr.xp || 0;

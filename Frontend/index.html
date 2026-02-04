@@ -141,6 +141,17 @@ html.locked #tela-senha {
     box-sizing: border-box;
 }
 
+/* Corrigir scroll travado em mobile */
+html, body {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+html {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -150,6 +161,7 @@ body {
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 .painel-arma-equipada {
@@ -850,6 +862,7 @@ body.locked #status {
     width: 90%;
     max-height: 85vh;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     transform: scale(0.8);
     transition: transform 0.3s;
 }
@@ -1445,6 +1458,18 @@ body.faminto {
 /* Celulares */
 @media (max-width: 768px) {
     
+    /* Corrigir scroll em mobile */
+    html, body {
+        overflow-x: hidden;
+        overscroll-behavior-y: none;
+    }
+    
+    /* Evita scroll interno que trava */
+    .lista-alimentos-container {
+        max-height: 150px;
+        -webkit-overflow-scrolling: touch;
+    }
+    
     /* Layout geral - coluna única */
     .sheet {
         display: flex;
@@ -1456,6 +1481,7 @@ body.faminto {
         gap: 20px;
         background: url("assets/fundomob.jpg") no-repeat center;
         background-size: cover;
+        overflow: visible;
     }
 
     /* Seção esquerda (foto e nome) */

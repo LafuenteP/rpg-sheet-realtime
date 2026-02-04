@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Bando — Os Queimados</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+    <script>
+    // 1. Configuração das Senhas
+    const SENHAS = {
+        'Trinity': 'trinity123',
+        'Josue': 'pantufa',
+        'Januario': 'morena<3',
+        'Mateus': 'junin123',
+        'Geraldo': 'ph123',
+        'SemNome': 'matheus123',
+    };
+
+    // 2. Verifica se já tem permissão SALVA antes de mostrar a tela
+    function checkAuth() {
+        // Se o personagem não precisa de senha, libera
+        if (!SENHAS[NOME_PERSONAGEM]) return true;
+
+        // Tenta pegar a permissão salva no navegador
+        const authKey = `auth_${NOME_PERSONAGEM}`; // ex: auth_Trinity
+        const authData = JSON.parse(localStorage.getItem(authKey));
+        
+        // Se tem permissão e ela é recente (menos de 24h)
+        if (authData && (Date.now() - authData.time < 86400000)) {
+            return true; // Liberado
+        }
+        return false; // Bloqueado
+    }
+
+    // Se NÃO estiver autorizado, adiciona a classe 'locked' no corpo assim que possível
+    if (!checkAuth()) {
+        document.documentElement.classList.add('locked');
+    }
+
+    // Função para o botão "Entrar"
+    function tentarDesbloquear() {
+        const input = document.getElementById('pass-input');
+        const erro = document.getElementById('pass-error');
+        
+        if (input.value === SENHAS[NOME_PERSONAGEM]) {
+            // Salva a permissão
+            localStorage.setItem(`auth_${NOME_PERSONAGEM}`, JSON.stringify({ time: Date.now() }));
+            // Remove o bloqueio
+            document.documentElement.classList.remove('locked');
+            document.getElementById('tela-senha').style.display = 'none';
+        } else {
+            erro.style.display = 'block';
+            input.value = '';
+        }
+    }
+    </script>
+
+    <style>
+        /* CSS PARA O BLOQUEIO */
+        html.locked body > *:not(#tela-senha) {
+            display: none !important;
+        }
+
+        html.locked body {
+            background: #1a1411;
+            overflow: hidden;
+        }
+
+        #tela-senha {
+            display: none;
+        }
+
+        html.locked #tela-senha {
+            display: flex !important;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #1a1411; z-index: 9999;
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+
+        :root {
+            --bg-texture: url('assets/bando-bg.jpg');
+            --bg-dark: #140d0a; 
+            --panel-bg: rgba(30, 20, 15, 0.95);
+            --border-color: #8b6914;
+            --text-main: #e6dccf;
+            --gold: #ffcc80;
+            --red: #d32f2f;
+            --green: #388e3c;
+            --shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: var(--bg-texture);
+            background-size: cover;
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: 'Courier Prime', monospace;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'Rye', serif;
+            color: var(--gold);
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            text-shadow: 2px 2px 0 #000;
+            margin: 20px 20px 30px 20px;
+            background: linear-gradient(to right, transparent, rgba(139, 105, 20, 0.2), transparent);
+        }
+
+        /* GRID PRINCIPAL */
+        .bando-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* PAINÉIS */
+        .panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute; top: -2px; left: -2px; width: 15px; height: 15px;
+            border-top: 2px solid var(--gold); border-left: 2px solid var(--gold);
+        }
+        .panel::after {
+            content: '';
+            position: absolute; bottom: -2px; right: -2px; width: 15px; height: 15px;
+            border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold);
+        }
+
+        .panel.full-width {
+            grid-column: 1 / -1;
+        }
+
+        h2 {
+            font-family: 'Rye';
+            margin: 0 0 20px 0;
+            color: var(--gold);
+            text-shadow: 1px 1px 0 #000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px dashed #555;
+            padding-bottom: 10px;
+        }
+
+        /* === SEÇÃO DE HONRA === */
+        .honra-container {
+            text-align: center;
+        }
+
+        .honra-bar {
+            width: 100%;
+            height: 30px;
+            background: linear-gradient(to right, var(--red) 0%, var(--red) 50%, var(--green) 50%, var(--green) 100%);
+            border-radius: 4px;
+            position: relative;
+            border: 2px solid var(--border-color);
+        }
+
+        .honra-marker {
+            position: absolute;
+            top: -5px;
+            width: 4px;
+            height: 40px;
+            background: var(--gold);
+            transform: translateX(-50%);
+            transition: left 0.5s ease;
+        }
+
+        .honra-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-family: 'Rye';
+            font-size: 0.9em;
+        }
+
+        .honra-valor {
+            font-size: 1.5em;
+            margin-top: 15px;
+        }
+
+        .honra-valor.positiva { color: var(--green); }
+        .honra-valor.negativa { color: var(--red); }
+        .honra-valor.neutra { color: var(--gold); }
+
+        /* === MEMBROS DO BANDO === */
+        .membros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .membro-card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            text-align: center;
+            border-radius: 4px;
+            transition: transform 0.2s, border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .membro-card:hover {
+            transform: scale(1.05);
+            border-color: var(--gold);
+        }
+
+        .membro-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            object-fit: cover;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .membro-card h4 {
+            margin: 10px 0 5px;
+            color: var(--gold);
+            font-family: 'Rye';
+            font-size: 1em;
+        }
+
+        .membro-card .funcao {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        .membro-card .status {
+            margin-top: 8px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            text-transform: uppercase;
+        }
+
+        .status.vivo { background: var(--green); color: white; }
+        .status.ferido { background: #ff9800; color: black; }
+        .status.procurado { background: var(--red); color: white; }
+
+        /* === MODAL DO MEMBRO === */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.ativo {
+            display: flex;
+        }
+
+        .modal-membro {
+            background: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 0 50px rgba(255, 204, 128, 0.2);
+        }
+
+        .modal-membro::before {
+            content: '';
+            position: absolute; top: -2px; left: -2px; width: 20px; height: 20px;
+            border-top: 3px solid var(--gold); border-left: 3px solid var(--gold);
+        }
+
+        .modal-membro::after {
+            content: '';
+            position: absolute; bottom: -2px; right: -2px; width: 20px; height: 20px;
+            border-bottom: 3px solid var(--gold); border-right: 3px solid var(--gold);
+        }
+
+        .modal-membro img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid var(--gold);
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+
+        .modal-membro h3 {
+            font-family: 'Rye';
+            color: var(--gold);
+            margin: 0 0 5px;
+            font-size: 1.5em;
+        }
+
+        .modal-membro .modal-funcao {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .modal-membro .modal-descricao {
+            color: var(--text-main);
+            line-height: 1.6;
+            font-size: 1em;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            border-left: 3px solid var(--gold);
+            text-align: left;
+            font-style: italic;
+        }
+
+        .modal-fechar {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--gold);
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-fechar:hover {
+            color: #fff;
+        }
+
+        /* === NOTÍCIAS (JORNAL) === */
+        .noticias-list {
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .noticias-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .noticias-list::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+        }
+
+        .noticias-list::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .noticia {
+            background: #f4e4bc;
+            color: #2a2a2a;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 2px;
+            font-family: 'Times New Roman', serif;
+            position: relative;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.5);
+            transform: rotate(-0.5deg);
+        }
+
+        .noticia:nth-child(even) {
+            transform: rotate(0.5deg);
+        }
+
+        .noticia::before {
+            content: '📰';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            font-size: 1.5em;
+        }
+
+        .noticia h4 {
+            font-family: 'Times New Roman', serif;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 0 0 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .noticia p {
+            margin: 0 0 10px;
+            line-height: 1.4;
+            font-size: 0.95em;
+        }
+
+        .noticia .data {
+            font-size: 0.8em;
+            color: #666;
+            font-style: italic;
+            text-align: right;
+        }
+
+        /* === MELHORIAS === */
+        .melhorias-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .melhoria {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s;
+        }
+
+        .melhoria.adquirida {
+            border-color: var(--green);
+            background: rgba(56, 142, 60, 0.15);
+        }
+
+        .melhoria.adquirida .melhoria-icon {
+            text-shadow: 0 0 10px rgba(56, 142, 60, 0.5);
+        }
+
+        .melhoria.disponivel {
+            border-color: var(--gold);
+            background: rgba(255, 204, 128, 0.1);
+            cursor: pointer;
+        }
+
+        .melhoria.disponivel:hover {
+            background: rgba(255, 204, 128, 0.2);
+            transform: scale(1.02);
+        }
+
+        .melhoria.disponivel.votada {
+            border-color: #4caf50;
+            background: rgba(76, 175, 80, 0.15);
+        }
+
+        .melhoria-votos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .voto-tag {
+            background: rgba(255, 204, 128, 0.2);
+            border: 1px solid var(--gold);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            color: var(--gold);
+            font-family: 'Courier Prime';
+        }
+
+        .voto-tag.meu-voto {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: #4caf50;
+            color: #4caf50;
+        }
+
+        .votar-hint {
+            font-size: 0.75em;
+            color: #888;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        .melhoria.bloqueada {
+            opacity: 0.5;
+            filter: grayscale(0.8);
+        }
+
+        .melhoria.bloqueada:hover {
+            opacity: 0.7;
+        }
+
+        .melhoria-icon {
+            font-size: 2em;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .melhoria-info h4 {
+            margin: 0;
+            color: var(--gold);
+            font-family: 'Rye';
+            font-size: 0.95em;
+        }
+
+        .melhoria-info p {
+            margin: 5px 0 0;
+            font-size: 0.85em;
+            color: #aaa;
+        }
+
+        .melhoria-info .custo {
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        /* === CAIXA DO BANDO === */
+        .caixa-display {
+            text-align: center;
+        }
+
+        .caixa-valor {
+            font-size: 2.5em;
+            color: var(--gold);
+            font-family: 'Rye';
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .caixa-desc {
+            color: #888;
+            margin-top: 10px;
+        }
+
+        /* Link de volta */
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--gold);
+            text-decoration: none;
+            font-family: 'Rye';
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        /* RESPONSIVO */
+        @media (max-width: 900px) {
+            .bando-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .panel.full-width {
+                grid-column: 1;
+            }
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .membros-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* === NAVBAR === */
+        .western-nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(43, 27, 18, 0.95);
+            border-bottom: 2px solid #5d4037;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+        .western-nav a {
+            color: #aaa;
+            text-decoration: none;
+            font-family: 'Rye';
+            font-size: 1rem;
+            padding: 5px 10px;
+            border: 1px solid transparent;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .western-nav a:hover, .western-nav a.active {
+            color: var(--gold);
+            border-color: var(--gold);
+        }
+
+        @media (max-width: 600px) {
+            .western-nav {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 10px;
+            }
+            .western-nav a {
+                font-size: 0.8rem;
+                padding: 4px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TELA DE SENHA -->
+    <div id="tela-senha">
+        <div style="background:url('assets/locked.jpg') center center/contain no-repeat, #1a1411; padding:40px; border:5px solid #2b1b12; text-align:center; max-width:400px; border-radius:8px;">
+            <h2 style="font-family:'Rye'; margin-top:0; color:#ffcc80;">🔒 ACESSO RESTRITO</h2>
+            <p style="font-family:'Courier Prime'; color:#e6dccf;">Ficha de <b id="nome-lock">Personagem</b></p>
+            
+            <input type="password" id="pass-input" placeholder="Senha..." 
+                   style="padding:10px; font-size:1.2rem; text-align:center; width:100%; margin-bottom:15px; font-family:'Courier Prime'; background:#1a1411; border:2px solid #5d4037; color:#e6dccf; box-sizing:border-box;"
+                   onkeypress="if(event.key==='Enter') tentarDesbloquear()">
+            
+            <button onclick="tentarDesbloquear()" 
+                    style="padding:10px 30px; font-family:'Rye'; cursor:pointer; background:#5d4037; color:#fff; border:none; font-size:1.1rem;">
+                ABRIR FICHA
+            </button>
+            
+            <p id="pass-error" style="color:red; display:none; margin-top:10px;">Senha Incorreta!</p>
+        </div>
+        <script>
+            // Atualiza o nome na tela de bloqueio
+            document.getElementById('nome-lock').innerText = NOME_PERSONAGEM || 'Desconhecido';
+        </script>
+    </div>
+
+    <nav class="western-nav">
+        <a href="index.html">Ficha</a>
+        <a href="habilidades.html">Habilidades</a>
+        <a href="montaria.html">Montaria</a>
+        <a href="inventario.html">Inventário</a>
+        <a href="bando.html" class="active">Bando</a>
+    </nav>
+
+    <!-- MODAL PARA EXIBIR DETALHES DO MEMBRO -->
+    <div class="modal-overlay" id="modalMembro">
+        <div class="modal-membro">
+            <button class="modal-fechar" onclick="fecharModal()">✕</button>
+            <img id="modalAvatar" src="assets/avatar-placeholder.png" alt="">
+            <h3 id="modalNome">Nome do NPC</h3>
+            <div class="modal-funcao" id="modalFuncao">Função</div>
+            <div class="modal-descricao" id="modalDescricao">Descrição do personagem...</div>
+        </div>
+    </div>
+
+    <h1>🏴 O Bando — Os Queimados</h1>
+
+    <div class="bando-grid" style="padding: 0 20px 20px 20px;">
+        
+        <!-- HONRA DO BANDO -->
+        <div class="panel">
+            <h2>⚖️ Honra do Bando</h2>
+            <div class="honra-container">
+                <div class="honra-bar">
+                    <div class="honra-marker" id="honraMarker" style="left: 60%;"></div>
+                </div>
+                <div class="honra-labels">
+                    <span style="color: var(--red);">Infame</span>
+                    <span>Neutro</span>
+                    <span style="color: var(--green);">Honrado</span>
+                </div>
+                <div class="honra-valor positiva" id="honraValor">+20</div>
+                <p style="color: #888; font-size: 0.9em;">O povo ainda confia no bando</p>
+            </div>
+        </div>
+
+        <!-- CAIXA DO BANDO -->
+        <div class="panel">
+            <h2>💰 Caixa do Bando</h2>
+            <div class="caixa-display">
+                <div class="caixa-valor" id="caixaValor">$ 1.250,00</div>
+                <p class="caixa-desc">Fundos coletivos para melhorias e suprimentos</p>
+            </div>
+        </div>
+
+        <!-- MEMBROS DO BANDO -->
+        <div class="panel full-width">
+            <h2>🤠 Membros do Bando</h2>
+            <div class="membros-grid" id="membrosGrid">
+                <!-- Exemplo de membros - serão carregados do Supabase -->
+                <div class="membro-card" onclick="window.location.href='index.html?nome=Trinity'">
+                    <img src="assets/avatar-placeholder.png" alt="Trinity">
+                    <h4>Trinity</h4>
+                    <span class="funcao">Pistoleira</span>
+                    <div class="status vivo">Saudável</div>
+                </div>
+                <div class="membro-card" onclick="window.location.href='index.html?nome=Neo'">
+                    <img src="assets/avatar-placeholder.png" alt="Neo">
+                    <h4>Neo</h4>
+                    <span class="funcao">Forasteiro</span>
+                    <div class="status ferido">Ferido</div>
+                </div>
+                <div class="membro-card" onclick="window.location.href='index.html?nome=Morpheus'">
+                    <img src="assets/avatar-placeholder.png" alt="Morpheus">
+                    <h4>Morpheus</h4>
+                    <span class="funcao">Líder</span>
+                    <div class="status procurado">Procurado</div>
+                </div>
+                <div class="membro-card" onclick="window.location.href='index.html?nome=Niobe'">
+                    <img src="assets/avatar-placeholder.png" alt="Niobe">
+                    <h4>Niobe</h4>
+                    <span class="funcao">Batedora</span>
+                    <div class="status vivo">Saudável</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ÚLTIMAS NOTÍCIAS -->
+        <div class="panel">
+            <h2>📰 Notícias dos Jornais</h2>
+            <div class="noticias-list" id="noticiasList">
+                <div class="noticia">
+                    <h4>BANDO ASSALTA TREM DA COMPANHIA!</h4>
+                    <p>Testemunhas relatam tiroteio intenso nas proximidades de Blackwater. A recompensa pelo bando foi aumentada para $500.</p>
+                    <span class="data">12 de Março, 1899</span>
+                </div>
+                <div class="noticia">
+                    <h4>FORASTEIROS AJUDAM FAZENDEIRO</h4>
+                    <p>Grupo de pistoleiros defende propriedade rural contra ataque de bandoleiros. População local demonstra gratidão.</p>
+                    <span class="data">8 de Março, 1899</span>
+                </div>
+                <div class="noticia">
+                    <h4>XERIFE ALERTA: "ELES ESTÃO POR AÍ"</h4>
+                    <p>Autoridades de Valentine pedem cautela aos comerciantes. Patrulhas reforçadas nas estradas principais.</p>
+                    <span class="data">5 de Março, 1899</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MELHORIAS DO ACAMPAMENTO -->
+        <div class="panel">
+            <h2>⚙️ Melhorias do Acampamento</h2>
+            <div class="melhorias-grid" id="melhoriasGrid">
+                <div class="melhoria desbloqueada">
+                    <span class="melhoria-icon">🏕️</span>
+                    <div class="melhoria-info">
+                        <h4>Acampamento Básico</h4>
+                        <p>Barracas e fogueira central</p>
+                    </div>
+                </div>
+                <div class="melhoria desbloqueada">
+                    <span class="melhoria-icon">🐴</span>
+                    <div class="melhoria-info">
+                        <h4>Estábulo</h4>
+                        <p>Cuida e alimenta os cavalos</p>
+                    </div>
+                </div>
+                <div class="melhoria desbloqueada">
+                    <span class="melhoria-icon">🍖</span>
+                    <div class="melhoria-info">
+                        <h4>Cozinha</h4>
+                        <p>Prepara refeições nutritivas</p>
+                    </div>
+                </div>
+                <div class="melhoria bloqueada">
+                    <span class="melhoria-icon">⚒️</span>
+                    <div class="melhoria-info">
+                        <h4>Ferreiro</h4>
+                        <p>Melhora armas e ferramentas</p>
+                        <span class="custo">$ 500,00</span>
+                    </div>
+                </div>
+                <div class="melhoria bloqueada">
+                    <span class="melhoria-icon">🩺</span>
+                    <div class="melhoria-info">
+                        <h4>Enfermaria</h4>
+                        <p>Acelera a recuperação</p>
+                        <span class="custo">$ 750,00</span>
+                    </div>
+                </div>
+                <div class="melhoria bloqueada">
+                    <span class="melhoria-icon">🗺️</span>
+                    <div class="melhoria-info">
+                        <h4>Mesa de Planejamento</h4>
+                        <p>Bônus em missões</p>
+                        <span class="custo">$ 1.000,00</span>
+                    </div>
+                </div>
+                <div class="melhoria bloqueada">
+                    <span class="melhoria-icon">🛡️</span>
+                    <div class="melhoria-info">
+                        <h4>Posto de Guarda</h4>
+                        <p>Alerta de emboscadas</p>
+                        <span class="custo">$ 1.200,00</span>
+                    </div>
+                </div>
+                <div class="melhoria bloqueada">
+                    <span class="melhoria-icon">📦</span>
+                    <div class="melhoria-info">
+                        <h4>Depósito</h4>
+                        <p>Mais espaço de inventário</p>
+                        <span class="custo">$ 800,00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // =====================================================
+        // CONFIGURAÇÃO E VARIÁVEIS GLOBAIS
+        // =====================================================
+        
+        // Pega o nome do personagem da URL (?nome=NomeDoPersonagem)
+        const urlParams = new URLSearchParams(window.location.search);
+        const nomePersonagem = urlParams.get('nome');
+        
+        console.log('Nome do personagem:', nomePersonagem);
+
+        // =====================================================
+        // FUNÇÕES PARA CARREGAR DADOS DO SUPABASE (OPCIONAL)
+        // =====================================================
+
+        // Atualiza a barra de honra baseado no valor (-100 a +100)
+        function atualizarHonra(valor) {
+            const marker = document.getElementById('honraMarker');
+            const display = document.getElementById('honraValor');
+            
+            // Converte -100/+100 para 0%/100%
+            const porcentagem = ((valor + 100) / 200) * 100;
+            marker.style.left = `${porcentagem}%`;
+            
+            // Atualiza o texto e cor
+            display.textContent = valor >= 0 ? `+${valor}` : valor;
+            display.className = 'honra-valor';
+            
+            if (valor > 20) {
+                display.classList.add('positiva');
+            } else if (valor < -20) {
+                display.classList.add('negativa');
+            } else {
+                display.classList.add('neutra');
+            }
+        }
+
+        // Formata valor em dinheiro
+        function formatarDinheiro(valor) {
+            return valor.toLocaleString('pt-BR', { 
+                style: 'currency', 
+                currency: 'BRL' 
+            }).replace('R$', '$');
+        }
+
+        // Carrega membros do Supabase
+        async function carregarMembros() {
+            try {
+                const { data, error } = await client
+                    .from('membros_bando')
+                    .select('nome, funcao, avatar_url, status, descricao')
+                    .eq('ativo', true);
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    const grid = document.getElementById('membrosGrid');
+                    grid.innerHTML = data.map(m => `
+                        <div class="membro-card" onclick="abrirModal('${m.nome}', '${m.funcao || 'Membro'}', '${m.avatar_url || 'assets/avatar-placeholder.png'}', '${(m.descricao || 'Sem descrição').replace(/'/g, "\\'")}')">
+                            <img src="${m.avatar_url || 'assets/avatar-placeholder.png'}" alt="${m.nome}">
+                            <h4>${m.nome}</h4>
+                            <span class="funcao">${m.funcao || 'Membro'}</span>
+                            <div class="status ${m.status || 'vivo'}">${getStatusText(m.status)}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.log('Usando dados de exemplo para membros');
+            }
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'vivo': 'Saudável',
+                'ferido': 'Ferido',
+                'procurado': 'Procurado'
+            };
+            return statusMap[status] || 'Saudável';
+        }
+
+        // Funções do Modal
+        function abrirModal(nome, funcao, avatar, descricao) {
+            document.getElementById('modalNome').textContent = nome;
+            document.getElementById('modalFuncao').textContent = funcao;
+            document.getElementById('modalAvatar').src = avatar;
+            document.getElementById('modalDescricao').textContent = descricao;
+            document.getElementById('modalMembro').classList.add('ativo');
+        }
+
+        function fecharModal() {
+            document.getElementById('modalMembro').classList.remove('ativo');
+        }
+
+        // Fecha modal ao clicar fora
+        document.getElementById('modalMembro').addEventListener('click', (e) => {
+            if (e.target.id === 'modalMembro') fecharModal();
+        });
+
+        // Fecha modal com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') fecharModal();
+        });
+
+        // Carrega dados do bando (honra e caixa)
+        async function carregarDadosBando() {
+            try {
+                const { data, error } = await client
+                    .from('bando')
+                    .select('honra, caixa')
+                    .single();
+                
+                if (error) throw error;
+                
+                if (data) {
+                    atualizarHonra(data.honra);
+                    document.getElementById('caixaValor').textContent = formatarDinheiro(data.caixa);
+                }
+            } catch (err) {
+                console.log('Usando dados de exemplo para o bando');
+                // Usar valores de exemplo já definidos no HTML
+            }
+        }
+
+        // Carrega notícias do Supabase
+        async function carregarNoticias() {
+            try {
+                const { data, error } = await client
+                    .from('noticias')
+                    .select('*')
+                    .order('criado_em', { ascending: false })
+                    .limit(10);
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    const lista = document.getElementById('noticiasList');
+                    lista.innerHTML = data.map(n => `
+                        <div class="noticia">
+                            <h4>${n.titulo}</h4>
+                            <p>${n.conteudo}</p>
+                            <span class="data">${n.data_jornal}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.log('Usando notícias de exemplo');
+            }
+        }
+
+        // Carrega melhorias do Supabase
+        async function carregarMelhorias() {
+            try {
+                // Busca melhorias
+                const { data: melhorias, error } = await client
+                    .from('melhorias')
+                    .select('*')
+                    .order('custo', { ascending: true });
+                
+                if (error) throw error;
+                
+                // Busca votos
+                let votos = [];
+                try {
+                    const { data: votosData } = await client
+                        .from('votos_melhorias')
+                        .select('*');
+                    votos = votosData || [];
+                } catch (e) {
+                    console.log('Tabela votos_melhorias não existe ainda');
+                }
+                
+                if (melhorias && melhorias.length > 0) {
+                    const grid = document.getElementById('melhoriasGrid');
+                    grid.innerHTML = melhorias.map(m => {
+                        const status = m.status || 'bloqueada';
+                        const votosDestaMelhoria = votos.filter(v => v.melhoria_id === m.id);
+                        const meuVoto = votosDestaMelhoria.find(v => v.nome_personagem === nomePersonagem);
+                        
+                        if (status === 'adquirida') {
+                            return `
+                                <div class="melhoria adquirida">
+                                    <span class="melhoria-icon">${m.icone}</span>
+                                    <div class="melhoria-info">
+                                        <h4>${m.nome}</h4>
+                                        <p>${m.descricao}</p>
+                                        <span style="color: var(--green); font-size: 0.8em;">✓ Adquirida</span>
+                                    </div>
+                                </div>
+                            `;
+                        } else if (status === 'disponivel') {
+                            const votosHtml = votosDestaMelhoria.length > 0 
+                                ? `<div class="melhoria-votos">
+                                    ${votosDestaMelhoria.map(v => 
+                                        `<span class="voto-tag ${v.nome_personagem === nomePersonagem ? 'meu-voto' : ''}">${v.nome_personagem}</span>`
+                                    ).join('')}
+                                   </div>`
+                                : `<div class="votar-hint">👆 Clique para votar</div>`;
+                            
+                            return `
+                                <div class="melhoria disponivel ${meuVoto ? 'votada' : ''}" onclick="votarMelhoria(${m.id}, '${m.nome}')">
+                                    <span class="melhoria-icon">${m.icone}</span>
+                                    <div class="melhoria-info">
+                                        <h4>${m.nome}</h4>
+                                        <p>${m.descricao}</p>
+                                        <span class="custo">${formatarDinheiro(m.custo)}</span>
+                                        ${votosHtml}
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            return `
+                                <div class="melhoria bloqueada">
+                                    <span class="melhoria-icon">❓</span>
+                                    <div class="melhoria-info">
+                                        <h4>???</h4>
+                                        <p>Melhoria desconhecida</p>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }).join('');
+                }
+            } catch (err) {
+                console.log('Erro ao carregar melhorias:', err);
+            }
+        }
+
+        // Função para votar em uma melhoria
+        async function votarMelhoria(melhoriaId, nomeMelhoria) {
+            console.log('Tentando votar:', { melhoriaId, nomeMelhoria, nomePersonagem });
+            
+            if (!nomePersonagem) {
+                alert('Erro: Nome do personagem não encontrado.\n\nAcesse pelo link correto com ?nome=SeuNome');
+                return;
+            }
+            
+            try {
+                // Verifica se já votou nesta melhoria
+                const { data: votoExistente, error: erroConsulta } = await client
+                    .from('votos_melhorias')
+                    .select('id')
+                    .eq('melhoria_id', melhoriaId)
+                    .eq('nome_personagem', nomePersonagem)
+                    .maybeSingle();
+                
+                console.log('Voto existente:', votoExistente, 'Erro:', erroConsulta);
+                
+                if (votoExistente) {
+                    // Remove o voto (toggle)
+                    const { error: erroDelete } = await client
+                        .from('votos_melhorias')
+                        .delete()
+                        .eq('id', votoExistente.id);
+                    
+                    if (erroDelete) {
+                        console.error('Erro ao remover voto:', erroDelete);
+                        alert('Erro ao remover voto: ' + erroDelete.message);
+                        return;
+                    }
+                    console.log(`Voto removido de: ${nomeMelhoria}`);
+                } else {
+                    // Adiciona voto
+                    const { error: erroInsert } = await client
+                        .from('votos_melhorias')
+                        .insert({
+                            melhoria_id: melhoriaId,
+                            nome_personagem: nomePersonagem
+                        });
+                    
+                    if (erroInsert) {
+                        console.error('Erro ao inserir voto:', erroInsert);
+                        alert('Erro ao votar: ' + erroInsert.message + '\n\nVerifique se a tabela votos_melhorias existe e o RLS está desabilitado.');
+                        return;
+                    }
+                    console.log(`Votou em: ${nomeMelhoria}`);
+                }
+                
+                carregarMelhorias();
+            } catch (err) {
+                console.error('Erro ao votar:', err);
+                alert('Erro ao registrar voto: ' + err.message);
+            }
+        }
+
+        // Inicialização - Carrega dados do Supabase
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarDadosBando();
+            carregarMembros();
+            carregarNoticias();
+            carregarMelhorias();
+            
+            console.log('🏴 Página do Bando carregada!');
+        });
+    </script>
+
+<!-- BOTÃO FLUTUANTE DE FEEDBACK -->
+<style>
+    .feedback-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #8b6914, #d4a84b);
+        border: 2px solid #ffcc80;
+        color: #140d0a;
+        font-size: 1.5em;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        z-index: 9999;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .feedback-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(255,204,128,0.4);
+    }
+    .feedback-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+    .feedback-modal.ativo { display: flex; }
+    .feedback-box {
+        background: rgba(30, 20, 15, 0.98);
+        border: 2px solid #8b6914;
+        border-radius: 8px;
+        padding: 25px;
+        width: 90%;
+        max-width: 450px;
+        position: relative;
+    }
+    .feedback-box::before {
+        content: '';
+        position: absolute; top: -2px; left: -2px;
+        width: 15px; height: 15px;
+        border-top: 2px solid #ffcc80; border-left: 2px solid #ffcc80;
+    }
+    .feedback-box::after {
+        content: '';
+        position: absolute; bottom: -2px; right: -2px;
+        width: 15px; height: 15px;
+        border-bottom: 2px solid #ffcc80; border-right: 2px solid #ffcc80;
+    }
+    .feedback-box h3 {
+        font-family: 'Rye', serif;
+        color: #ffcc80;
+        margin: 0 0 20px;
+        text-align: center;
+    }
+    .feedback-box select,
+    .feedback-box textarea {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 15px;
+        background: rgba(0,0,0,0.5);
+        border: 1px solid #8b6914;
+        border-radius: 4px;
+        color: #e6dccf;
+        font-family: 'Courier Prime', monospace;
+        font-size: 1em;
+        box-sizing: border-box;
+    }
+    .feedback-box textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    .feedback-box select:focus,
+    .feedback-box textarea:focus {
+        outline: none;
+        border-color: #ffcc80;
+    }
+    .feedback-box button[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #8b6914, #d4a84b);
+        border: none;
+        border-radius: 4px;
+        color: #140d0a;
+        font-family: 'Rye', serif;
+        font-size: 1em;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .feedback-box button[type="submit"]:hover {
+        transform: scale(1.02);
+    }
+    .feedback-fechar {
+        position: absolute;
+        top: 10px; right: 15px;
+        background: none;
+        border: none;
+        color: #ffcc80;
+        font-size: 1.3em;
+        cursor: pointer;
+    }
+    .feedback-sucesso {
+        text-align: center;
+        color: #4caf50;
+        padding: 20px;
+    }
+</style>
+
+<button class="feedback-btn" onclick="document.getElementById('feedbackModal').classList.add('ativo')" title="Enviar Feedback">
+    💬
+</button>
+
+<div class="feedback-modal" id="feedbackModal">
+    <div class="feedback-box">
+        <button class="feedback-fechar" onclick="document.getElementById('feedbackModal').classList.remove('ativo')">✕</button>
+        <h3>📝 Enviar Feedback</h3>
+        <form id="feedbackForm">
+            <select id="feedbackTipo" required>
+                <option value="">Selecione o tipo...</option>
+                <option value="bug">🐛 Bug / Erro</option>
+                <option value="sugestao">💡 Sugestão</option>
+                <option value="duvida">❓ Dúvida</option>
+                <option value="outro">📌 Outro</option>
+            </select>
+            <textarea id="feedbackMsg" placeholder="Descreva aqui seu feedback..." required></textarea>
+            <button type="submit">Enviar</button>
+        </form>
+        <div class="feedback-sucesso" id="feedbackSucesso" style="display:none;">
+            ✅ Feedback enviado com sucesso!<br>Obrigado pela contribuição!
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const tipo = document.getElementById('feedbackTipo').value;
+        const mensagem = document.getElementById('feedbackMsg').value;
+        const pagina = window.location.pathname.split('/').pop();
+        
+        try {
+            await client.from('feedbacks').insert({
+                tipo: tipo,
+                mensagem: mensagem,
+                pagina: pagina,
+                personagem: typeof NOME_PERSONAGEM !== 'undefined' ? NOME_PERSONAGEM : 'Anônimo'
+            });
+            
+            document.getElementById('feedbackForm').style.display = 'none';
+            document.getElementById('feedbackSucesso').style.display = 'block';
+            
+            setTimeout(() => {
+                document.getElementById('feedbackModal').classList.remove('ativo');
+                document.getElementById('feedbackForm').style.display = 'block';
+                document.getElementById('feedbackSucesso').style.display = 'none';
+                document.getElementById('feedbackForm').reset();
+            }, 2000);
+        } catch (err) {
+            alert('Erro ao enviar feedback. Tente novamente.');
+        }
+    });
+    
+    document.getElementById('feedbackModal').addEventListener('click', (e) => {
+        if (e.target.id === 'feedbackModal') {
+            document.getElementById('feedbackModal').classList.remove('ativo');
+        }
+    });
+
+    // MANTÉM O PARÂMETRO ?nome= NOS LINKS DA NAVBAR
+    (function manterNomeNosLinks() {
+        const params = new URLSearchParams(window.location.search);
+        const nomeAtual = params.get('nome');
+        if (!nomeAtual) return;
+        
+        document.querySelectorAll('.western-nav a').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && !href.startsWith('http') && !href.includes('?')) {
+                link.setAttribute('href', `${href}?nome=${nomeAtual}`);
+            }
+        });
+    })();
+</script>
+
+</body>
+</html>

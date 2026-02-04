@@ -519,6 +519,7 @@
         <a href="habilidades.html">Habilidades</a>
         <a href="montaria.html" class="active">Montaria</a>
         <a href="inventario.html">Inventário</a>
+        <a href="bando.html">Bando</a>
     </nav>
 
     <div class="mount-sheet">
@@ -842,6 +843,182 @@
     }
 </script>
 
+<!-- BOTÃO FLUTUANTE DE FEEDBACK -->
+<style>
+    .feedback-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #8b6914, #d4a84b);
+        border: 2px solid #ffcc80;
+        color: #140d0a;
+        font-size: 1.5em;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        z-index: 9999;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .feedback-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(255,204,128,0.4);
+    }
+    .feedback-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+    .feedback-modal.ativo { display: flex; }
+    .feedback-box {
+        background: rgba(30, 20, 15, 0.98);
+        border: 2px solid #8b6914;
+        border-radius: 8px;
+        padding: 25px;
+        width: 90%;
+        max-width: 450px;
+        position: relative;
+    }
+    .feedback-box::before {
+        content: '';
+        position: absolute; top: -2px; left: -2px;
+        width: 15px; height: 15px;
+        border-top: 2px solid #ffcc80; border-left: 2px solid #ffcc80;
+    }
+    .feedback-box::after {
+        content: '';
+        position: absolute; bottom: -2px; right: -2px;
+        width: 15px; height: 15px;
+        border-bottom: 2px solid #ffcc80; border-right: 2px solid #ffcc80;
+    }
+    .feedback-box h3 {
+        font-family: 'Rye', serif;
+        color: #ffcc80;
+        margin: 0 0 20px;
+        text-align: center;
+    }
+    .feedback-box select,
+    .feedback-box textarea {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 15px;
+        background: rgba(0,0,0,0.5);
+        border: 1px solid #8b6914;
+        border-radius: 4px;
+        color: #e6dccf;
+        font-family: 'Courier Prime', monospace;
+        font-size: 1em;
+        box-sizing: border-box;
+    }
+    .feedback-box textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    .feedback-box select:focus,
+    .feedback-box textarea:focus {
+        outline: none;
+        border-color: #ffcc80;
+    }
+    .feedback-box button[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #8b6914, #d4a84b);
+        border: none;
+        border-radius: 4px;
+        color: #140d0a;
+        font-family: 'Rye', serif;
+        font-size: 1em;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .feedback-box button[type="submit"]:hover {
+        transform: scale(1.02);
+    }
+    .feedback-fechar {
+        position: absolute;
+        top: 10px; right: 15px;
+        background: none;
+        border: none;
+        color: #ffcc80;
+        font-size: 1.3em;
+        cursor: pointer;
+    }
+    .feedback-sucesso {
+        text-align: center;
+        color: #4caf50;
+        padding: 20px;
+    }
+</style>
+
+<button class="feedback-btn" onclick="document.getElementById('feedbackModal').classList.add('ativo')" title="Enviar Feedback">
+    💬
+</button>
+
+<div class="feedback-modal" id="feedbackModal">
+    <div class="feedback-box">
+        <button class="feedback-fechar" onclick="document.getElementById('feedbackModal').classList.remove('ativo')">✕</button>
+        <h3>📝 Enviar Feedback</h3>
+        <form id="feedbackForm">
+            <select id="feedbackTipo" required>
+                <option value="">Selecione o tipo...</option>
+                <option value="bug">🐛 Bug / Erro</option>
+                <option value="sugestao">💡 Sugestão</option>
+                <option value="duvida">❓ Dúvida</option>
+                <option value="outro">📌 Outro</option>
+            </select>
+            <textarea id="feedbackMsg" placeholder="Descreva aqui seu feedback..." required></textarea>
+            <button type="submit">Enviar</button>
+        </form>
+        <div class="feedback-sucesso" id="feedbackSucesso" style="display:none;">
+            ✅ Feedback enviado com sucesso!<br>Obrigado pela contribuição!
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const tipo = document.getElementById('feedbackTipo').value;
+        const mensagem = document.getElementById('feedbackMsg').value;
+        const pagina = window.location.pathname.split('/').pop();
+        
+        try {
+            await client.from('feedbacks').insert({
+                tipo: tipo,
+                mensagem: mensagem,
+                pagina: pagina,
+                personagem: typeof NOME_PERSONAGEM !== 'undefined' ? NOME_PERSONAGEM : 'Anônimo'
+            });
+            
+            document.getElementById('feedbackForm').style.display = 'none';
+            document.getElementById('feedbackSucesso').style.display = 'block';
+            
+            setTimeout(() => {
+                document.getElementById('feedbackModal').classList.remove('ativo');
+                document.getElementById('feedbackForm').style.display = 'block';
+                document.getElementById('feedbackSucesso').style.display = 'none';
+                document.getElementById('feedbackForm').reset();
+            }, 2000);
+        } catch (err) {
+            alert('Erro ao enviar feedback. Tente novamente.');
+        }
+    });
+    
+    document.getElementById('feedbackModal').addEventListener('click', (e) => {
+        if (e.target.id === 'feedbackModal') {
+            document.getElementById('feedbackModal').classList.remove('ativo');
+        }
+    });
+</script>
 
 </body>
 </html>

@@ -300,6 +300,112 @@
         }
         .btn-lvl-set:hover { background: #5d4037; color: #fff; }
 
+        /* === PAINEL DO BANDO === */
+        .bando-panel { margin-top: 25px; }
+        .bando-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        .bando-tab {
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #5d4037;
+            color: #aaa;
+            font-family: 'Rye';
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px 4px 0 0;
+        }
+        .bando-tab:hover { color: var(--gold); }
+        .bando-tab.active {
+            background: var(--panel-bg);
+            color: var(--gold);
+            border-color: var(--gold);
+            border-bottom-color: transparent;
+        }
+        .bando-content {
+            display: none;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid #5d4037;
+            border-radius: 0 4px 4px 4px;
+        }
+        .bando-content.active { display: block; }
+        
+        .bando-input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #5d4037;
+            color: var(--text-main);
+            font-family: 'Courier Prime';
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .bando-input:focus { outline: none; border-color: var(--gold); }
+        .bando-input-small { width: 120px; text-align: center; }
+        
+        .bando-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .bando-label {
+            font-family: 'Rye';
+            color: var(--gold);
+            min-width: 100px;
+        }
+        
+        .bando-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .bando-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid #5d4037;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        .bando-item:hover { border-color: var(--gold); }
+        .bando-item-info { flex: 1; }
+        .bando-item-name { color: var(--gold); font-weight: bold; }
+        .bando-item-sub { color: #888; font-size: 0.85rem; }
+        .bando-item-actions { display: flex; gap: 5px; }
+        
+        .btn-bando {
+            padding: 8px 15px;
+            font-family: 'Rye';
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px solid;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .btn-bando-add { background: #2e7d32; color: #fff; border-color: #1b5e20; }
+        .btn-bando-add:hover { background: #388e3c; }
+        .btn-bando-save { background: #1565c0; color: #fff; border-color: #0d47a1; }
+        .btn-bando-save:hover { background: #1976d2; }
+        .btn-bando-del { background: #c62828; color: #fff; border-color: #b71c1c; padding: 5px 10px; }
+        .btn-bando-del:hover { background: #d32f2f; }
+        .btn-bando-edit { background: #5d4037; color: #ffcc80; border-color: #3e2723; padding: 5px 10px; }
+        .btn-bando-edit:hover { background: #6d4c41; }
+
+        .status-select {
+            padding: 5px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #5d4037;
+            color: var(--text-main);
+            font-family: 'Courier Prime';
+            border-radius: 4px;
+        }
+
         /* RESPONSIVIDADE */
         @media (max-width: 900px) {
             .dashboard-grid { grid-template-columns: 1fr; }
@@ -311,6 +417,8 @@
             td::before { content: attr(data-label); float: left; font-weight: bold; color: #aaa; font-family: 'Rye'; }
             td:first-child { text-align: center; border-bottom: 2px solid var(--gold); }
             td:first-child::before { display: none; }
+            .bando-tabs { flex-wrap: wrap; }
+            .bando-tab { font-size: 0.75rem; padding: 8px 12px; }
         }
     </style>
 </head>
@@ -340,6 +448,69 @@
                     <tr><td colspan="5" style="text-align:center; padding:30px;">Procurando fugitivos na rede...</td></tr>
                 </tbody>
             </table>
+
+            <!-- PAINEL DE GERENCIAMENTO DO BANDO -->
+            <div class="bando-panel">
+                <h3>🏴 Gerenciar Bando</h3>
+                
+                <div class="bando-tabs">
+                    <button class="bando-tab active" onclick="showBandoTab('geral')">Geral</button>
+                    <button class="bando-tab" onclick="showBandoTab('membros')">Membros</button>
+                    <button class="bando-tab" onclick="showBandoTab('noticias')">Notícias</button>
+                    <button class="bando-tab" onclick="showBandoTab('melhorias')">Melhorias</button>
+                </div>
+
+                <!-- ABA: GERAL (Honra e Caixa) -->
+                <div class="bando-content active" id="tab-geral">
+                    <div class="bando-row">
+                        <span class="bando-label">⚖️ Honra:</span>
+                        <input type="range" id="bando-honra" min="-100" max="100" value="0" 
+                               style="flex:1;" oninput="document.getElementById('honra-valor').textContent = this.value">
+                        <span id="honra-valor" style="min-width:40px; text-align:center; font-weight:bold;">0</span>
+                    </div>
+                    <div class="bando-row">
+                        <span class="bando-label">💰 Caixa:</span>
+                        <input type="number" id="bando-caixa" class="bando-input bando-input-small" value="0" step="0.01">
+                    </div>
+                    <button class="btn-bando btn-bando-save" onclick="salvarDadosBando()" style="width:100%; margin-top:10px;">
+                        💾 Salvar Alterações
+                    </button>
+                </div>
+
+                <!-- ABA: MEMBROS DO BANDO -->
+                <div class="bando-content" id="tab-membros">
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <input type="text" id="novo-membro-nome" class="bando-input" placeholder="Nome do NPC" style="flex:2;">
+                        <input type="text" id="novo-membro-funcao" class="bando-input" placeholder="Função" style="flex:1;">
+                        <button class="btn-bando btn-bando-add" onclick="adicionarMembro()">+ Add</button>
+                    </div>
+                    <div class="bando-list" id="lista-membros">
+                        <p style="text-align:center; color:#666;">Carregando...</p>
+                    </div>
+                </div>
+
+                <!-- ABA: NOTÍCIAS -->
+                <div class="bando-content" id="tab-noticias">
+                    <div style="margin-bottom:15px;">
+                        <input type="text" id="nova-noticia-titulo" class="bando-input" placeholder="Título da manchete" style="margin-bottom:10px;">
+                        <textarea id="nova-noticia-conteudo" class="bando-input" placeholder="Conteúdo da notícia..." rows="3"></textarea>
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <input type="text" id="nova-noticia-data" class="bando-input" placeholder="Data (ex: 12 de Março, 1899)" style="flex:1;">
+                            <button class="btn-bando btn-bando-add" onclick="adicionarNoticia()">+ Publicar</button>
+                        </div>
+                    </div>
+                    <div class="bando-list" id="lista-noticias">
+                        <p style="text-align:center; color:#666;">Carregando...</p>
+                    </div>
+                </div>
+
+                <!-- ABA: MELHORIAS -->
+                <div class="bando-content" id="tab-melhorias">
+                    <div class="bando-list" id="lista-melhorias">
+                        <p style="text-align:center; color:#666;">Carregando...</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="panel-container controls-panel" style="display:flex; flex-direction:column; gap:15px;">
@@ -788,6 +959,274 @@
             box.innerHTML = `<div class="log-entry"><span class="log-time">[${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}]</span> ${msg}</div>` + box.innerHTML;
         }
 
+        // =====================================================
+        // FUNÇÕES DE GERENCIAMENTO DO BANDO
+        // =====================================================
+
+        // Alternar abas
+        function showBandoTab(tabName) {
+            document.querySelectorAll('.bando-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.bando-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`[onclick="showBandoTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // Carregar dados gerais do bando
+        async function carregarDadosBando() {
+            try {
+                const { data, error } = await client.from('bando').select('*').single();
+                if (error) throw error;
+                if (data) {
+                    document.getElementById('bando-honra').value = data.honra || 0;
+                    document.getElementById('honra-valor').textContent = data.honra || 0;
+                    document.getElementById('bando-caixa').value = data.caixa || 0;
+                }
+            } catch (err) {
+                log('⚠️ Tabela "bando" não encontrada');
+            }
+        }
+
+        // Salvar dados gerais
+        async function salvarDadosBando() {
+            const honra = parseInt(document.getElementById('bando-honra').value);
+            const caixa = parseFloat(document.getElementById('bando-caixa').value);
+            
+            try {
+                // Tenta atualizar, se não existir, insere
+                const { data: existing } = await client.from('bando').select('id').single();
+                
+                if (existing) {
+                    await client.from('bando').update({ honra, caixa }).eq('id', existing.id);
+                } else {
+                    await client.from('bando').insert({ honra, caixa });
+                }
+                log(`✅ Bando atualizado: Honra ${honra}, Caixa $${caixa.toFixed(2)}`);
+            } catch (err) {
+                log(`❌ Erro ao salvar: ${err.message}`);
+            }
+        }
+
+        // Carregar membros do bando
+        async function carregarMembros() {
+            try {
+                const { data, error } = await client.from('membros_bando').select('*').order('nome');
+                if (error) throw error;
+                
+                const lista = document.getElementById('lista-membros');
+                if (!data || data.length === 0) {
+                    lista.innerHTML = '<p style="text-align:center; color:#666;">Nenhum membro cadastrado</p>';
+                    return;
+                }
+                
+                lista.innerHTML = data.map(m => `
+                    <div class="bando-item">
+                        <div class="bando-item-info">
+                            <div class="bando-item-name">${m.nome}</div>
+                            <div class="bando-item-sub">${m.funcao || 'Sem função'} | ${m.descricao || 'Sem descrição'}</div>
+                        </div>
+                        <select class="status-select" onchange="atualizarStatusMembro(${m.id}, this.value)">
+                            <option value="vivo" ${m.status === 'vivo' ? 'selected' : ''}>Saudável</option>
+                            <option value="ferido" ${m.status === 'ferido' ? 'selected' : ''}>Ferido</option>
+                            <option value="procurado" ${m.status === 'procurado' ? 'selected' : ''}>Procurado</option>
+                        </select>
+                        <div class="bando-item-actions">
+                            <button class="btn-bando btn-bando-edit" onclick="editarMembro(${m.id})">✏️</button>
+                            <button class="btn-bando btn-bando-del" onclick="removerMembro(${m.id}, '${m.nome}')">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('lista-membros').innerHTML = '<p style="color:#d32f2f;">Erro ao carregar membros</p>';
+            }
+        }
+
+        async function adicionarMembro() {
+            const nome = document.getElementById('novo-membro-nome').value.trim();
+            const funcao = document.getElementById('novo-membro-funcao').value.trim();
+            
+            if (!nome) return alert('Digite o nome do membro');
+            
+            try {
+                await client.from('membros_bando').insert({ nome, funcao, status: 'vivo', ativo: true });
+                document.getElementById('novo-membro-nome').value = '';
+                document.getElementById('novo-membro-funcao').value = '';
+                carregarMembros();
+                log(`✅ Membro adicionado: ${nome}`);
+            } catch (err) {
+                log(`❌ Erro: ${err.message}`);
+            }
+        }
+
+        async function atualizarStatusMembro(id, status) {
+            await client.from('membros_bando').update({ status }).eq('id', id);
+            log(`📝 Status atualizado`);
+        }
+
+        async function removerMembro(id, nome) {
+            if (!confirm(`Remover "${nome}" do bando?`)) return;
+            await client.from('membros_bando').delete().eq('id', id);
+            carregarMembros();
+            log(`🗑️ ${nome} removido do bando`);
+        }
+
+        function editarMembro(id) {
+            const descricao = prompt('Digite a descrição do membro:');
+            if (descricao !== null) {
+                client.from('membros_bando').update({ descricao }).eq('id', id).then(() => {
+                    carregarMembros();
+                    log('✅ Descrição atualizada');
+                });
+            }
+        }
+
+        // Carregar notícias
+        async function carregarNoticias() {
+            try {
+                const { data, error } = await client.from('noticias').select('*').order('criado_em', { ascending: false });
+                if (error) throw error;
+                
+                const lista = document.getElementById('lista-noticias');
+                if (!data || data.length === 0) {
+                    lista.innerHTML = '<p style="text-align:center; color:#666;">Nenhuma notícia publicada</p>';
+                    return;
+                }
+                
+                lista.innerHTML = data.map(n => `
+                    <div class="bando-item">
+                        <div class="bando-item-info">
+                            <div class="bando-item-name">📰 ${n.titulo}</div>
+                            <div class="bando-item-sub">${n.data_jornal || 'Sem data'}</div>
+                        </div>
+                        <div class="bando-item-actions">
+                            <button class="btn-bando btn-bando-del" onclick="removerNoticia(${n.id})">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('lista-noticias').innerHTML = '<p style="color:#d32f2f;">Erro ao carregar notícias</p>';
+            }
+        }
+
+        async function adicionarNoticia() {
+            const titulo = document.getElementById('nova-noticia-titulo').value.trim();
+            const conteudo = document.getElementById('nova-noticia-conteudo').value.trim();
+            const data_jornal = document.getElementById('nova-noticia-data').value.trim();
+            
+            if (!titulo || !conteudo) return alert('Preencha título e conteúdo');
+            
+            try {
+                await client.from('noticias').insert({ titulo, conteudo, data_jornal });
+                document.getElementById('nova-noticia-titulo').value = '';
+                document.getElementById('nova-noticia-conteudo').value = '';
+                document.getElementById('nova-noticia-data').value = '';
+                carregarNoticias();
+                log(`📰 Notícia publicada: ${titulo}`);
+            } catch (err) {
+                log(`❌ Erro: ${err.message}`);
+            }
+        }
+
+        async function removerNoticia(id) {
+            if (!confirm('Remover esta notícia?')) return;
+            await client.from('noticias').delete().eq('id', id);
+            carregarNoticias();
+            log('🗑️ Notícia removida');
+        }
+
+        // Carregar melhorias
+        async function carregarMelhorias() {
+            try {
+                const { data, error } = await client.from('melhorias').select('*').order('custo');
+                if (error) throw error;
+                
+                // Busca votos
+                let votos = [];
+                try {
+                    const { data: votosData } = await client.from('votos_melhorias').select('*');
+                    votos = votosData || [];
+                } catch (e) { }
+                
+                const lista = document.getElementById('lista-melhorias');
+                if (!data || data.length === 0) {
+                    lista.innerHTML = '<p style="text-align:center; color:#666;">Nenhuma melhoria cadastrada</p>';
+                    return;
+                }
+                
+                lista.innerHTML = data.map(m => {
+                    const status = m.status || 'bloqueada';
+                    const statusColor = { bloqueada: '#888', disponivel: '#ffcc80', adquirida: '#4caf50' };
+                    const votosDestaMelhoria = votos.filter(v => v.melhoria_id === m.id);
+                    const votosHtml = votosDestaMelhoria.length > 0 
+                        ? `<div style="margin-top:5px; display:flex; gap:5px; flex-wrap:wrap;">
+                            ${votosDestaMelhoria.map(v => `<span style="background:rgba(255,204,128,0.2); border:1px solid #ffcc80; padding:2px 6px; border-radius:10px; font-size:0.75em; color:#ffcc80;">${v.nome_personagem}</span>`).join('')}
+                           </div>`
+                        : '';
+                    return `
+                    <div class="bando-item">
+                        <div class="bando-item-info">
+                            <div class="bando-item-name">${m.icone || '⚙️'} ${m.nome} ${votosDestaMelhoria.length > 0 ? `<span style="color:#ffcc80; font-size:0.8em;">(${votosDestaMelhoria.length} voto${votosDestaMelhoria.length > 1 ? 's' : ''})</span>` : ''}</div>
+                            <div class="bando-item-sub">${m.descricao || ''} | Custo: $${m.custo}</div>
+                            ${votosHtml}
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:5px; align-items:flex-end;">
+                            <select class="status-select" style="color: ${statusColor[status]};" onchange="alterarStatusMelhoria(${m.id}, this.value)">
+                                <option value="bloqueada" ${status === 'bloqueada' ? 'selected' : ''}>🔒 Bloqueada</option>
+                                <option value="disponivel" ${status === 'disponivel' ? 'selected' : ''}>🔓 Disponível</option>
+                                <option value="adquirida" ${status === 'adquirida' ? 'selected' : ''}>✅ Adquirida</option>
+                            </select>
+                            ${votosDestaMelhoria.length > 0 ? `<button class="btn-bando btn-bando-del" style="font-size:0.7em; padding:3px 8px;" onclick="limparVotos(${m.id})">🗑️ Limpar votos</button>` : ''}
+                        </div>
+                    </div>
+                `}).join('');
+            } catch (err) {
+                document.getElementById('lista-melhorias').innerHTML = '<p style="color:#d32f2f;">Erro ao carregar melhorias</p>';
+            }
+        }
+
+        async function limparVotos(melhoriaId) {
+            if (!confirm('Limpar todos os votos desta melhoria?')) return;
+            await client.from('votos_melhorias').delete().eq('melhoria_id', melhoriaId);
+            carregarMelhorias();
+            log('🗑️ Votos limpos');
+        }
+
+        async function alterarStatusMelhoria(id, novoStatus) {
+            console.log('Alterar status melhoria:', { id, novoStatus });
+            
+            const { data, error } = await client
+                .from('melhorias')
+                .update({ status: novoStatus })
+                .eq('id', id)
+                .select();
+            
+            console.log('Resultado update:', { data, error });
+            
+            if (error) {
+                log(`❌ Erro ao alterar melhoria: ${error.message}`);
+                alert(`Erro: ${error.message}\n\nVerifique se o RLS está desabilitado na tabela 'melhorias' no Supabase.`);
+                carregarMelhorias();
+                return;
+            }
+            
+            if (!data || data.length === 0) {
+                log(`⚠️ Nenhuma linha foi atualizada. Verifique o RLS no Supabase!`);
+                alert('Nenhuma linha foi atualizada!\n\nVá em Supabase > Table Editor > melhorias > RLS Policies e desabilite ou adicione uma policy.');
+                carregarMelhorias();
+                return;
+            }
+            
+            const statusLabel = { bloqueada: 'bloqueada', disponivel: 'disponível', adquirida: 'adquirida' };
+            log(`⚙️ Melhoria agora está ${statusLabel[novoStatus]}`);
+        }
+
+        // Inicializar dados do bando
+        function initBando() {
+            carregarDadosBando();
+            carregarMembros();
+            carregarNoticias();
+            carregarMelhorias();
+        }
+
         client.channel('gm-dashboard').on('postgres_changes', { event: '*', schema: 'public', table: 'Fichas' }, 
             (payload) => {
                 const index = allPlayers.findIndex(p => p.id === payload.new.id);
@@ -798,6 +1237,7 @@
             }).subscribe();
 
         fetchPlayers();
+        initBando();
         log("Sistema conectado.");
     </script>
 </body>

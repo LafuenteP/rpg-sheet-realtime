@@ -3461,7 +3461,7 @@ if (!document.documentElement.classList.contains('locked')) {
 <!-- BOTÃO FLUTUANTE DE FEEDBACK -->
 <style>
     .feedback-btn {
-        position: fixed;
+        position: fixed !important;
         bottom: 20px;
         right: 20px;
         width: 50px;
@@ -3473,14 +3473,21 @@ if (!document.documentElement.classList.contains('locked')) {
         font-size: 1.5em;
         cursor: pointer;
         box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        z-index: 9999;
-        transition: all 0.3s;
+        z-index: 99999;
+        transition: transform 0.3s, box-shadow 0.3s;
         display: flex;
         align-items: center;
         justify-content: center;
+        /* Forçar camada separada para position fixed funcionar */
+        will-change: transform;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        /* Evitar delay de toque em mobile */
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
     }
     .feedback-btn:hover {
-        transform: scale(1.1);
+        transform: translateZ(0) scale(1.1);
         box-shadow: 0 6px 20px rgba(255,204,128,0.4);
     }
     .feedback-modal {

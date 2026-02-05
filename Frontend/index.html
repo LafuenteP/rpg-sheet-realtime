@@ -141,20 +141,14 @@ html.locked #tela-senha {
     box-sizing: border-box;
 }
 
-/* Corrigir scroll travado em mobile */
-html, body {
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
-}
-
 html {
     overflow-x: hidden;
-    overflow-y: auto;
 }
 
 body {
     margin: 0;
     padding: 0;
+    padding-top: 60px; /* Espaço para o menu fixo */
     background: #1a1411;
     font-family: 'Courier Prime', monospace;
     display: flex;
@@ -239,7 +233,7 @@ body {
     color: #e6dccf;
     cursor: pointer;
     border-radius: 8px;
-    transition: all 0.2s;
+    transition: background 0.2s;
 }
 
 .password-box button:hover {
@@ -272,13 +266,14 @@ body.locked #status {
     justify-content: center;
     gap: 15px;
     padding: 15px;
-    background: rgba(43, 27, 18, 0.95);
+    background: #2b1b12;
     border-bottom: 2px solid #5d4037;
     width: 100%;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
     z-index: 100;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
     flex-shrink: 0;
 }
 
@@ -289,7 +284,7 @@ body.locked #status {
     font-size: 1rem;
     padding: 5px 10px;
     border: 1px solid transparent;
-    transition: all 0.2s;
+    transition: color 0.2s, border-color 0.2s;
     text-transform: uppercase;
 }
 
@@ -312,9 +307,10 @@ body.locked #status {
     background-size: cover;
     padding: clamp(20px, 3vw, 40px);
     gap: clamp(15px, 2vw, 25px);
-    box-shadow: 0 0 40px rgba(0,0,0,.8);
+    box-shadow: 0 0 20px rgba(0,0,0,.6);
     min-height: min(85vh, 900px);
-    max-height: 1200px;
+    contain: layout style paint;
+    will-change: transform;
 }
 
 /* ===== ESQUERDA ===== */
@@ -324,6 +320,7 @@ body.locked #status {
     gap: 20px;
     justify-content: flex-start;
     position: relative;
+    overflow: visible;
 }
 
 .portrait-frame {
@@ -331,7 +328,8 @@ body.locked #status {
     background-size: contain;
     padding: 5px;
     padding-left: 0px;
-    width: 140%;
+    width: 100%;
+    max-width: 100%;
 }
 
 .portrait-frame img {
@@ -345,8 +343,8 @@ body.locked #status {
     width: 100%;
     height: clamp(650px, 20vh, 200px);
     position: absolute;
-    bottom: -190px;
-    left: 10%;
+    bottom: clamp(-150px, -15vw, -190px);
+    left: 5%;
     z-index: 10;
     display: flex;
     align-items: center;
@@ -460,7 +458,7 @@ body.locked #status {
     display: flex;
     flex-direction: column;
     gap: clamp(1px, 1.5vw, 15px);
-    padding: 0px 130px;
+    padding: 0px clamp(20px, 8vw, 130px);
     flex-shrink: 0;
 }
 
@@ -813,7 +811,7 @@ body.locked #status {
     font-size: 1.5rem;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    transition: all 0.2s;
+    transition: transform 0.2s, background 0.2s, border-color 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -862,7 +860,6 @@ body.locked #status {
     width: 90%;
     max-height: 85vh;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
     transform: scale(0.8);
     transition: transform 0.3s;
 }
@@ -896,7 +893,7 @@ body.locked #status {
     height: 35px;
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, background 0.2s;
 }
 
 .btn-close-popup:hover {
@@ -952,7 +949,7 @@ body.locked #status {
     color: #fff;
     cursor: pointer;
     border-radius: 8px;
-    transition: all 0.2s;
+    transition: transform 0.2s, background 0.2s;
     margin-top: 10px;
 }
 
@@ -1133,7 +1130,7 @@ body.locked #status {
     padding: 12px 15px;
     border-radius: 8px;
     border: 2px solid transparent;
-    transition: all 0.2s;
+    transition: border-color 0.2s;
     cursor: pointer;
 }
 
@@ -1162,7 +1159,7 @@ body.locked #status {
     justify-content: center;
     font-size: 1.2rem;
     background: rgba(255,250,240,0.9);
-    transition: all 0.2s;
+    transition: background 0.2s, border-color 0.2s;
 }
 
 .passo-item.completo .passo-checkbox {
@@ -1373,7 +1370,7 @@ body.faminto {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efeito elástico */
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s, box-shadow 0.2s;
     box-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.3);
     position: relative;
     border: 2px dashed rgba(0,0,0,0.3);
@@ -1427,6 +1424,51 @@ body.faminto {
 }
 
 /* =========================================
+   TELAS GRANDES (1920x1080 e similares)
+   ========================================= */
+@media (min-width: 1025px) {
+    .sheet {
+        width: min(95%, 1400px); /* Limita largura máxima */
+    }
+    
+    .sheet-left {
+        overflow: visible;
+    }
+    
+    .portrait-frame {
+        width: 100%; /* Mantém dentro do container */
+        max-width: 100%;
+    }
+    
+    .name-banner {
+        width: 100%;
+        left: 0%;
+        bottom: -150px;
+    }
+    
+    .vitals-section {
+        padding: 0px clamp(20px, 8vw, 100px); /* Padding responsivo */
+    }
+    
+    .acoes-banner {
+        width: clamp(45%, 50vw, 55%);
+        margin-left: 3%;
+    }
+    
+    .attributes {
+        gap: clamp(10px, 4vw, 40px);
+    }
+    
+    .attribute-card {
+        width: clamp(100px, 9vw, 180px);
+    }
+
+    .attribute-card input {
+        margin-top: 20%; /* Subir o input */
+    }
+}
+
+/* =========================================
    RESPONSIVIDADE MOBILE
    ========================================= */
 
@@ -1458,16 +1500,9 @@ body.faminto {
 /* Celulares */
 @media (max-width: 768px) {
     
-    /* Corrigir scroll em mobile */
-    html, body {
-        overflow-x: hidden;
-        overscroll-behavior-y: none;
-    }
-    
     /* Evita scroll interno que trava */
     .lista-alimentos-container {
         max-height: 150px;
-        -webkit-overflow-scrolling: touch;
     }
     
     /* Layout geral - coluna única */
@@ -3461,7 +3496,7 @@ if (!document.documentElement.classList.contains('locked')) {
 <!-- BOTÃO FLUTUANTE DE FEEDBACK -->
 <style>
     .feedback-btn {
-        position: fixed !important;
+        position: fixed;
         bottom: 20px;
         right: 20px;
         width: 50px;
@@ -3473,22 +3508,13 @@ if (!document.documentElement.classList.contains('locked')) {
         font-size: 1.5em;
         cursor: pointer;
         box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        z-index: 99999;
-        transition: transform 0.3s, box-shadow 0.3s;
+        z-index: 999;
         display: flex;
         align-items: center;
         justify-content: center;
-        /* Forçar camada separada para position fixed funcionar */
-        will-change: transform;
-        transform: translateZ(0);
-        -webkit-transform: translateZ(0);
-        /* Evitar delay de toque em mobile */
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
     }
     .feedback-btn:hover {
-        transform: translateZ(0) scale(1.1);
-        box-shadow: 0 6px 20px rgba(255,204,128,0.4);
+        filter: brightness(1.1);
     }
     .feedback-modal {
         display: none;
@@ -3560,10 +3586,9 @@ if (!document.documentElement.classList.contains('locked')) {
         font-family: 'Rye', serif;
         font-size: 1em;
         cursor: pointer;
-        transition: all 0.3s;
     }
     .feedback-box button[type="submit"]:hover {
-        transform: scale(1.02);
+        filter: brightness(1.1);
     }
     .feedback-fechar {
         position: absolute;

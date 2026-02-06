@@ -443,7 +443,7 @@ body.locked #status {
     display: block;
     font-family: 'Rye';
     font-size: clamp(1rem, 2vw, 1.6rem);
-    margin-top: -50px;
+    margin-top: 5%;
 }
 
 .attribute-card input {
@@ -464,6 +464,7 @@ body.locked #status {
     flex-direction: column;
     gap: clamp(1px, 1.5vw, 15px);
     padding: 0px clamp(20px, 8vw, 130px);
+    padding-left: clamp(40px, 10vw, 160px);
     flex-shrink: 0;
 }
 
@@ -482,6 +483,7 @@ body.locked #status {
     text-transform: uppercase;
     white-space: nowrap;
     flex-shrink: 0;
+    padding-left: clamp(20px, 5vw, 80px);
 }
 
 .track {
@@ -1472,7 +1474,11 @@ body.faminto {
     }
 
     .attribute-card input {
-        margin-top: 20%; /* Subir o input */
+        margin-top: 10%; /* Subir o input */
+    }
+
+    .attribute-card label {
+        margin-top: -35%;
     }
 }
 

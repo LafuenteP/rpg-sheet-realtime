@@ -13,7 +13,7 @@ const BIBLIOTECA = [
         tipo: "combate",
         descricao: "Ao realizar um <b>ataque surpresa</b> usando facas, navalhas ou lâminas ocultas, o golpe causa dano adicional conforme seu nível.",
         tabela: [
-            { col1: "Nível 1", col2: "1 👊 Dano" },
+            { col1: "Nível 1", col2: "1 💀 Dano" },
             { col1: "Nível 3", col2: "2 💀 Dano" },
             { col1: "Nível 6", col2: "3 💀 Dano" }
         ]

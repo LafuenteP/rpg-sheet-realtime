@@ -383,6 +383,8 @@ body.locked #status {
     flex-direction: column;
     justify-content: space-between;
     gap: clamp(10px, 2vw, 25px);
+    overflow: hidden;
+    max-width: 100%;
 }
 
 .wanted-strip {
@@ -401,21 +403,24 @@ body.locked #status {
 /* ===== ATRIBUTOS ===== */
 .attributes {
     display: flex;
-    gap: clamp(1px, 0.3vw, 6px);
-    justify-content: right;
-    flex-wrap: wrap;
+    gap: clamp(1px, 0.5vw, 8px);
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .attribute-card {
     background: url("assets/wanted-card.png") no-repeat center;
     background-size: contain;
-    width: clamp(40px, 10vw, 200px);
+    width: clamp(40px, 9vw, 160px);
     aspect-ratio: 3 / 4;
     text-align: center;
     padding-top: 5%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .attribute-card:nth-child(1) {
@@ -1447,7 +1452,7 @@ body.faminto {
     }
     
     .vitals-section {
-        padding: 0px clamp(20px, 8vw, 100px); /* Padding responsivo */
+        padding: 0px clamp(20px, 5vw, 80px); /* Padding responsivo */
     }
     
     .acoes-banner {
@@ -1456,15 +1461,41 @@ body.faminto {
     }
     
     .attributes {
-        gap: clamp(10px, 4vw, 40px);
+        gap: clamp(8px, 2vw, 25px); /* Gap menor para caber na tela */
+        justify-content: flex-end;
+        flex-wrap: nowrap; /* Impede quebra de linha */
     }
     
     .attribute-card {
-        width: clamp(100px, 9vw, 180px);
+        width: clamp(90px, 8vw, 150px); /* Tamanho menor para caber */
+        flex-shrink: 0;
     }
 
     .attribute-card input {
         margin-top: 20%; /* Subir o input */
+    }
+}
+
+/* Telas muito grandes (1920px+) */
+@media (min-width: 1920px) {
+    .sheet {
+        width: min(90%, 1500px);
+    }
+    
+    .attributes {
+        gap: 20px;
+    }
+    
+    .attribute-card {
+        width: 140px; /* Tamanho fixo para telas grandes */
+    }
+    
+    .attribute-card label {
+        font-size: 1.3rem;
+    }
+    
+    .attribute-card input {
+        font-size: 2.8rem;
     }
 }
 

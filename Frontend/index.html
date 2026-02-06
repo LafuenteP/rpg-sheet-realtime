@@ -813,11 +813,11 @@ body.locked #status {
     height: 55px;
     border-radius: 50%;
     border: 2px solid #5d4037;
-    background: rgba(43, 27, 18, 0.95);
+    background: #2b1b12;
     color: #e6dccf;
     font-size: 1.5rem;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     transition: transform 0.2s, background 0.2s, border-color 0.2s;
     display: flex;
     align-items: center;
@@ -1520,6 +1520,12 @@ body.faminto {
         grid-template-columns: 35% 65%;
         background: url("assets/fundomob.jpg") no-repeat center;
         background-size: cover;
+        contain: layout style paint;
+        will-change: transform;
+    }
+    
+    .western-nav {
+        background: #2b1b12;
     }
     
     .acoes-banner {
@@ -1534,8 +1540,9 @@ body.faminto {
         margin-bottom: 10px;       /* Mantém um espaçamento embaixo */
     }
 
-    
-
+    .attribute-card input {
+        margin-top: -30%; /* Subir o input para centralizar melhor */
+    }
 }
 
 /* Celulares */
@@ -1544,6 +1551,10 @@ body.faminto {
     /* Evita scroll interno que trava */
     .lista-alimentos-container {
         max-height: 150px;
+    }
+    
+    .western-nav {
+        background: #2b1b12;
     }
     
     /* Layout geral - coluna única */
@@ -1558,6 +1569,8 @@ body.faminto {
         background: url("assets/fundomob.jpg") no-repeat center;
         background-size: cover;
         overflow: visible;
+        contain: layout style paint;
+        will-change: transform;
     }
 
     /* Seção esquerda (foto e nome) */
@@ -1612,7 +1625,7 @@ body.faminto {
     
     .attribute-card label {
         font-size: 1.1rem;
-        margin-top: -20px;
+        margin-top: -10px;
     }
     
 /* O AJUSTE DOS NÚMEROS */
@@ -1621,7 +1634,7 @@ body.faminto {
         text-align: center;
         border: none;
         background: transparent;
-        margin: 0; 
+        margin-top: -23px; 
         
         /* TRUQUE 1: Tamanho da fonte baseado na largura da tela (vw) */
         /* Isso garante que o número sempre caiba na caixa de 1/4 da tela */
@@ -2531,7 +2544,7 @@ function preencherTela(attr) {
                 div.className = "painel-arma-equipada";
                 
                 // MUDANÇA AQUI: justify-content: flex-start (para alinhar tudo na esquerda)
-                div.style.cssText = "background: rgba(43,27,18,0.92); padding: 5px 8px; border: 2px solid #ffcc80; border-radius: 8px; display: flex; justify-content: flex-start; align-items: center; color: #fff; gap: 10px; max-width: 750px; width: 100%; min-width: 0; box-sizing: border-box; margin-bottom: 5px;";
+                div.style.cssText = "background: #2b1b12; padding: 5px 8px; border: 2px solid #ffcc80; border-radius: 8px; display: flex; justify-content: flex-start; align-items: center; color: #fff; gap: 10px; max-width: 750px; width: 100%; min-width: 0; box-sizing: border-box; margin-bottom: 5px;";
                 
                 let painelBotoes = ''; // Mudei o nome de painelDireito para painelBotoes
                 

@@ -1540,6 +1540,11 @@
           margin-left: 0 !important; /* Remove o recuo para a direita */
           margin-bottom: 10px; /* Mantém um espaçamento embaixo */
         }
+
+        /* Painel de armas - tablets */
+        .painel-arma-equipada {
+          max-width: 100% !important;
+        }
       }
 
       /* Celulares */
@@ -1749,6 +1754,19 @@
         .modal-condicao .condicao-efeito {
           font-size: 1.1rem;
         }
+
+        /* Painel de armas equipadas */
+        .painel-arma-equipada {
+          max-width: 100% !important;
+          padding: 8px !important;
+          gap: 8px !important;
+          flex-wrap: wrap !important;
+        }
+
+        .painel-arma-equipada button {
+          font-size: 0.75rem !important;
+          padding: 3px 6px !important;
+        }
       }
 
       /* Celulares pequenos */
@@ -1816,6 +1834,27 @@
 
         .vestimenta-header select {
           width: 100%;
+        }
+
+        /* Painel de armas - celulares pequenos */
+        .painel-arma-equipada {
+          flex-direction: column !important;
+          align-items: flex-start !important;
+          padding: 10px !important;
+          gap: 8px !important;
+        }
+
+        .painel-arma-equipada > div:first-child {
+          width: 100% !important;
+          flex-direction: row !important;
+          justify-content: space-between !important;
+          border-bottom: 1px solid rgba(255, 204, 128, 0.3);
+          padding-bottom: 8px !important;
+        }
+
+        .painel-arma-equipada > div:last-child {
+          border-left: none !important;
+          padding-left: 0 !important;
         }
       }
 

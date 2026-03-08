@@ -1,685 +1,1141 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Inventário — A Última Dose</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
 
     <script>
-        // CONFIGURAÇÃO DE SENHAS
-        const SENHAS = {
-            'Trinity': 'trinity123',
-            'Josue': 'pantufa',
-            'Januario': 'morena<3',
-            'Mateus': 'junin123',
-            'Geraldo': 'ph123',
-            'Lucian': 'matheus123',
+      // CONFIGURAÇÃO DE SENHAS
+      const SENHAS = {
+        Trinity: "trinity123",
+        Josue: "pantufa",
+        Januario: "morena<3",
+        Mateus: "junin123",
+        Geraldo: "ph123",
+        Lucian: "matheus123",
+      };
+
+      // VERIFICAÇÃO DE LOGIN
+      function checkAuth() {
+        if (!SENHAS[NOME_PERSONAGEM]) return true;
+        const authKey = `auth_${NOME_PERSONAGEM}`;
+        const authData = JSON.parse(localStorage.getItem(authKey));
+        if (authData && Date.now() - authData.time < 86400000) return true;
+        return false;
+      }
+
+      // BLOQUEIA IMEDIATAMENTE SE PRECISAR
+      if (!checkAuth()) {
+        document.documentElement.classList.add("locked");
+      }
+
+      function tentarDesbloquear() {
+        const input = document.getElementById("pass-input");
+        if (input.value === SENHAS[NOME_PERSONAGEM]) {
+          localStorage.setItem(
+            `auth_${NOME_PERSONAGEM}`,
+            JSON.stringify({ time: Date.now() }),
+          );
+          document.documentElement.classList.remove("locked");
+          document.getElementById("tela-senha").style.display = "none";
+        } else {
+          document.getElementById("pass-error").style.display = "block";
+          input.value = "";
+        }
+      }
+
+      // FUNÇÃO DEBOUNCE (PARA NÃO TRAVAR O BANCO)
+      function debounce(func, wait) {
+        let timeout;
+        return function (...args) {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, args), wait);
         };
+      }
 
-        // VERIFICAÇÃO DE LOGIN
-        function checkAuth() {
-            if (!SENHAS[NOME_PERSONAGEM]) return true;
-            const authKey = `auth_${NOME_PERSONAGEM}`;
-            const authData = JSON.parse(localStorage.getItem(authKey));
-            if (authData && (Date.now() - authData.time < 86400000)) return true;
-            return false;
-        }
-
-        // BLOQUEIA IMEDIATAMENTE SE PRECISAR
-        if (!checkAuth()) {
-            document.documentElement.classList.add('locked');
-        }
-
-        function tentarDesbloquear() {
-            const input = document.getElementById('pass-input');
-            if (input.value === SENHAS[NOME_PERSONAGEM]) {
-                localStorage.setItem(`auth_${NOME_PERSONAGEM}`, JSON.stringify({ time: Date.now() }));
-                document.documentElement.classList.remove('locked');
-                document.getElementById('tela-senha').style.display = 'none';
-            } else {
-                document.getElementById('pass-error').style.display = 'block';
-                input.value = '';
-            }
-        }
-
-        // FUNÇÃO DEBOUNCE (PARA NÃO TRAVAR O BANCO)
-        function debounce(func, wait) {
-            let timeout;
-            return function(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(this, args), wait);
-            };
-        }
-
-        // VARIÁVEIS GLOBAIS PARA CONTROLE DE SALVAMENTO
-        var salvamentoEmAndamento = false; // Mutex para evitar race conditions
-        var salvamentoPendente = false;    // Flag para saber se há salvamento aguardando
+      // VARIÁVEIS GLOBAIS PARA CONTROLE DE SALVAMENTO
+      var salvamentoEmAndamento = false; // Mutex para evitar race conditions
+      var salvamentoPendente = false; // Flag para saber se há salvamento aguardando
     </script>
 
     <style>
-        /* CSS DE BLOQUEIO */
-        html.locked body > *:not(#tela-senha) { display: none !important; }
-        html.locked body { background: #1a1411; overflow: hidden; }
-        #tela-senha { display: none; }
-        html.locked #tela-senha { display: flex !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1411; z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+      /* CSS DE BLOQUEIO */
+      html.locked body > *:not(#tela-senha) {
+        display: none !important;
+      }
+      html.locked body {
+        background: #1a1411;
+        overflow: hidden;
+      }
+      #tela-senha {
+        display: none;
+      }
+      html.locked #tela-senha {
+        display: flex !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #1a1411;
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
 
-        /* ESTILOS GERAIS */
-        :root { --ink: #2b1b12; --gold: #ffcc80; --bg-dark: #1a1411; }
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; min-height: 100vh; font-family: 'Courier Prime', monospace; background: var(--bg-dark); }
-        
-        /* BACKGROUND */
-        body::before {
-            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: url("assets/inventario/backgroundinv.png") no-repeat center;
-            background-size: cover; filter: brightness(0.7); z-index: -1;
+      /* ESTILOS GERAIS */
+      :root {
+        --ink: #2b1b12;
+        --gold: #ffcc80;
+        --bg-dark: #1a1411;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        font-family: "Courier Prime", monospace;
+        background: var(--bg-dark);
+      }
+
+      /* BACKGROUND */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("assets/inventario/backgroundinv.png") no-repeat center;
+        background-size: cover;
+        filter: brightness(0.7);
+        z-index: -1;
+      }
+
+      /* TELA SENHA */
+      .password-box {
+        background:
+          url("assets/locked.jpg") center center/contain no-repeat,
+          #1a1411;
+        padding: 40px;
+        border: 5px solid #2b1b12;
+        text-align: center;
+        max-width: 400px;
+        border-radius: 8px;
+      }
+      .password-box h2 {
+        font-family: "Rye";
+        margin: 0 0 10px 0;
+        color: var(--ink);
+      }
+      .password-box input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        font-family: "Courier Prime";
+        font-size: 1.2rem;
+        text-align: center;
+      }
+      .password-box button {
+        width: 100%;
+        padding: 10px;
+        font-family: "Rye";
+        font-size: 1.1rem;
+        background: #5d4037;
+        color: #fff;
+        cursor: pointer;
+        border: none;
+      }
+
+      /* LAYOUT NAVBAR (ATUALIZADO) */
+      .western-nav {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        padding: 15px;
+        background: rgba(43, 27, 18, 0.95);
+        border-bottom: 2px solid #5d4037;
+        width: 100%;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      }
+      .western-nav a {
+        color: #aaa;
+        text-decoration: none;
+        font-family: "Rye";
+        font-size: 1rem;
+        padding: 5px 10px;
+        border: 1px solid transparent;
+        text-transform: uppercase;
+        transition: 0.2s;
+      }
+      .western-nav a:hover,
+      .western-nav a.active {
+        color: var(--gold);
+        border-color: var(--gold);
+      }
+
+      .inventory-container {
+        padding: 40px 20px;
+        display: flex;
+        justify-content: center;
+      }
+      .inventory-layout {
+        display: flex;
+        gap: 20px;
+        width: 100%;
+        max-width: 1000px;
+        align-items: flex-start;
+      }
+      .tables-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-width: 0;
+      }
+
+      /* --- LAYOUT DE 3 COLUNAS --- */
+      .inventory-layout {
+        display: flex;
+        gap: 15px;
+        width: 100%;
+        max-width: 1200px; /* Aumentei para caber as 3 colunas */
+        align-items: flex-start;
+      }
+
+      .tables-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-width: 0;
+      }
+
+      /* Classe genérica para os painéis laterais (Munição e Carga) */
+      .side-panel {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 15px;
+        border: 2px solid #5d4037;
+        border-radius: 8px;
+        text-align: center;
+        width: 160px; /* Largura fixa para ficar bonito */
+        flex-shrink: 0;
+        position: sticky;
+        top: 80px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      }
+
+      .side-panel h3 {
+        font-family: "Rye";
+        color: #e6dccf;
+        margin: 0 0 10px 0;
+        letter-spacing: 1px;
+        font-size: 1rem;
+      }
+
+      .space-display {
+        font-family: "Rye";
+        font-size: 2.2rem;
+        color: #e6dccf;
+        margin-bottom: 5px;
+      }
+      .space-display.over {
+        color: #ff5555;
+      }
+
+      /* Inputs estilizados dos painéis */
+      .panel-input {
+        width: 60px;
+        text-align: center;
+        font-family: "Rye";
+        font-size: 1.2rem;
+        margin-top: 5px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #5d4037;
+        border-radius: 5px;
+      }
+
+      /* Estilo da caixa de quantidade (Usos) */
+      .qtd-wrapper {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 250, 240, 0.8);
+        border: 1px solid #5d4037;
+        border-radius: 4px;
+        margin-left: 5px;
+        padding: 0 5px;
+        height: 34px; /* Mesma altura dos inputs */
+      }
+
+      .qtd-label {
+        font-size: 0.7rem;
+        font-weight: bold;
+        color: #5d4037;
+        margin-right: 2px;
+        font-family: "Courier Prime";
+      }
+
+      .qtd-input {
+        width: 35px !important; /* Força largura pequena */
+        text-align: center;
+        border: none !important;
+        background: transparent !important;
+        font-weight: bold;
+        font-size: 1.1rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      /* Ajuste para inputs do tipo number não terem setinhas feias */
+      .qtd-input::-webkit-inner-spin-button,
+      .qtd-input::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      /* RESPONSIVIDADE (MEDIA QUERIES) */
+
+      /* 1. MUDANÇA NA NAVBAR - Igual à Montaria */
+      @media (max-width: 1024px) {
+        /* Layout principal do inventário vira coluna */
+        .inventory-layout {
+          flex-direction: column;
+          align-items: stretch; /* Estica para ocupar a largura */
+          gap: 15px;
         }
 
-        /* TELA SENHA */
-        .password-box { background:url('assets/locked.jpg') center center/contain no-repeat, #1a1411; padding:40px; border:5px solid #2b1b12; text-align:center; max-width:400px; border-radius:8px; }
-        .password-box h2 { font-family: 'Rye'; margin: 0 0 10px 0; color: var(--ink); }
-        .password-box input { width: 100%; padding: 10px; margin-bottom: 15px; font-family: 'Courier Prime'; font-size: 1.2rem; text-align: center; }
-        .password-box button { width: 100%; padding: 10px; font-family: 'Rye'; font-size: 1.1rem; background: #5d4037; color: #fff; cursor: pointer; border: none; }
-
-        /* LAYOUT NAVBAR (ATUALIZADO) */
-        .western-nav { display: flex; justify-content: center; gap: 15px; padding: 15px; background: rgba(43, 27, 18, 0.95); border-bottom: 2px solid #5d4037; width: 100%; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .western-nav a { color: #aaa; text-decoration: none; font-family: 'Rye'; font-size: 1rem; padding: 5px 10px; border: 1px solid transparent; text-transform: uppercase; transition: 0.2s; }
-        .western-nav a:hover, .western-nav a.active { color: var(--gold); border-color: var(--gold); }
-
-        .inventory-container { padding: 40px 20px; display: flex; justify-content: center; }
-        .inventory-layout { display: flex; gap: 20px; width: 100%; max-width: 1000px; align-items: flex-start; }
-        .tables-column { flex: 1; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-
-        /* --- LAYOUT DE 3 COLUNAS --- */
-        .inventory-layout { 
-            display: flex; 
-            gap: 15px; 
-            width: 100%; 
-            max-width: 1200px; /* Aumentei para caber as 3 colunas */
-            align-items: flex-start; 
+        /* A tabela vai para baixo */
+        .tables-column {
+          width: 100%;
+          order: 3;
         }
 
-        .tables-column { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 20px; 
-            min-width: 0; 
+        /* Mágica do Painel (Munição e Carga) */
+        .side-panel,
+        .space-panel {
+          width: 100%; /* Ocupa a largura toda */
+          max-width: none;
+          margin: 0;
+          position: relative;
+          top: 0;
+          box-sizing: border-box;
+          display: grid;
+          grid-template-columns: auto 1fr auto;
+          align-items: center;
+          padding: 10px 15px;
+          gap: 15px;
         }
 
-        /* Classe genérica para os painéis laterais (Munição e Carga) */
-        .side-panel { 
-            background: rgba(0, 0, 0, 0.6); 
-            padding: 15px; 
-            border: 2px solid #5d4037; 
-            border-radius: 8px; 
-            text-align: center; 
-            width: 160px; /* Largura fixa para ficar bonito */
-            flex-shrink: 0;
-            position: sticky; 
-            top: 80px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08); 
+        .side-panel h3,
+        .space-panel h3 {
+          font-size: 0.9rem;
+          margin: 0;
+          text-align: left;
+          grid-column: 1;
         }
 
-        .side-panel h3 { font-family: 'Rye'; color: #e6dccf; margin: 0 0 10px 0; letter-spacing: 1px; font-size: 1rem; }
-        
-        .space-display { font-family: 'Rye'; font-size: 2.2rem; color: #e6dccf; margin-bottom: 5px; }
-        .space-display.over { color: #ff5555; }
-        
-        /* Inputs estilizados dos painéis */
-        .panel-input { 
-            width: 60px; text-align: center; font-family: 'Rye'; 
-            font-size: 1.2rem; margin-top: 5px; 
-            background: rgba(255,255,255,0.9); 
-            border: 2px solid #5d4037; border-radius: 5px; 
+        .side-panel select {
+          width: 100px;
+          font-size: 0.8rem;
+          margin-top: 5px;
+          display: block;
         }
 
-        /* Estilo da caixa de quantidade (Usos) */
-        .qtd-wrapper {
-            display: flex;
-            align-items: center;
-            background: rgba(255, 250, 240, 0.8);
-            border: 1px solid #5d4037;
-            border-radius: 4px;
-            margin-left: 5px;
-            padding: 0 5px;
-            height: 34px; /* Mesma altura dos inputs */
+        .space-display {
+          grid-column: 2;
+          font-size: 1.8rem;
+          margin: 0;
+          text-align: center;
+          line-height: 1;
         }
 
-        .qtd-label {
-            font-size: 0.7rem;
-            font-weight: bold;
-            color: #5d4037;
-            margin-right: 2px;
-            font-family: 'Courier Prime';
+        .panel-input,
+        .space-max input {
+          grid-column: 3;
+          width: 50px;
+          height: 40px;
+          margin: 0 !important;
+          font-size: 1rem;
         }
 
-        .qtd-input {
-            width: 35px !important; /* Força largura pequena */
-            text-align: center;
-            border: none !important;
-            background: transparent !important;
-            font-weight: bold;
-            font-size: 1.1rem !important;
-            padding: 0 !important;
-            margin: 0 !important;
+        .side-panel div[style*="font-size:0.7rem"],
+        .space-panel div[style*="font-size:0.7rem"] {
+          display: none !important;
+        }
+      }
+
+      /* 2. RESPONSIVIDADE DA NAV IGUAL MONTARIA */
+      @media (max-width: 768px) {
+        .western-nav {
+          flex-wrap: wrap;
+          gap: 10px;
+          padding: 10px;
         }
 
-        /* Ajuste para inputs do tipo number não terem setinhas feias */
-        .qtd-input::-webkit-inner-spin-button, 
-        .qtd-input::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
+        .western-nav a {
+          font-size: 0.85rem;
+          padding: 5px 8px;
         }
 
-        /* RESPONSIVIDADE (MEDIA QUERIES) */
-        
-        /* 1. MUDANÇA NA NAVBAR - Igual à Montaria */
-        @media (max-width: 1024px) {
-            /* Layout principal do inventário vira coluna */
-            .inventory-layout { 
-                flex-direction: column; 
-                align-items: stretch; /* Estica para ocupar a largura */
-                gap: 15px; 
-            }
+        .inventory-container {
+          padding: 20px 5px;
+        }
+        .inventory-table {
+          font-size: 0.95rem;
+        }
+        .section-header {
+          font-size: 1rem;
+        }
+        .section-header.small {
+          font-size: 0.8rem;
+        }
+      }
 
-            /* A tabela vai para baixo */
-            .tables-column { 
-                width: 100%; 
-                order: 3; 
-            }
-            
-            /* Mágica do Painel (Munição e Carga) */
-            .side-panel, .space-panel { 
-                width: 100%; /* Ocupa a largura toda */
-                max-width: none; 
-                margin: 0; 
-                position: relative; 
-                top: 0; 
-                box-sizing: border-box; 
-                display: grid;
-                grid-template-columns: auto 1fr auto; 
-                align-items: center;
-                padding: 10px 15px;
-                gap: 15px;
-            }
-
-            .side-panel h3, .space-panel h3 {
-                font-size: 0.9rem;
-                margin: 0;
-                text-align: left;
-                grid-column: 1; 
-            }
-
-            .side-panel select {
-                width: 100px;
-                font-size: 0.8rem;
-                margin-top: 5px;
-                display: block; 
-            }
-
-            .space-display {
-                grid-column: 2; 
-                font-size: 1.8rem;
-                margin: 0;
-                text-align: center;
-                line-height: 1;
-            }
-
-            .panel-input, .space-max input {
-                grid-column: 3; 
-                width: 50px; 
-                height: 40px; 
-                margin: 0 !important; 
-                font-size: 1rem;
-            }
-
-            .side-panel div[style*="font-size:0.7rem"],
-            .space-panel div[style*="font-size:0.7rem"] {
-                display: none !important;
-            }
+      @media (max-width: 480px) {
+        .inventory-container {
+          padding: 10px 2px;
+        }
+        .space-panel {
+          padding: 10px;
+        }
+        .inventory-table {
+          font-size: 0.9rem;
+        }
+        .section-header {
+          font-size: 0.95rem;
+        }
+        .section-header.small {
+          font-size: 0.7rem;
+        }
+        .space-display {
+          font-size: 1.3rem;
         }
 
-        /* 2. RESPONSIVIDADE DA NAV IGUAL MONTARIA */
-        @media (max-width: 768px) {
-            .western-nav {
-                flex-wrap: wrap;
-                gap: 10px;
-                padding: 10px;
-            }
-            
-            .western-nav a {
-                font-size: 0.85rem;
-                padding: 5px 8px;
-            }
-
-            .inventory-container { padding: 20px 5px; }
-            .inventory-table { font-size: 0.95rem; }
-            .section-header { font-size: 1rem; }
-            .section-header.small { font-size: 0.8rem; }
+        /* Ajuste extra para a nav em telas muito pequenas */
+        .western-nav a {
+          font-size: 0.8rem;
+          padding: 4px 6px;
         }
+      }
 
-        @media (max-width: 480px) {
-            .inventory-container { padding: 10px 2px; }
-            .space-panel { padding: 10px; }
-            .inventory-table { font-size: 0.9rem; }
-            .section-header { font-size: 0.95rem; }
-            .section-header.small { font-size: 0.7rem; }
-            .space-display { font-size: 1.3rem; }
-            
-            /* Ajuste extra para a nav em telas muito pequenas */
-            .western-nav a {
-                font-size: 0.8rem;
-                padding: 4px 6px;
-            }
-        }
+      /* Tabelas com rolagem horizontal em telas pequenas */
+      .tables-column {
+        overflow-x: auto;
+      }
+      .inventory-table {
+        min-width: 320px;
+      }
 
-        /* Tabelas com rolagem horizontal em telas pequenas */
-        .tables-column { overflow-x: auto; }
-        .inventory-table { min-width: 320px; }
+      /* TABELAS */
+      .inventory-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 5px;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      }
+      .section-header {
+        font-family: "Rye";
+        color: #fff;
+        background: #222;
+        padding: 10px;
+        border-bottom: 2px solid #5d4037;
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+        text-shadow: 1px 1px 0 #000;
+      }
+      .section-header.small {
+        font-size: 0.9rem;
+        text-align: center;
+        width: 80px;
+      }
+      .inventory-table td {
+        background: rgba(220, 220, 220, 0.93);
+        padding: 8px;
+        border: 1px solid #000;
+      }
+      .inventory-table input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        font-family: "Courier Prime";
+        font-size: 1rem;
+        outline: none;
+        color: #1a1a1a;
+        padding: 2px 4px;
+        font-weight: bold;
+      }
+      .arma-name,
+      .arma-dano,
+      .arma-space {
+        color: #222 !important;
+        font-weight: bold !important;
+        background: #fffbe8;
+        border-radius: 3px;
+      }
 
-        /* TABELAS */
-        .inventory-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-        .section-header { font-family: 'Rye'; color: #fff; background: #222; padding: 10px; border-bottom: 2px solid #5d4037; font-size: 1.2rem; letter-spacing: 1px; text-shadow: 1px 1px 0 #000; }
-        .section-header.small { font-size: 0.9rem; text-align: center; width: 80px; }
-        .inventory-table td { background: rgba(220, 220, 220, 0.93); padding: 8px; border: 1px solid #000; }
-        .inventory-table input { width: 100%; background: transparent; border: none; font-family: 'Courier Prime'; font-size: 1rem; outline: none; color: #1a1a1a; padding: 2px 4px; font-weight: bold; }
-        .arma-name, .arma-dano, .arma-space {
-            color: #222 !important;
-            font-weight: bold !important;
-            background: #fffbe8;
-            border-radius: 3px;
-        }
-        
-        /* DESCRIÇÃO */
-        .col-expand { width: 30px; padding: 0 !important; text-align: center; background: #3e2723 !important; }
-        .btn-expand { background: transparent; border: none; color: #fff; width: 100%; height: 100%; cursor: pointer; font-weight: bold; }
-        .desc-row { display: none; }
-        .desc-row.show { display: table-row; }
-        .desc-row td { background: #fff8e1 !important; padding: 5px !important; }
-        .desc-row textarea { width: 100%; min-height: 50px; border: none; background: transparent; font-family: 'Courier Prime'; resize: vertical; outline: none; }
+      /* DESCRIÇÃO */
+      .col-expand {
+        width: 30px;
+        padding: 0 !important;
+        text-align: center;
+        background: #3e2723 !important;
+      }
+      .btn-expand {
+        background: transparent;
+        border: none;
+        color: #fff;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .desc-row {
+        display: none;
+      }
+      .desc-row.show {
+        display: table-row;
+      }
+      .desc-row td {
+        background: #fff8e1 !important;
+        padding: 5px !important;
+      }
+      .desc-row textarea {
+        width: 100%;
+        min-height: 50px;
+        border: none;
+        background: transparent;
+        font-family: "Courier Prime";
+        resize: vertical;
+        outline: none;
+      }
 
-        /* PAINEL CARGA */
-        .space-panel { background: rgba(0, 0, 0, 0.6); padding: 20px; border: 2px solid #5d4037; border-radius: 8px; text-align: center; min-width: 150px; position: sticky; top: 80px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-left: 10px; }
-        .space-panel h3 { font-family: 'Rye'; color: #e6dccf; margin: 0 0 10px 0; letter-spacing: 1px; }
-        .space-display { font-family: 'Rye'; font-size: 2.5rem; color: #e6dccf; margin-bottom: 5px; }
-        .space-display.over { color: #ff5555; }
-        .space-max input { width: 60px; text-align: center; font-family: 'Rye'; font-size: 1.2rem; margin-top: 10px; background: rgba(255,255,255,0.9); border: 2px solid #5d4037; border-radius: 5px; }
-        
-        #status { position: fixed; bottom: 10px; right: 10px; color: #fff; opacity: 0.7; font-size: 0.8rem; z-index: 999; }
+      /* PAINEL CARGA */
+      .space-panel {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 20px;
+        border: 2px solid #5d4037;
+        border-radius: 8px;
+        text-align: center;
+        min-width: 150px;
+        position: sticky;
+        top: 80px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        margin-left: 10px;
+      }
+      .space-panel h3 {
+        font-family: "Rye";
+        color: #e6dccf;
+        margin: 0 0 10px 0;
+        letter-spacing: 1px;
+      }
+      .space-display {
+        font-family: "Rye";
+        font-size: 2.5rem;
+        color: #e6dccf;
+        margin-bottom: 5px;
+      }
+      .space-display.over {
+        color: #ff5555;
+      }
+      .space-max input {
+        width: 60px;
+        text-align: center;
+        font-family: "Rye";
+        font-size: 1.2rem;
+        margin-top: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #5d4037;
+        border-radius: 5px;
+      }
 
-        /* MODAL DE NOVA ARMA */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; }
-        .modal-overlay.show { display: flex; }
+      #status {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        color: #fff;
+        opacity: 0.7;
+        font-size: 0.8rem;
+        z-index: 999;
+      }
 
-        .modal-box { 
-            background: url('assets/rock.jpg') center/cover, #2b1b12; 
-            padding: 25px; 
-            border: 4px solid #5d4037; 
-            width: 95%; 
-            max-width: 500px; 
-            max-height: 90vh; /* Não deixa o modal ser maior que 90% da tela */
-            overflow-y: auto; /* Adiciona scroll se o conteúdo crescer */
-            border-radius: 8px; 
-            box-shadow: 0 0 50px rgba(0,0,0,1); 
-            color: #e6dccf; /* Cor do texto para contraste */
-        }
+      /* MODAL DE NOVA ARMA */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 2000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-overlay.show {
+        display: flex;
+      }
 
-        .modal-box input, .modal-box select, .modal-box textarea {
-            width: 100%;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid #5d4037;
-            font-family: 'Courier Prime';
-            box-sizing: border-box; /* Essencial para o padding não "empurrar" o input pra fora */
-        }
+      .modal-box {
+        background:
+          url("assets/rock.jpg") center/cover,
+          #2b1b12;
+        padding: 25px;
+        border: 4px solid #5d4037;
+        width: 95%;
+        max-width: 500px;
+        max-height: 90vh; /* Não deixa o modal ser maior que 90% da tela */
+        overflow-y: auto; /* Adiciona scroll se o conteúdo crescer */
+        border-radius: 8px;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 1);
+        color: #e6dccf; /* Cor do texto para contraste */
+      }
 
-        /* Estilo para a barra de rolagem do modal (estilo envelhecido) */
-        .modal-box::-webkit-scrollbar {
-            width: 8px;
-        }
-        .modal-box::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.2);
-        }
-        .modal-box::-webkit-scrollbar-thumb {
-            background: #5d4037;
-            border-radius: 4px;
-        }
-        .modal-box h2 { font-family: 'Rye'; margin-top: 0; color: var(--ink); text-align: center; }
+      .modal-box input,
+      .modal-box select,
+      .modal-box textarea {
+        width: 100%;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #5d4037;
+        font-family: "Courier Prime";
+        box-sizing: border-box; /* Essencial para o padding não "empurrar" o input pra fora */
+      }
 
-        .form-row { 
-            display: flex; 
-            gap: 10px; 
-            margin-bottom: 15px; 
-            flex-wrap: wrap; /* Faz os campos pularem de linha em telas muito pequenas */
-        }
+      /* Estilo para a barra de rolagem do modal (estilo envelhecido) */
+      .modal-box::-webkit-scrollbar {
+        width: 8px;
+      }
+      .modal-box::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+      }
+      .modal-box::-webkit-scrollbar-thumb {
+        background: #5d4037;
+        border-radius: 4px;
+      }
+      .modal-box h2 {
+        font-family: "Rye";
+        margin-top: 0;
+        color: var(--ink);
+        text-align: center;
+      }
 
-        .form-group { 
-            display: flex; 
-            flex-direction: column; 
-            min-width: 120px; /* Evita que os campos fiquem esmagados */
-            flex: 1; 
-        }
+      .form-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap; /* Faz os campos pularem de linha em telas muito pequenas */
+      }
 
-        .form-group label {
-            font-family: 'Rye';
-            font-size: 0.85rem;
-            margin-bottom: 5px;
-            color: #2b1b12; /* Marrom bem escuro (cor de tinta) */
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        min-width: 120px; /* Evita que os campos fiquem esmagados */
+        flex: 1;
+      }
 
-        /* Correção do Checkbox */
-        .food-wrapper {
-            display: flex; 
-            align-items: center; 
-            gap: 4px; 
-            margin-right: 8px;
-            cursor: pointer;
-            background: rgba(0,0,0,0.05);
-            padding: 2px 5px;
-            border-radius: 4px;
-            border: 1px solid transparent;
-            transition: 0.2s;
-        }
+      .form-group label {
+        font-family: "Rye";
+        font-size: 0.85rem;
+        margin-bottom: 5px;
+        color: #2b1b12; /* Marrom bem escuro (cor de tinta) */
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
 
-        .food-wrapper:hover {
-            border-color: #5d4037;
-            background: rgba(0,0,0,0.1);
-        }
+      /* Correção do Checkbox */
+      .food-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-right: 8px;
+        cursor: pointer;
+        background: rgba(0, 0, 0, 0.05);
+        padding: 2px 5px;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        transition: 0.2s;
+      }
 
-        /* O texto "Alimento" */
-        .food-label-text {
-            font-size: 0.7rem;
-            font-family: 'Rye';
-            color: #5d4037;
-            text-transform: uppercase;
-        }
+      .food-wrapper:hover {
+        border-color: #5d4037;
+        background: rgba(0, 0, 0, 0.1);
+      }
 
-        /* Força o checkbox a ter tamanho normal e não 100% */
-        .food-wrapper input[type="checkbox"] {
-            width: auto !important; 
-            margin: 0;
-            cursor: pointer;
-            transform: scale(1.1); /* Levemente maior, mas não gigante */
-        }
+      /* O texto "Alimento" */
+      .food-label-text {
+        font-size: 0.7rem;
+        font-family: "Rye";
+        color: #5d4037;
+        text-transform: uppercase;
+      }
 
-        /* Estilo da linha quando é alimento */
-        .row-alimento td {
-            background-color: #ffe0b2 !important;
-        }
+      /* Força o checkbox a ter tamanho normal e não 100% */
+      .food-wrapper input[type="checkbox"] {
+        width: auto !important;
+        margin: 0;
+        cursor: pointer;
+        transform: scale(1.1); /* Levemente maior, mas não gigante */
+      }
+
+      /* Estilo da linha quando é alimento */
+      .row-alimento td {
+        background-color: #ffe0b2 !important;
+      }
     </style>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <div class="modal-overlay" id="modal-arma">
-        <div class="modal-box">
-            <h2 id="modal-arma-titulo">NOVA ARMA</h2>
-            <div class="form-group">
-                <label>Nome da Arma</label>
-                <input type="text" id="new-nome" placeholder="Ex: Colt Navy">
-            </div>
-            
-            <div class="form-row" style="display:flex; gap:10px; margin-bottom:15px;">
-                <div class="form-group" style="flex:1">
-                    <label>Tipo de Alcance</label>
-                    <select id="new-alcance" onchange="toggleInputMunicao()" style="width:100%; padding:8px;">
-                        <option value="distancia">🏹 Distância (Usa Munição)</option>
-                        <option value="corpo">⚔️ Corpo a Corpo</option>
-                    </select>
-                </div>
-                <div class="form-group" style="flex:1">
-                    <label>Tipo de Dano</label>
-                    <select id="new-tipo" style="width:100%; padding:8px;">
-                        <option value="💀 Letal">💀 Letal</option>
-                        <option value="👊 Dor">👊 Dor</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-row" style="display:flex; gap:10px; margin-bottom:15px;">
-                <div class="form-group" style="flex:1">
-                    <label>Dano (Ex: 2d6)</label>
-                    <input type="text" id="new-dano" value="1">
-                </div>
-                <div class="form-group" id="container-municao-max" style="flex:1">
-                    <label>Munição Max</label>
-                    <input type="number" id="new-balas" value="6">
-                </div>
-                <div class="form-group" style="flex:1">
-                    <label>Peso (KG)</label>
-                    <input type="number" id="new-espaco" value="1" step="0.5">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Efeito Especial / Descrição</label>
-                <textarea id="new-desc" rows="3" placeholder="Ex: Crítico 19-20..."></textarea>
-            </div>
-            
-            <button class="btn-western" id="btn-confirmar-arma" onclick="confirmarNovaArma()" style="width:100%; padding:10px; font-family:'Rye'; font-size:1.1rem; background:#2e7d32; color:#fff; cursor:pointer; border:none; margin-top:10px;">CRIAR ARMA</button>
-            <button class="btn-western btn-cancel" style="width:100%; padding:10px; font-family:'Rye'; font-size:1.1rem; background:#444; color:#fff; cursor:pointer; border:none; margin-top:5px;" onclick="fecharModalArma()">CANCELAR</button>
+      <div class="modal-box">
+        <h2 id="modal-arma-titulo">NOVA ARMA</h2>
+        <div class="form-group">
+          <label>Nome da Arma</label>
+          <input type="text" id="new-nome" placeholder="Ex: Colt Navy" />
         </div>
+
+        <div
+          class="form-row"
+          style="display: flex; gap: 10px; margin-bottom: 15px"
+        >
+          <div class="form-group" style="flex: 1">
+            <label>Tipo de Alcance</label>
+            <select
+              id="new-alcance"
+              onchange="toggleInputMunicao()"
+              style="width: 100%; padding: 8px"
+            >
+              <option value="distancia">🏹 Distância (Usa Munição)</option>
+              <option value="corpo">⚔️ Corpo a Corpo</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1">
+            <label>Tipo de Dano</label>
+            <select id="new-tipo" style="width: 100%; padding: 8px">
+              <option value="💀 Letal">💀 Letal</option>
+              <option value="👊 Dor">👊 Dor</option>
+            </select>
+          </div>
+        </div>
+
+        <div
+          class="form-row"
+          style="display: flex; gap: 10px; margin-bottom: 15px"
+        >
+          <div class="form-group" style="flex: 1">
+            <label>Dano (Ex: 2d6)</label>
+            <input type="text" id="new-dano" value="1" />
+          </div>
+          <div class="form-group" id="container-municao-max" style="flex: 1">
+            <label>Munição Max</label>
+            <input type="number" id="new-balas" value="6" />
+          </div>
+          <div class="form-group" style="flex: 1">
+            <label>Peso (KG)</label>
+            <input type="number" id="new-espaco" value="1" step="0.5" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Efeito Especial / Descrição</label>
+          <textarea
+            id="new-desc"
+            rows="3"
+            placeholder="Ex: Crítico 19-20..."
+          ></textarea>
+        </div>
+
+        <button
+          class="btn-western"
+          id="btn-confirmar-arma"
+          onclick="confirmarNovaArma()"
+          style="
+            width: 100%;
+            padding: 10px;
+            font-family: &quot;Rye&quot;;
+            font-size: 1.1rem;
+            background: #2e7d32;
+            color: #fff;
+            cursor: pointer;
+            border: none;
+            margin-top: 10px;
+          "
+        >
+          CRIAR ARMA
+        </button>
+        <button
+          class="btn-western btn-cancel"
+          style="
+            width: 100%;
+            padding: 10px;
+            font-family: &quot;Rye&quot;;
+            font-size: 1.1rem;
+            background: #444;
+            color: #fff;
+            cursor: pointer;
+            border: none;
+            margin-top: 5px;
+          "
+          onclick="fecharModalArma()"
+        >
+          CANCELAR
+        </button>
+      </div>
     </div>
 
     <div id="tela-senha">
-        <div class="password-box">
-            <h2>🔒 ACESSO RESTRITO</h2>
-            <p>Ficha de <b id="nome-lock">...</b></p>
-            <input type="password" id="pass-input" placeholder="Senha..." onkeypress="if(event.key==='Enter') tentarDesbloquear()">
-            <button onclick="tentarDesbloquear()">ABRIR</button>
-            <p id="pass-error" style="color:red; display:none; margin-top:10px;">Senha Incorreta!</p>
-        </div>
-        <script>document.getElementById('nome-lock').innerText = NOME_PERSONAGEM || '...';</script>
+      <div class="password-box">
+        <h2>🔒 ACESSO RESTRITO</h2>
+        <p>Ficha de <b id="nome-lock">...</b></p>
+        <input
+          type="password"
+          id="pass-input"
+          placeholder="Senha..."
+          onkeypress="if (event.key === 'Enter') tentarDesbloquear();"
+        />
+        <button onclick="tentarDesbloquear()">ABRIR</button>
+        <p id="pass-error" style="color: red; display: none; margin-top: 10px">
+          Senha Incorreta!
+        </p>
+      </div>
+      <script>
+        document.getElementById("nome-lock").innerText =
+          NOME_PERSONAGEM || "...";
+      </script>
     </div>
 
     <nav class="western-nav">
-        <a href="index.html">Ficha</a>
-        <a href="habilidades.html">Habilidades</a>
-        <a href="montaria.html">Montaria</a>
-        <a href="inventario.html" class="active">Inventário</a>
-        <a href="bando.html">Bando</a>
+      <a href="index.html">Ficha</a>
+      <a href="habilidades.html">Habilidades</a>
+      <a href="montaria.html">Montaria</a>
+      <a href="inventario.html" class="active">Inventário</a>
+      <a href="bando.html">Bando</a>
     </nav>
 
-<div class="inventory-container">
-    <div class="inventory-layout">
-
+    <div class="inventory-container">
+      <div class="inventory-layout">
         <div class="side-panel">
-            <h3>MUNIÇÃO</h3>
-            
-            <div style="text-align: left; font-size: 0.75rem; color: #e6dccf; margin-bottom: 10px; display: flex; flex-direction: column; gap: 5px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border: 1px solid #5d4037;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" id="check-bandoleira" onchange="atualizarLimiteBalas()" style="width: auto;"> Bandoleira (+12)
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" id="check-cinturao" onchange="atualizarLimiteBalas()" style="width: auto;"> Cinturão (+36)
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" id="check-aljava" onchange="atualizarLimiteBalas()" style="width: auto;"> Aljava (+10)
-                </label>
-            </div>
+          <h3>MUNIÇÃO</h3>
 
-            <div class="space-display" id="ammo-display">0</div>
-            <div id="ammo-label" style="color:#aaa; font-size:0.7rem; margin-bottom:5px;">CAPACIDADE TOTAL</div>
-            
-            <input type="number" id="ammo-qtd" class="panel-input" value="0" min="0" onchange="salvarMunicao()">
+          <div
+            style="
+              text-align: left;
+              font-size: 0.75rem;
+              color: #e6dccf;
+              margin-bottom: 10px;
+              display: flex;
+              flex-direction: column;
+              gap: 5px;
+              background: rgba(0, 0, 0, 0.3);
+              padding: 8px;
+              border-radius: 4px;
+              border: 1px solid #5d4037;
+            "
+          >
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+              "
+            >
+              <input
+                type="checkbox"
+                id="check-bandoleira"
+                onchange="atualizarLimiteBalas()"
+                style="width: auto"
+              />
+              Bandoleira (+12)
+            </label>
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+              "
+            >
+              <input
+                type="checkbox"
+                id="check-cinturao"
+                onchange="atualizarLimiteBalas()"
+                style="width: auto"
+              />
+              Cinturão (+36)
+            </label>
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+              "
+            >
+              <input
+                type="checkbox"
+                id="check-aljava"
+                onchange="atualizarLimiteBalas()"
+                style="width: auto"
+              />
+              Aljava (+10)
+            </label>
+          </div>
+
+          <div class="space-display" id="ammo-display">0</div>
+          <div
+            id="ammo-label"
+            style="color: #aaa; font-size: 0.7rem; margin-bottom: 5px"
+          >
+            CAPACIDADE TOTAL
+          </div>
+
+          <input
+            type="number"
+            id="ammo-qtd"
+            class="panel-input"
+            value="0"
+            min="0"
+            onchange="salvarMunicao()"
+          />
         </div>
 
         <div class="tables-column">
-            
-            <table class="inventory-table">
-                <thead><tr><td class="section-header" colspan="2">ITENS GERAIS</td><td class="section-header" style="width:80px; text-align:center;">KG</td></tr></thead>
-                <tbody id="items-body"></tbody>
-            </table>
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <td class="section-header" colspan="2">ITENS GERAIS</td>
+                <td
+                  class="section-header"
+                  style="width: 80px; text-align: center"
+                >
+                  KG
+                </td>
+              </tr>
+            </thead>
+            <tbody id="items-body"></tbody>
+          </table>
 
-            <table class="inventory-table">
-                <thead>
-                    <tr>
-                        <td class="section-header" colspan="2">ARSENAL</td>
-                        <td class="section-header" style="width:100px; text-align:center;">EQUIPAR</td>
-                    </tr>
-                </thead>
-                <tbody id="weapons-body"></tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3" style="padding:10px;">
-                            <button class="btn-western" onclick="abrirModalArma()" style="width:100%; padding:10px; font-family:'Rye'; font-size:1rem; background:#5d4037; color:#fff; cursor:pointer; border:none;">+ ADICIONAR ARMA</button>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <td class="section-header" colspan="2">ARSENAL</td>
+                <td
+                  class="section-header"
+                  style="width: 100px; text-align: center"
+                >
+                  EQUIPAR
+                </td>
+              </tr>
+            </thead>
+            <tbody id="weapons-body"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="padding: 10px">
+                  <button
+                    class="btn-western"
+                    onclick="abrirModalArma()"
+                    style="
+                      width: 100%;
+                      padding: 10px;
+                      font-family: &quot;Rye&quot;;
+                      font-size: 1rem;
+                      background: #5d4037;
+                      color: #fff;
+                      cursor: pointer;
+                      border: none;
+                    "
+                  >
+                    + ADICIONAR ARMA
+                  </button>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
 
         <div class="side-panel">
-            <h3>CARGA</h3>
-            <div class="space-display" id="space-current">0</div>
-            <div style="color:#aaa; font-size:0.7rem; margin-bottom:5px;">KG / ESPAÇOS</div>
-            <input type="number" id="space-max" class="panel-input" value="10" min="1" max="15" onchange="atualizarCargaMax()">
+          <h3>CARGA</h3>
+          <div class="space-display" id="space-current">0</div>
+          <div style="color: #aaa; font-size: 0.7rem; margin-bottom: 5px">
+            KG / ESPAÇOS
+          </div>
+          <input
+            type="number"
+            id="space-max"
+            class="panel-input"
+            value="10"
+            min="1"
+            max="15"
+            onchange="atualizarCargaMax()"
+          />
         </div>
-
+      </div>
     </div>
-</div>
 
     <div id="status">Carregando...</div>
 
     <script>
-            // ==========================================
-            // 1. ESTADO E DADOS
-            // ==========================================
-            let itensData = [];
-            let armasData = [];
-            let editIndex = null;
+      // ==========================================
+      // 1. ESTADO E DADOS
+      // ==========================================
+      let itensData = [];
+      let armasData = [];
+      let editIndex = null;
 
-            // ==========================================
-            // 2. FUNÇÕES DO MODAL (SIMPLIFICADAS)
-            // ==========================================
+      // ==========================================
+      // 2. FUNÇÕES DO MODAL (SIMPLIFICADAS)
+      // ==========================================
 
-           function abrirModalArma(index = null) {
-                editIndex = index;
-                const titulo = document.getElementById('modal-arma-titulo');
-                const btn = document.getElementById('btn-confirmar-arma');
+      function abrirModalArma(index = null) {
+        editIndex = index;
+        const titulo = document.getElementById("modal-arma-titulo");
+        const btn = document.getElementById("btn-confirmar-arma");
 
-                if (index !== null) {
-                    // MODO EDIÇÃO: Preenche os campos
-                    const arma = armasData[index];
-                    titulo.innerText = "EDITAR ARMA";
-                    btn.innerText = "SALVAR ALTERAÇÕES";
-                    
-                    document.getElementById('new-nome').value = arma.nome;
-                    document.getElementById('new-dano').value = arma.dano;
-                    document.getElementById('new-tipo').value = arma.tipo;
-                    document.getElementById('new-alcance').value = arma.balasMax > 0 ? 'distancia' : 'corpo';
-                    document.getElementById('new-balas').value = arma.balasMax;
-                    document.getElementById('new-espaco').value = arma.espaco;
-                    document.getElementById('new-desc').value = arma.descricao;
-                } else {
-                    // MODO CRIAÇÃO: Limpa os campos
-                    titulo.innerText = "NOVA ARMA";
-                    btn.innerText = "CRIAR ARMA";
-                    resetarCamposModal();
-                }
+        if (index !== null) {
+          // MODO EDIÇÃO: Preenche os campos
+          const arma = armasData[index];
+          titulo.innerText = "EDITAR ARMA";
+          btn.innerText = "SALVAR ALTERAÇÕES";
 
-                toggleInputMunicao();
-                document.getElementById('modal-arma').classList.add('show');
-            }
+          document.getElementById("new-nome").value = arma.nome;
+          document.getElementById("new-dano").value = arma.dano;
+          document.getElementById("new-tipo").value = arma.tipo;
+          document.getElementById("new-alcance").value =
+            arma.balasMax > 0 ? "distancia" : "corpo";
+          document.getElementById("new-balas").value = arma.balasMax;
+          document.getElementById("new-espaco").value = arma.espaco;
+          document.getElementById("new-desc").value = arma.descricao;
+        } else {
+          // MODO CRIAÇÃO: Limpa os campos
+          titulo.innerText = "NOVA ARMA";
+          btn.innerText = "CRIAR ARMA";
+          resetarCamposModal();
+        }
 
-            function resetarCamposModal() {
-                document.getElementById('new-nome').value = '';
-                document.getElementById('new-dano').value = '1';
-                document.getElementById('new-desc').value = '';
-                document.getElementById('new-balas').value = '6';
-                document.getElementById('new-alcance').value = 'distancia';
-            }
-            
-            function fecharModalArma() { 
-                document.getElementById('modal-arma').classList.remove('show'); 
-            }
+        toggleInputMunicao();
+        document.getElementById("modal-arma").classList.add("show");
+      }
 
-            function toggleInputMunicao() {
-                const tipoAlcance = document.getElementById('new-alcance').value;
-                const containerMunicao = document.getElementById('container-municao-max');
-                const inputBalas = document.getElementById('new-balas');
-                
-                if (tipoAlcance === 'distancia') {
-                    containerMunicao.style.opacity = "1";
-                    inputBalas.disabled = false;
-                } else {
-                    containerMunicao.style.opacity = "0.3";
-                    inputBalas.disabled = true;
-                    inputBalas.value = 0;
-                }
-            }
+      function resetarCamposModal() {
+        document.getElementById("new-nome").value = "";
+        document.getElementById("new-dano").value = "1";
+        document.getElementById("new-desc").value = "";
+        document.getElementById("new-balas").value = "6";
+        document.getElementById("new-alcance").value = "distancia";
+      }
 
-            // ==========================================
-            // ATUALIZAR A FUNÇÃO: CONFIRMAR NOVA ARMA
-            // ==========================================
-            async function confirmarNovaArma() {
-                const tipoAlcance = document.getElementById('new-alcance').value;
-                const qtdBalas = parseInt(document.getElementById('new-balas').value) || 0;
+      function fecharModalArma() {
+        document.getElementById("modal-arma").classList.remove("show");
+      }
 
-                const armaEditada = {
-                    nome: document.getElementById('new-nome').value || 'Arma Sem Nome',
-                    dano: document.getElementById('new-dano').value,
-                    tipo: document.getElementById('new-tipo').value,
-                    balasMax: qtdBalas,
-                    balasAtual: (editIndex !== null) ? armasData[editIndex].balasAtual : qtdBalas,
-                    espaco: parseFloat(document.getElementById('new-espaco').value) || 1,
-                    descricao: document.getElementById('new-desc').value,
-                    equipado: (editIndex !== null) ? armasData[editIndex].equipado : false
-                };
+      function toggleInputMunicao() {
+        const tipoAlcance = document.getElementById("new-alcance").value;
+        const containerMunicao = document.getElementById(
+          "container-municao-max",
+        );
+        const inputBalas = document.getElementById("new-balas");
 
-                if (editIndex !== null) {
-                    armasData[editIndex] = armaEditada;
-                } else {
-                    armasData.push(armaEditada);
-                }
+        if (tipoAlcance === "distancia") {
+          containerMunicao.style.opacity = "1";
+          inputBalas.disabled = false;
+        } else {
+          containerMunicao.style.opacity = "0.3";
+          inputBalas.disabled = true;
+          inputBalas.value = 0;
+        }
+      }
 
-                fecharModalArma();
-                gerarTabelaArmas();
-                await salvarFicha();
-            }
+      // ==========================================
+      // ATUALIZAR A FUNÇÃO: CONFIRMAR NOVA ARMA
+      // ==========================================
+      async function confirmarNovaArma() {
+        const tipoAlcance = document.getElementById("new-alcance").value;
+        const qtdBalas =
+          parseInt(document.getElementById("new-balas").value) || 0;
 
-            // ==========================================
-            // 3. RENDERIZAÇÃO
-            // ==========================================
+        const armaEditada = {
+          nome: document.getElementById("new-nome").value || "Arma Sem Nome",
+          dano: document.getElementById("new-dano").value,
+          tipo: document.getElementById("new-tipo").value,
+          balasMax: qtdBalas,
+          balasAtual:
+            editIndex !== null ? armasData[editIndex].balasAtual : qtdBalas,
+          espaco: parseFloat(document.getElementById("new-espaco").value) || 1,
+          descricao: document.getElementById("new-desc").value,
+          equipado: editIndex !== null ? armasData[editIndex].equipado : false,
+        };
 
-            function gerarLinhasItens() {
-                const maxEspaco = parseInt(document.getElementById('space-max').value) || 10;
-                const tbody = document.getElementById('items-body');
-                tbody.innerHTML = '';
-                
-                for(let i=0; i < maxEspaco; i++) {
-                    // Agora inicializamos 'usos' com 1 por padrão
-                    if(!itensData[i]) itensData[i] = { nome: '', espaco: 0, descricao: '', alimento: false, usos: 1 };
-                    const dados = itensData[i];
+        if (editIndex !== null) {
+          armasData[editIndex] = armaEditada;
+        } else {
+          armasData.push(armaEditada);
+        }
 
-                    const tr = document.createElement('tr');
-                    tr.className = dados.alimento ? 'item-row row-alimento' : 'item-row';
-                    
-                    // HTML da linha
-                    let htmlMeio = `
+        fecharModalArma();
+        gerarTabelaArmas();
+        await salvarFicha();
+      }
+
+      // ==========================================
+      // 3. RENDERIZAÇÃO
+      // ==========================================
+
+      function gerarLinhasItens() {
+        const maxEspaco =
+          parseInt(document.getElementById("space-max").value) || 10;
+        const tbody = document.getElementById("items-body");
+        tbody.innerHTML = "";
+
+        for (let i = 0; i < maxEspaco; i++) {
+          // Agora inicializamos 'usos' com 1 por padrão
+          if (!itensData[i])
+            itensData[i] = {
+              nome: "",
+              espaco: 0,
+              descricao: "",
+              alimento: false,
+              usos: 1,
+            };
+          const dados = itensData[i];
+
+          const tr = document.createElement("tr");
+          tr.className = dados.alimento ? "item-row row-alimento" : "item-row";
+
+          // HTML da linha
+          let htmlMeio = `
                         <td style="display: flex; align-items: center;">
                             <label class="food-wrapper" title="Marcar como item consumível">
                                 <input type="checkbox" 
-                                    ${dados.alimento ? 'checked' : ''} 
+                                    ${dados.alimento ? "checked" : ""} 
                                     onchange="atualizarItem(${i}, 'alimento', this.checked)">
                                 <span class="food-label-text">Alimento</span>
                             </label>
 
-                            <span style="font-size: 1.2rem; margin-right: 5px; display: ${dados.alimento ? 'block' : 'none'}">🍗</span>
+                            <span style="font-size: 1.2rem; margin-right: 5px; display: ${dados.alimento ? "block" : "none"}">🍗</span>
                             
                             <input type="text" value="${escapeHtml(dados.nome)}" placeholder="..." onchange="atualizarItem(${i}, 'nome', this.value)" style="flex:1;">
                     `;
 
-                    // SE FOR ALIMENTO, ADICIONA O CAMPO DE USOS
-                    if (dados.alimento) {
-                        htmlMeio += `
+          // SE FOR ALIMENTO, ADICIONA O CAMPO DE USOS
+          if (dados.alimento) {
+            htmlMeio += `
                             <div class="qtd-wrapper" title="Quantidade / Usos">
                                 <span class="qtd-label">QTD:</span>
                                 <input type="number" class="qtd-input" 
@@ -688,42 +1144,45 @@
                                     onchange="atualizarItem(${i}, 'usos', this.value)">
                             </div>
                         `;
-                    }
+          }
 
-                    htmlMeio += `</td>`;
+          htmlMeio += `</td>`;
 
-                    tr.innerHTML = `
+          tr.innerHTML = `
                         <td class="col-expand"><button class="btn-expand" onclick="toggleDescricao(this, 'desc-item-${i}')">▼</button></td>
                         ${htmlMeio}
                         <td class="col-espaco"><input type="number" value="${dados.espaco}" step="0.5" onchange="atualizarItem(${i}, 'espaco', this.value)"></td>
                     `;
-                    
-                    tbody.appendChild(tr);
-                    
-                    // Linha de descrição
-                    const trDesc = document.createElement('tr');
-                    trDesc.className = dados.alimento ? 'desc-row row-alimento' : 'desc-row';
-                    trDesc.id = `desc-item-${i}`;
-                    trDesc.innerHTML = `<td colspan="3"><textarea placeholder="Descrição..." onchange="atualizarItem(${i}, 'descricao', this.value)">${escapeHtml(dados.descricao)}</textarea></td>`;
-                    tbody.appendChild(trDesc);
-                }
-                calcularCarga();
-            }
 
-            function gerarTabelaArmas() {
-                const tbody = document.getElementById('weapons-body');
-                tbody.innerHTML = '';
+          tbody.appendChild(tr);
 
-                armasData.forEach((arma, index) => {
-                    const tr = document.createElement('tr');
-                    const bg = arma.equipado ? 'rgba(46, 125, 50, 0.2)' : 'transparent';
-                    tr.style.background = bg;
+          // Linha de descrição
+          const trDesc = document.createElement("tr");
+          trDesc.className = dados.alimento
+            ? "desc-row row-alimento"
+            : "desc-row";
+          trDesc.id = `desc-item-${i}`;
+          trDesc.innerHTML = `<td colspan="3"><textarea placeholder="Descrição..." onchange="atualizarItem(${i}, 'descricao', this.value)">${escapeHtml(dados.descricao)}</textarea></td>`;
+          tbody.appendChild(trDesc);
+        }
+        calcularCarga();
+      }
 
-                    const textoMunicao = arma.balasMax > 0 
-                        ? `(${arma.balasAtual}/${arma.balasMax} 💥)` 
-                        : '(Corpo-a-Corpo ⚔️)';
+      function gerarTabelaArmas() {
+        const tbody = document.getElementById("weapons-body");
+        tbody.innerHTML = "";
 
-                    tr.innerHTML = `
+        armasData.forEach((arma, index) => {
+          const tr = document.createElement("tr");
+          const bg = arma.equipado ? "rgba(46, 125, 50, 0.2)" : "transparent";
+          tr.style.background = bg;
+
+          const textoMunicao =
+            arma.balasMax > 0
+              ? `(${arma.balasAtual}/${arma.balasMax} 💥)`
+              : "(Corpo-a-Corpo ⚔️)";
+
+          tr.innerHTML = `
                         <td colspan="2" style="padding:10px;">
                             <div style="font-family:'Rye'; color:#2b1b12; font-size:1.3rem;">
                                 ${escapeHtml(arma.nome)} 
@@ -740,336 +1199,363 @@
                             </div>
                         </td>
                         <td style="vertical-align:middle; text-align:center;">
-                            <button class="btn-equipar ${arma.equipado ? 'equipado' : ''}" onclick="toggleEquipar(${index})" style="padding:5px; font-family:'Rye'; background:${arma.equipado ? '#2e7d32' : '#5d4037'}; color:#fff; border:none; cursor:pointer;">
-                                ${arma.equipado ? 'EQUIPADO' : 'EQUIPAR'}
+                            <button class="btn-equipar ${arma.equipado ? "equipado" : ""}" onclick="toggleEquipar(${index})" style="padding:5px; font-family:'Rye'; background:${arma.equipado ? "#2e7d32" : "#5d4037"}; color:#fff; border:none; cursor:pointer;">
+                                ${arma.equipado ? "EQUIPADO" : "EQUIPAR"}
                             </button>
                             <div style="font-size:0.9rem; margin-top:5px; color:#3e2723; font-weight:bold;">
                                 ${arma.equipado ? `<s style="opacity:0.5">${arma.espaco} KG</s> (0)` : `${arma.espaco} KG`}
                             </div>
                         </td>
                     `;
-                    tbody.appendChild(tr);
-                });
-                calcularCarga();
-            }
+          tbody.appendChild(tr);
+        });
+        calcularCarga();
+      }
 
-            // ==========================================
-            // 4. ATUALIZAÇÃO DE DADOS (Handlers)
-            // ==========================================
+      // ==========================================
+      // 4. ATUALIZAÇÃO DE DADOS (Handlers)
+      // ==========================================
 
-            function atualizarItem(index, campo, valor) {
-                if(!itensData[index]) itensData[index] = {};
-                
-                // Lógica para salvar o tipo correto de dado
-                if (campo === 'espaco') {
-                    itensData[index][campo] = parseFloat(valor);
-                } else if (campo === 'usos') {
-                    // Garante que usos seja pelo menos 1
-                    let qtd = parseInt(valor);
-                    if (qtd < 1 || isNaN(qtd)) qtd = 1;
-                    itensData[index][campo] = qtd;
-                } else {
-                    itensData[index][campo] = valor;
-                }
-                
-                // Se mudou o checkbox de alimento, redesenha para mostrar/esconder o campo QTD
-                if (campo === 'alimento') {
-                    // Se marcou como alimento, garante que usos comece em 1
-                    if (valor === true && !itensData[index].usos) {
-                        itensData[index].usos = 1;
-                    }
-                    gerarLinhasItens(); 
-                }
-                
-                calcularCarga();
-                
-                // Usa debounce para campos de texto (digitação rápida)
-                // Salvamento imediato para checkboxes e selects
-                if (campo === 'nome' || campo === 'desc') {
-                    salvarFichaComDebounce();
-                } else {
-                    salvarFicha();
-                }
-            }
+      function atualizarItem(index, campo, valor) {
+        if (!itensData[index]) itensData[index] = {};
 
-            function toggleEquipar(index) {
-                const arma = armasData[index];
+        // Lógica para salvar o tipo correto de dado
+        if (campo === "espaco") {
+          itensData[index][campo] = parseFloat(valor);
+        } else if (campo === "usos") {
+          // Garante que usos seja pelo menos 1
+          let qtd = parseInt(valor);
+          if (qtd < 1 || isNaN(qtd)) qtd = 1;
+          itensData[index][campo] = qtd;
+        } else {
+          itensData[index][campo] = valor;
+        }
 
-                // Se a arma já está equipada, apenas desequipa (sem restrição)
-                if (arma.equipado) {
-                    arma.equipado = false;
-                } else {
-                    // Se quer equipar, verifica quantas já estão equipadas
-                    const quantasEquipadas = armasData.filter(a => a.equipado).length;
-                    
-                    if (quantasEquipadas >= 2) {
-                        alert("⚠️ Você só tem duas mãos! Desequipe uma arma antes.");
-                        return; // Para a função aqui, não equipa
-                    }
-                    
-                    // Se passou na verificação, equipa
-                    arma.equipado = true;
-                }
+        // Se mudou o checkbox de alimento, redesenha para mostrar/esconder o campo QTD
+        if (campo === "alimento") {
+          // Se marcou como alimento, garante que usos comece em 1
+          if (valor === true && !itensData[index].usos) {
+            itensData[index].usos = 1;
+          }
+          gerarLinhasItens();
+        }
 
-                // Atualiza a tela e salva
-                gerarTabelaArmas();
-                salvarFicha();
-            }
+        calcularCarga();
 
-            function removerArma(index) {
-                if(confirm('Tem certeza que quer jogar essa arma fora?')) {
-                    armasData.splice(index, 1);
-                    gerarTabelaArmas();
-                    salvarFicha();
-                }
-            }
+        // Usa debounce para campos de texto (digitação rápida)
+        // Salvamento imediato para checkboxes e selects
+        if (campo === "nome" || campo === "desc") {
+          salvarFichaComDebounce();
+        } else {
+          salvarFicha();
+        }
+      }
 
-            // --- VARIÁVEIS GLOBAIS ---
-            let municaoData = {
-                equipados: { bandoleira: false, cinturao: false, aljava: false },
-                qtd: 0
-            };
+      function toggleEquipar(index) {
+        const arma = armasData[index];
 
-            // --- FUNÇÕES DE MUNIÇÃO ---
-            function atualizarLimiteBalas(deveSalvar = true) {
-                const bando = document.getElementById('check-bandoleira').checked;
-                const cinto = document.getElementById('check-cinturao').checked;
-                const aljava = document.getElementById('check-aljava').checked;
-                const input = document.getElementById('ammo-qtd');
+        // Se a arma já está equipada, apenas desequipa (sem restrição)
+        if (arma.equipado) {
+          arma.equipado = false;
+        } else {
+          // Se quer equipar, verifica quantas já estão equipadas
+          const quantasEquipadas = armasData.filter((a) => a.equipado).length;
 
-                // Calcula o limite total somando os recipientes marcados
-                let maxTotal = 0;
-                if (bando) maxTotal += 12;
-                if (cinto) maxTotal += 36;
-                if (aljava) maxTotal += 10;
+          if (quantasEquipadas >= 2) {
+            alert("⚠️ Você só tem duas mãos! Desequipe uma arma antes.");
+            return; // Para a função aqui, não equipa
+          }
 
-                // Se nada estiver equipado, o limite é 0 (ou você pode definir um mínimo de "bolso")
-                input.max = maxTotal;
+          // Se passou na verificação, equipa
+          arma.equipado = true;
+        }
 
-                // Se a munição atual estourar o novo limite, reduzimos para o máximo
-                if (parseInt(input.value) > maxTotal) {
-                    input.value = maxTotal;
-                }
+        // Atualiza a tela e salva
+        gerarTabelaArmas();
+        salvarFicha();
+      }
 
-                // Atualiza o display visual
-                document.getElementById('ammo-display').innerText = input.value;
-                
-                // Atualiza o objeto global para salvar
-                municaoData.equipados = { bandoleira: bando, cinturao: cinto, aljava: aljava };
-                municaoData.qtd = parseInt(input.value);
+      function removerArma(index) {
+        if (confirm("Tem certeza que quer jogar essa arma fora?")) {
+          armasData.splice(index, 1);
+          gerarTabelaArmas();
+          salvarFicha();
+        }
+      }
 
-                // Só salva se não estiver carregando dados
-                if (deveSalvar) {
-                    salvarFicha();
-                }
-            }
+      // --- VARIÁVEIS GLOBAIS ---
+      let municaoData = {
+        equipados: { bandoleira: false, cinturao: false, aljava: false },
+        qtd: 0,
+      };
 
-            function salvarMunicao() {
-                const input = document.getElementById('ammo-qtd');
-                let val = parseInt(input.value) || 0;
-                const max = parseInt(input.max) || 0;
+      // --- FUNÇÕES DE MUNIÇÃO ---
+      function atualizarLimiteBalas(deveSalvar = true) {
+        const bando = document.getElementById("check-bandoleira").checked;
+        const cinto = document.getElementById("check-cinturao").checked;
+        const aljava = document.getElementById("check-aljava").checked;
+        const input = document.getElementById("ammo-qtd");
 
-                if (val > max) val = max;
-                if (val < 0) val = 0;
+        // Calcula o limite total somando os recipientes marcados
+        let maxTotal = 0;
+        if (bando) maxTotal += 12;
+        if (cinto) maxTotal += 36;
+        if (aljava) maxTotal += 10;
 
-                input.value = val;
-                document.getElementById('ammo-display').innerText = val;
-                municaoData.qtd = val;
-                salvarFicha();
-            }
+        // Se nada estiver equipado, o limite é 0 (ou você pode definir um mínimo de "bolso")
+        input.max = maxTotal;
 
-            function calcularCarga() {
-                let total = 0;
+        // Se a munição atual estourar o novo limite, reduzimos para o máximo
+        if (parseInt(input.value) > maxTotal) {
+          input.value = maxTotal;
+        }
 
-                // Soma o peso de todos os itens gerais
-                itensData.forEach(i => total += (parseFloat(i?.espaco) || 0));
+        // Atualiza o display visual
+        document.getElementById("ammo-display").innerText = input.value;
 
-                // Soma o peso APENAS das armas que NÃO estão equipadas
-                armasData.forEach(a => {
-                    if (!a.equipado) { // <--- A MUDANÇA ESTÁ AQUI
-                        total += (parseFloat(a.espaco) || 0);
-                    }
-                });
-                
-                const max = parseInt(document.getElementById('space-max').value) || 10;
-                const el = document.getElementById('space-current');
-                
-                // Arredonda para evitar problemas com decimais (ex: 1.00000002)
-                total = Math.round(total * 100) / 100;
+        // Atualiza o objeto global para salvar
+        municaoData.equipados = {
+          bandoleira: bando,
+          cinturao: cinto,
+          aljava: aljava,
+        };
+        municaoData.qtd = parseInt(input.value);
 
-                el.innerText = total;
-                el.className = total > max ? 'space-display over' : 'space-display';
-            }
+        // Só salva se não estiver carregando dados
+        if (deveSalvar) {
+          salvarFicha();
+        }
+      }
 
-            function toggleDescricao(btn, descRowId) {
-                const descRow = document.getElementById(descRowId);
-                descRow.classList.toggle('show');
-                btn.classList.toggle('expanded');
-                btn.textContent = descRow.classList.contains('show') ? '▲' : '▼';
-            }
+      function salvarMunicao() {
+        const input = document.getElementById("ammo-qtd");
+        let val = parseInt(input.value) || 0;
+        const max = parseInt(input.max) || 0;
 
-            function escapeHtml(text) {
-                if (!text) return '';
-                return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-            }
+        if (val > max) val = max;
+        if (val < 0) val = 0;
 
-            // ==========================================
-            // 5. SUPABASE (Salvar e Carregar)
-            // ==========================================
+        input.value = val;
+        document.getElementById("ammo-display").innerText = val;
+        municaoData.qtd = val;
+        salvarFicha();
+      }
 
-            // Função interna que executa o salvamento real
-            async function _executarSalvamento() {
-                const status = document.getElementById('status');
-                status.innerText = 'Salvando...';
-                
-                // 1. Pega dados atuais para não sobrescrever habilidades e outros dados
-                const { data: current, error: fetchError } = await client.from('Fichas').select('atributos').eq('nome_personagem', NOME_PERSONAGEM).single();
-                
-                if (fetchError) {
-                    console.error('Erro ao buscar dados:', fetchError);
-                    status.innerText = 'Erro ao salvar!';
-                    return false;
-                }
-                
-                let payload = current ? { ...current.atributos } : {};
-                
-                // 2. Monta o objeto de inventário (preservando todas as outras propriedades)
-                payload.inventario = {
-                    items: itensData,
-                    weapons: armasData,
-                    maxLoad: document.getElementById('space-max').value,
-                    municao: municaoData
-                };
+      function calcularCarga() {
+        let total = 0;
 
-                // 3. Envia
-                const { error } = await client.from('Fichas').update({ atributos: payload }).eq('nome_personagem', NOME_PERSONAGEM);
-                
-                if(!error) {
-                    status.innerText = '• Salvo •';
-                    setTimeout(() => status.innerText = '', 2000);
-                    return true;
-                } else {
-                    console.error('Erro ao salvar:', error);
-                    status.innerText = 'Erro ao salvar!';
-                    return false;
-                }
-            }
+        // Soma o peso de todos os itens gerais
+        itensData.forEach((i) => (total += parseFloat(i?.espaco) || 0));
 
-            // Função com mutex para evitar race conditions
-            async function salvarFicha() {
-                // Se já tem um salvamento em andamento, marca como pendente
-                if (salvamentoEmAndamento) {
-                    salvamentoPendente = true;
-                    return;
-                }
-                
-                salvamentoEmAndamento = true;
-                salvamentoPendente = false;
-                
-                try {
-                    await _executarSalvamento();
-                    
-                    // Se houve mudanças durante o salvamento, salva novamente
-                    while (salvamentoPendente) {
-                        salvamentoPendente = false;
-                        await _executarSalvamento();
-                    }
-                } finally {
-                    salvamentoEmAndamento = false;
-                }
-            }
-            
-            // Versão com debounce para chamadas frequentes (ex: digitação)
-            const salvarFichaComDebounce = debounce(salvarFicha, 500);
+        // Soma o peso APENAS das armas que NÃO estão equipadas
+        armasData.forEach((a) => {
+          if (!a.equipado) {
+            // <--- A MUDANÇA ESTÁ AQUI
+            total += parseFloat(a.espaco) || 0;
+          }
+        });
 
-            async function carregar() {
-                const status = document.getElementById('status');
-                status.innerText = 'Carregando...';
-                
-                const { data } = await client.from('Fichas').select('atributos').eq('nome_personagem', NOME_PERSONAGEM).single();
+        const max = parseInt(document.getElementById("space-max").value) || 10;
+        const el = document.getElementById("space-current");
 
-                if (data && data.atributos && data.atributos.inventario) {
-                    const inv = data.atributos.inventario;
-                    itensData = inv.items || [];
-                    armasData = inv.weapons || []; // Garante que lê as armas do banco
-                    document.getElementById('space-max').value = inv.maxLoad || 10;
-                    
-                    // Carrega munição se existir
-                    if (inv.municao) {
-                        municaoData = inv.municao;
-                        
-                        // Seta o estado dos checkboxes
-                        document.getElementById('check-bandoleira').checked = !!municaoData.equipados?.bandoleira;
-                        document.getElementById('check-cinturao').checked = !!municaoData.equipados?.cinturao;
-                        document.getElementById('check-aljava').checked = !!municaoData.equipados?.aljava;
-                        
-                        document.getElementById('ammo-qtd').value = municaoData.qtd || 0;
-                        
-                        // Roda a lógica para definir o input.max corretamente (sem salvar)
-                        atualizarLimiteBalas(false); 
-                    }
-                }
-                
-                gerarLinhasItens();
-                gerarTabelaArmas();
-                status.innerText = 'Pronto';
-            }
+        // Arredonda para evitar problemas com decimais (ex: 1.00000002)
+        total = Math.round(total * 100) / 100;
 
-            function atualizarCargaMax() {
-                const input = document.getElementById('space-max');
-                let valor = parseInt(input.value);
+        el.innerText = total;
+        el.className = total > max ? "space-display over" : "space-display";
+      }
 
-                // TRAVA DE SEGURANÇA: Limite máximo de 15
-                if (valor > 15) {
-                    alert("⚠️ O limite máximo de inventário é 15 espaços.");
-                    valor = 15;
-                    input.value = 15;
-                }
+      function toggleDescricao(btn, descRowId) {
+        const descRow = document.getElementById(descRowId);
+        descRow.classList.toggle("show");
+        btn.classList.toggle("expanded");
+        btn.textContent = descRow.classList.contains("show") ? "▲" : "▼";
+      }
 
-                // Impede valores negativos ou zero
-                if (valor < 1 || isNaN(valor)) {
-                    valor = 1;
-                    input.value = 1;
-                }
+      function escapeHtml(text) {
+        if (!text) return "";
+        return text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
 
-                // 1. Redesenha as linhas da tabela (agora com o limite aplicado)
-                gerarLinhasItens(); 
-                
-                // 2. Recalcula o peso total visualmente
-                calcularCarga(); 
-                
-                // 3. Salva no banco de dados
-                salvarFicha(); 
-            }
+      // ==========================================
+      // 5. SUPABASE (Salvar e Carregar)
+      // ==========================================
 
-            // Inicialização
-            carregar();
+      // Função interna que executa o salvamento real
+      async function _executarSalvamento() {
+        const status = document.getElementById("status");
+        status.innerText = "Salvando...";
 
+        // 1. Pega dados atuais para não sobrescrever habilidades e outros dados
+        const { data: current, error: fetchError } = await client
+          .from("Fichas")
+          .select("atributos")
+          .eq("nome_personagem", NOME_PERSONAGEM)
+          .single();
 
-        // Realtime
-        client.channel('inv-room').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Fichas' }, 
-        (payload) => {
+        if (fetchError) {
+          console.error("Erro ao buscar dados:", fetchError);
+          status.innerText = "Erro ao salvar!";
+          return false;
+        }
+
+        let payload = current ? { ...current.atributos } : {};
+
+        // 2. Monta o objeto de inventário (preservando todas as outras propriedades)
+        payload.inventario = {
+          items: itensData,
+          weapons: armasData,
+          maxLoad: document.getElementById("space-max").value,
+          municao: municaoData,
+        };
+
+        // 3. Envia
+        const { error } = await client
+          .from("Fichas")
+          .update({ atributos: payload })
+          .eq("nome_personagem", NOME_PERSONAGEM);
+
+        if (!error) {
+          status.innerText = "• Salvo •";
+          setTimeout(() => (status.innerText = ""), 2000);
+          return true;
+        } else {
+          console.error("Erro ao salvar:", error);
+          status.innerText = "Erro ao salvar!";
+          return false;
+        }
+      }
+
+      // Função com mutex para evitar race conditions
+      async function salvarFicha() {
+        // Se já tem um salvamento em andamento, marca como pendente
+        if (salvamentoEmAndamento) {
+          salvamentoPendente = true;
+          return;
+        }
+
+        salvamentoEmAndamento = true;
+        salvamentoPendente = false;
+
+        try {
+          await _executarSalvamento();
+
+          // Se houve mudanças durante o salvamento, salva novamente
+          while (salvamentoPendente) {
+            salvamentoPendente = false;
+            await _executarSalvamento();
+          }
+        } finally {
+          salvamentoEmAndamento = false;
+        }
+      }
+
+      // Versão com debounce para chamadas frequentes (ex: digitação)
+      const salvarFichaComDebounce = debounce(salvarFicha, 500);
+
+      async function carregar() {
+        const status = document.getElementById("status");
+        status.innerText = "Carregando...";
+
+        const { data } = await client
+          .from("Fichas")
+          .select("atributos")
+          .eq("nome_personagem", NOME_PERSONAGEM)
+          .single();
+
+        if (data && data.atributos && data.atributos.inventario) {
+          const inv = data.atributos.inventario;
+          itensData = inv.items || [];
+          armasData = inv.weapons || []; // Garante que lê as armas do banco
+          document.getElementById("space-max").value = inv.maxLoad || 10;
+
+          // Carrega munição se existir
+          if (inv.municao) {
+            municaoData = inv.municao;
+
+            // Seta o estado dos checkboxes
+            document.getElementById("check-bandoleira").checked =
+              !!municaoData.equipados?.bandoleira;
+            document.getElementById("check-cinturao").checked =
+              !!municaoData.equipados?.cinturao;
+            document.getElementById("check-aljava").checked =
+              !!municaoData.equipados?.aljava;
+
+            document.getElementById("ammo-qtd").value = municaoData.qtd || 0;
+
+            // Roda a lógica para definir o input.max corretamente (sem salvar)
+            atualizarLimiteBalas(false);
+          }
+        }
+
+        gerarLinhasItens();
+        gerarTabelaArmas();
+        status.innerText = "Pronto";
+      }
+
+      function atualizarCargaMax() {
+        const input = document.getElementById("space-max");
+        let valor = parseInt(input.value);
+
+        // TRAVA DE SEGURANÇA: Limite máximo de 15
+        if (valor > 15) {
+          alert("⚠️ O limite máximo de inventário é 15 espaços.");
+          valor = 15;
+          input.value = 15;
+        }
+
+        // Impede valores negativos ou zero
+        if (valor < 1 || isNaN(valor)) {
+          valor = 1;
+          input.value = 1;
+        }
+
+        // 1. Redesenha as linhas da tabela (agora com o limite aplicado)
+        gerarLinhasItens();
+
+        // 2. Recalcula o peso total visualmente
+        calcularCarga();
+
+        // 3. Salva no banco de dados
+        salvarFicha();
+      }
+
+      // Inicialização
+      carregar();
+
+      // Realtime
+      client
+        .channel("inv-room")
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "Fichas" },
+          (payload) => {
             // Opcional: Atualizar se o mestre mudar algo
-        }).subscribe();
-
+          },
+        )
+        .subscribe();
     </script>
 
     <script>
-        const paramsURL = new URLSearchParams(window.location.search);
-        const nomeAtual = paramsURL.get('nome');
-        if (nomeAtual) {
-            document.querySelectorAll('a').forEach(link => {
-                const href = link.getAttribute('href');
-                if (href && !href.startsWith('http') && !href.includes('?')) {
-                    link.setAttribute('href', `${href}?nome=${nomeAtual}`);
-                }
-            });
-        }
+      const paramsURL = new URLSearchParams(window.location.search);
+      const nomeAtual = paramsURL.get("nome");
+      if (nomeAtual) {
+        document.querySelectorAll("a").forEach((link) => {
+          const href = link.getAttribute("href");
+          if (href && !href.startsWith("http") && !href.includes("?")) {
+            link.setAttribute("href", `${href}?nome=${nomeAtual}`);
+          }
+        });
+      }
     </script>
 
-<!-- BOTÃO FLUTUANTE DE FEEDBACK -->
-<style>
-    .feedback-btn {
+    <!-- BOTÃO FLUTUANTE DE FEEDBACK -->
+    <style>
+      .feedback-btn {
         position: fixed !important;
         bottom: 20px;
         right: 20px;
@@ -1081,9 +1567,11 @@
         color: #140d0a;
         font-size: 1.5em;
         cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         z-index: 99999;
-        transition: transform 0.3s, box-shadow 0.3s;
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1092,23 +1580,27 @@
         -webkit-transform: translateZ(0);
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
-    }
-    .feedback-btn:hover {
+      }
+      .feedback-btn:hover {
         transform: translateZ(0) scale(1.1);
-        box-shadow: 0 6px 20px rgba(255,204,128,0.4);
-    }
-    .feedback-modal {
+        box-shadow: 0 6px 20px rgba(255, 204, 128, 0.4);
+      }
+      .feedback-modal {
         display: none;
         position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
         z-index: 10000;
         justify-content: center;
         align-items: center;
-    }
-    .feedback-modal.ativo { display: flex; }
-    .feedback-box {
+      }
+      .feedback-modal.ativo {
+        display: flex;
+      }
+      .feedback-box {
         background: rgba(30, 20, 15, 0.98);
         border: 2px solid #8b6914;
         border-radius: 8px;
@@ -1116,138 +1608,188 @@
         width: 90%;
         max-width: 450px;
         position: relative;
-    }
-    .feedback-box::before {
-        content: '';
-        position: absolute; top: -2px; left: -2px;
-        width: 15px; height: 15px;
-        border-top: 2px solid #ffcc80; border-left: 2px solid #ffcc80;
-    }
-    .feedback-box::after {
-        content: '';
-        position: absolute; bottom: -2px; right: -2px;
-        width: 15px; height: 15px;
-        border-bottom: 2px solid #ffcc80; border-right: 2px solid #ffcc80;
-    }
-    .feedback-box h3 {
-        font-family: 'Rye', serif;
+      }
+      .feedback-box::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        width: 15px;
+        height: 15px;
+        border-top: 2px solid #ffcc80;
+        border-left: 2px solid #ffcc80;
+      }
+      .feedback-box::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 15px;
+        height: 15px;
+        border-bottom: 2px solid #ffcc80;
+        border-right: 2px solid #ffcc80;
+      }
+      .feedback-box h3 {
+        font-family: "Rye", serif;
         color: #ffcc80;
         margin: 0 0 20px;
         text-align: center;
-    }
-    .feedback-box select,
-    .feedback-box textarea {
+      }
+      .feedback-box select,
+      .feedback-box textarea {
         width: 100%;
         padding: 12px;
         margin-bottom: 15px;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
         border: 1px solid #8b6914;
         border-radius: 4px;
         color: #e6dccf;
-        font-family: 'Courier Prime', monospace;
+        font-family: "Courier Prime", monospace;
         font-size: 1em;
         box-sizing: border-box;
-    }
-    .feedback-box textarea {
+      }
+      .feedback-box textarea {
         min-height: 120px;
         resize: vertical;
-    }
-    .feedback-box select:focus,
-    .feedback-box textarea:focus {
+      }
+      .feedback-box select:focus,
+      .feedback-box textarea:focus {
         outline: none;
         border-color: #ffcc80;
-    }
-    .feedback-box button[type="submit"] {
+      }
+      .feedback-box button[type="submit"] {
         width: 100%;
         padding: 12px;
         background: linear-gradient(135deg, #8b6914, #d4a84b);
         border: none;
         border-radius: 4px;
         color: #140d0a;
-        font-family: 'Rye', serif;
+        font-family: "Rye", serif;
         font-size: 1em;
         cursor: pointer;
         transition: all 0.3s;
-    }
-    .feedback-box button[type="submit"]:hover {
+      }
+      .feedback-box button[type="submit"]:hover {
         transform: scale(1.02);
-    }
-    .feedback-fechar {
+      }
+      .feedback-fechar {
         position: absolute;
-        top: 10px; right: 15px;
+        top: 10px;
+        right: 15px;
         background: none;
         border: none;
         color: #ffcc80;
         font-size: 1.3em;
         cursor: pointer;
-    }
-    .feedback-sucesso {
+      }
+      .feedback-sucesso {
         text-align: center;
         color: #4caf50;
         padding: 20px;
-    }
-</style>
+      }
+    </style>
 
-<button class="feedback-btn" onclick="document.getElementById('feedbackModal').classList.add('ativo')" title="Enviar Feedback">
-    💬
-</button>
+    <button
+      class="feedback-btn"
+      onclick="document.getElementById('feedbackModal').classList.add('ativo')"
+      title="Enviar Feedback"
+    >
+      💬
+    </button>
 
-<div class="feedback-modal" id="feedbackModal">
-    <div class="feedback-box">
-        <button class="feedback-fechar" onclick="document.getElementById('feedbackModal').classList.remove('ativo')">✕</button>
+    <div class="feedback-modal" id="feedbackModal">
+      <div class="feedback-box">
+        <button
+          class="feedback-fechar"
+          onclick="
+            document.getElementById('feedbackModal').classList.remove('ativo')
+          "
+        >
+          ✕
+        </button>
         <h3>📝 Enviar Feedback</h3>
         <form id="feedbackForm">
-            <select id="feedbackTipo" required>
-                <option value="">Selecione o tipo...</option>
-                <option value="bug">🐛 Bug / Erro</option>
-                <option value="sugestao">💡 Sugestão</option>
-                <option value="duvida">❓ Dúvida</option>
-                <option value="outro">📌 Outro</option>
-            </select>
-            <textarea id="feedbackMsg" placeholder="Descreva aqui seu feedback..." required></textarea>
-            <button type="submit">Enviar</button>
+          <select id="feedbackTipo" required>
+            <option value="">Selecione o tipo...</option>
+            <option value="bug">🐛 Bug / Erro</option>
+            <option value="sugestao">💡 Sugestão</option>
+            <option value="duvida">❓ Dúvida</option>
+            <option value="outro">📌 Outro</option>
+          </select>
+          <textarea
+            id="feedbackMsg"
+            placeholder="Descreva aqui seu feedback..."
+            required
+          ></textarea>
+          <button type="submit">Enviar</button>
         </form>
-        <div class="feedback-sucesso" id="feedbackSucesso" style="display:none;">
-            ✅ Feedback enviado com sucesso!<br>Obrigado pela contribuição!
+        <div
+          class="feedback-sucesso"
+          id="feedbackSucesso"
+          style="display: none"
+        >
+          ✅ Feedback enviado com sucesso!<br />Obrigado pela contribuição!
         </div>
+      </div>
     </div>
-</div>
 
-<script>
-    document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const tipo = document.getElementById('feedbackTipo').value;
-        const mensagem = document.getElementById('feedbackMsg').value;
-        const pagina = window.location.pathname.split('/').pop();
-        
-        try {
-            await client.from('feedbacks').insert({
-                tipo: tipo,
-                mensagem: mensagem,
-                pagina: pagina,
-                personagem: typeof NOME_PERSONAGEM !== 'undefined' ? NOME_PERSONAGEM : 'Anônimo'
+    <script>
+      document
+        .getElementById("feedbackForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const tipo = document.getElementById("feedbackTipo").value;
+          const mensagem = document.getElementById("feedbackMsg").value;
+          const pagina = window.location.pathname.split("/").pop();
+
+          try {
+            await client.from("feedbacks").insert({
+              tipo: tipo,
+              mensagem: mensagem,
+              pagina: pagina,
+              personagem:
+                typeof NOME_PERSONAGEM !== "undefined"
+                  ? NOME_PERSONAGEM
+                  : "Anônimo",
             });
-            
-            document.getElementById('feedbackForm').style.display = 'none';
-            document.getElementById('feedbackSucesso').style.display = 'block';
-            
-            setTimeout(() => {
-                document.getElementById('feedbackModal').classList.remove('ativo');
-                document.getElementById('feedbackForm').style.display = 'block';
-                document.getElementById('feedbackSucesso').style.display = 'none';
-                document.getElementById('feedbackForm').reset();
-            }, 2000);
-        } catch (err) {
-            alert('Erro ao enviar feedback. Tente novamente.');
-        }
-    });
-    
-    document.getElementById('feedbackModal').addEventListener('click', (e) => {
-        if (e.target.id === 'feedbackModal') {
-            document.getElementById('feedbackModal').classList.remove('ativo');
-        }
-    });
-</script>
 
-</body>
+            document.getElementById("feedbackForm").style.display = "none";
+            document.getElementById("feedbackSucesso").style.display = "block";
+
+            setTimeout(() => {
+              document
+                .getElementById("feedbackModal")
+                .classList.remove("ativo");
+              document.getElementById("feedbackForm").style.display = "block";
+              document.getElementById("feedbackSucesso").style.display = "none";
+              document.getElementById("feedbackForm").reset();
+            }, 2000);
+          } catch (err) {
+            alert("Erro ao enviar feedback. Tente novamente.");
+          }
+        });
+
+      document
+        .getElementById("feedbackModal")
+        .addEventListener("click", (e) => {
+          if (e.target.id === "feedbackModal") {
+            document.getElementById("feedbackModal").classList.remove("ativo");
+          }
+        });
+    </script>
+
+    <footer
+      style="
+        text-align: center;
+        padding: 20px;
+        margin-top: 40px;
+        font-family: &quot;Courier Prime&quot;, monospace;
+        color: #8b7355;
+        font-size: 0.9em;
+        opacity: 0.8;
+      "
+    >
+      Desenvolvido por Lafuente Paulino
+    </footer>
+  </body>
 </html>

@@ -1,851 +1,1091 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Montaria - Trinity</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rye&family=Courier+Prime:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    
+
     <script src="config.js"></script>
     <script>
-        // 1. Configuração das Senhas
-        const SENHAS = {
-            'Trinity': 'trinity123',
-            'Josue': 'pantufa',
-            'Januario': 'morena<3',
-            'Mateus': 'junin123',
-            'Geraldo': 'ph123',
-            'Lucian': 'matheus123',
-        };
+      // 1. Configuração das Senhas
+      const SENHAS = {
+        Trinity: "trinity123",
+        Josue: "pantufa",
+        Januario: "morena<3",
+        Mateus: "junin123",
+        Geraldo: "ph123",
+        Lucian: "matheus123",
+      };
 
-        // 2. Verifica se já tem permissão SALVA antes de mostrar a tela
-        function checkAuth() {
-            // Se o personagem não precisa de senha, libera
-            if (!SENHAS[NOME_PERSONAGEM]) return true;
+      // 2. Verifica se já tem permissão SALVA antes de mostrar a tela
+      function checkAuth() {
+        // Se o personagem não precisa de senha, libera
+        if (!SENHAS[NOME_PERSONAGEM]) return true;
 
-            // Tenta pegar a permissão salva no navegador
-            const authKey = `auth_${NOME_PERSONAGEM}`; // ex: auth_Trinity
-            const authData = JSON.parse(localStorage.getItem(authKey));
-            
-            // Se tem permissão e ela é recente (menos de 24h)
-            if (authData && (Date.now() - authData.time < 86400000)) {
-                return true; // Liberado
-            }
-            return false; // Bloqueado
+        // Tenta pegar a permissão salva no navegador
+        const authKey = `auth_${NOME_PERSONAGEM}`; // ex: auth_Trinity
+        const authData = JSON.parse(localStorage.getItem(authKey));
+
+        // Se tem permissão e ela é recente (menos de 24h)
+        if (authData && Date.now() - authData.time < 86400000) {
+          return true; // Liberado
         }
+        return false; // Bloqueado
+      }
 
-        // Se NÃO estiver autorizado, adiciona a classe 'locked' no corpo assim que possível
-        if (!checkAuth()) {
-            document.documentElement.classList.add('locked');
-        }
+      // Se NÃO estiver autorizado, adiciona a classe 'locked' no corpo assim que possível
+      if (!checkAuth()) {
+        document.documentElement.classList.add("locked");
+      }
 
-        // Função para o botão "Entrar"
-        function tentarDesbloquear() {
-            const input = document.getElementById('pass-input');
-            const erro = document.getElementById('pass-error');
-            
-            if (input.value === SENHAS[NOME_PERSONAGEM]) {
-                // Salva a permissão
-                localStorage.setItem(`auth_${NOME_PERSONAGEM}`, JSON.stringify({ time: Date.now() }));
-                // Remove o bloqueio
-                document.documentElement.classList.remove('locked');
-                document.getElementById('tela-senha').style.display = 'none';
-            } else {
-                erro.style.display = 'block';
-                input.value = '';
-            }
+      // Função para o botão "Entrar"
+      function tentarDesbloquear() {
+        const input = document.getElementById("pass-input");
+        const erro = document.getElementById("pass-error");
+
+        if (input.value === SENHAS[NOME_PERSONAGEM]) {
+          // Salva a permissão
+          localStorage.setItem(
+            `auth_${NOME_PERSONAGEM}`,
+            JSON.stringify({ time: Date.now() }),
+          );
+          // Remove o bloqueio
+          document.documentElement.classList.remove("locked");
+          document.getElementById("tela-senha").style.display = "none";
+        } else {
+          erro.style.display = "block";
+          input.value = "";
         }
+      }
     </script>
 
     <style>
+      /* CSS PARA O BLOQUEIO */
+      html.locked body > *:not(#tela-senha) {
+        display: none !important; /* Esconde tudo que não for a tela de senha */
+      }
 
-        /* CSS PARA O BLOQUEIO */
-        html.locked body > *:not(#tela-senha) {
-            display: none !important; /* Esconde tudo que não for a tela de senha */
-        }
+      html.locked body {
+        background: #1a1411;
+        overflow: hidden;
+      }
 
-        html.locked body {
-            background: #1a1411;
-            overflow: hidden;
-        }
+      #tela-senha {
+        display: none; /* Escondido por padrão */
+      }
 
-        #tela-senha {
-            display: none; /* Escondido por padrão */
-        }
+      html.locked #tela-senha {
+        display: flex !important; /* Aparece só quando bloqueado */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #1a1411;
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
 
-        html.locked #tela-senha {
-            display: flex !important; /* Aparece só quando bloqueado */
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #1a1411; z-index: 9999;
-            justify-content: center; align-items: center; flex-direction: column;
-        }
+      :root {
+        --ink: #1a1411;
+        --paper: #e6dccf;
+        --highlight: #5d4037;
+        --gold: #ffcc80;
+      }
 
-        :root {
-            --ink: #1a1411;
-            --paper: #e6dccf;
-            --highlight: #5d4037;
-            --gold: #ffcc80;
-        }
+      /* TELA DE SENHA */
+      .password-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("assets/fundosenha.jpg") center/cover no-repeat;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+      .password-screen::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+      }
+      .password-box {
+        position: relative;
+        background: linear-gradient(135deg, #3b2e22, #2a1f18);
+        border: 4px solid #5d4037;
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        box-shadow:
+          0 10px 40px rgba(0, 0, 0, 0.8),
+          inset 0 0 20px rgba(0, 0, 0, 0.5);
+        max-width: 350px;
+        width: 90%;
+      }
+      .password-box h2 {
+        font-family: "Rye", serif;
+        color: var(--gold);
+        margin: 0 0 10px 0;
+        text-shadow: 2px 2px 0 #000;
+      }
+      .password-box p {
+        color: #aaa;
+        margin: 0 0 25px 0;
+        font-size: 0.9rem;
+      }
+      .password-box input {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        font-family: "Courier Prime", monospace;
+        background: #1a1411;
+        border: 2px solid #5d4037;
+        border-radius: 6px;
+        color: #e6dccf;
+        text-align: center;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+      }
+      .password-box input:focus {
+        outline: none;
+        border-color: var(--gold);
+      }
+      .password-box button {
+        width: 100%;
+        padding: 12px;
+        font-family: "Rye", serif;
+        font-size: 1rem;
+        background: linear-gradient(180deg, #5d4037, #3e2723);
+        border: 2px solid #8d6e63;
+        border-radius: 6px;
+        color: var(--gold);
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: 0.2s;
+      }
+      .password-box button:hover {
+        background: linear-gradient(180deg, #6d4c41, #4e342e);
+        box-shadow: 0 0 15px rgba(255, 204, 128, 0.3);
+      }
+      .password-error {
+        color: #ff6b6b;
+        font-size: 0.85rem;
+        margin-top: 10px;
+        display: none;
+      }
+      body.locked > *:not(.password-screen) {
+        display: none !important;
+      }
 
-        /* TELA DE SENHA */
-        .password-screen {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: url('assets/fundosenha.jpg') center/cover no-repeat;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 9999;
-        }
-        .password-screen::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-        }
-        .password-box {
-            position: relative;
-            background: linear-gradient(135deg, #3b2e22, #2a1f18);
-            border: 4px solid #5d4037;
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.5);
-            max-width: 350px;
-            width: 90%;
-        }
-        .password-box h2 {
-            font-family: 'Rye', serif;
-            color: var(--gold);
-            margin: 0 0 10px 0;
-            text-shadow: 2px 2px 0 #000;
-        }
-        .password-box p {
-            color: #aaa;
-            margin: 0 0 25px 0;
-            font-size: 0.9rem;
-        }
-        .password-box input {
-            width: 100%;
-            padding: 12px;
-            font-size: 1rem;
-            font-family: 'Courier Prime', monospace;
-            background: #1a1411;
-            border: 2px solid #5d4037;
-            border-radius: 6px;
-            color: #e6dccf;
-            text-align: center;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-        }
-        .password-box input:focus {
-            outline: none;
-            border-color: var(--gold);
-        }
-        .password-box button {
-            width: 100%;
-            padding: 12px;
-            font-family: 'Rye', serif;
-            font-size: 1rem;
-            background: linear-gradient(180deg, #5d4037, #3e2723);
-            border: 2px solid #8d6e63;
-            border-radius: 6px;
-            color: var(--gold);
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: 0.2s;
-        }
-        .password-box button:hover {
-            background: linear-gradient(180deg, #6d4c41, #4e342e);
-            box-shadow: 0 0 15px rgba(255,204,128,0.3);
-        }
-        .password-error {
-            color: #ff6b6b;
-            font-size: 0.85rem;
-            margin-top: 10px;
-            display: none;
-        }
-        body.locked > *:not(.password-screen) {
-            display: none !important;
-        }
+      body {
+        margin: 0;
+        background-color: #1a1411;
+        /* Fundo de mesa */
+        background-image: repeating-linear-gradient(
+          45deg,
+          #1a1411 0px,
+          #140f0d 2px,
+          #1a1411 4px
+        );
+        font-family: "Courier Prime", monospace;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+      }
 
-        body {
-            margin: 0;
-            background-color: #1a1411;
-            /* Fundo de mesa */
-            background-image: repeating-linear-gradient(45deg, #1a1411 0px, #140f0d 2px, #1a1411 4px);
-            font-family: 'Courier Prime', monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
+      /* ===== MENU DE NAVEGAÇÃO (Igual aos outros) ===== */
+      .western-nav {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        padding: 15px;
+        background: rgba(43, 27, 18, 0.95);
+        border-bottom: 2px solid #5d4037;
+        width: 100%;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .western-nav a {
+        color: #aaa;
+        text-decoration: none;
+        font-family: "Rye";
+        text-transform: uppercase;
+        padding: 5px 10px;
+        transition: 0.2s;
+      }
+      .western-nav a:hover {
+        color: #ffcc80;
+      }
+      .western-nav a.active {
+        color: #ffcc80;
+        border-bottom: 2px solid #ffcc80;
+      }
 
-        /* ===== MENU DE NAVEGAÇÃO (Igual aos outros) ===== */
-        .western-nav {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            padding: 15px;
-            background: rgba(43, 27, 18, 0.95);
-            border-bottom: 2px solid #5d4037;
-            width: 100%;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .western-nav a {
-            color: #aaa; text-decoration: none; font-family: 'Rye'; text-transform: uppercase;
-            padding: 5px 10px; transition: 0.2s;
-        }
-        .western-nav a:hover { color: #ffcc80; }
-        .western-nav a.active { color: #ffcc80; border-bottom: 2px solid #ffcc80; }
+      /* ===== FOLHA DA MONTARIA ===== */
+      .mount-sheet {
+        margin-top: 30px;
+        margin-bottom: 50px;
+        width: 90%;
+        max-width: 800px;
+        background-color: var(--paper);
+        background-image: url("assets/montaria/bccavalo.jpg"); /* Se tiver a textura */
+        background-size: cover;
+        padding: 30px;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+        border: 1px solid #000;
+      }
 
-        /* ===== FOLHA DA MONTARIA ===== */
-        .mount-sheet {
-            margin-top: 30px;
-            margin-bottom: 50px;
-            width: 90%;
-            max-width: 800px;
-            background-color: var(--paper);
-            background-image: url('assets/montaria/bccavalo.jpg'); /* Se tiver a textura */
-            background-size: cover;
-            padding: 30px;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8);
-            border: 1px solid #000;
-        }
+      /* CABEÇALHO */
+      .mount-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 4px solid var(--ink);
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
 
-        /* CABEÇALHO */
+      .title-block h1 {
+        font-family: "Rye";
+        font-size: 4rem;
+        margin: 0;
+        line-height: 0.8;
+        text-transform: uppercase;
+      }
+      .title-block span {
+        font-size: 1rem;
+        font-weight: bold;
+      }
+
+      .name-input-group {
+        flex-grow: 1;
+        margin-top: 10px;
+      }
+      .name-input-group label {
+        font-family: "Rye";
+        font-size: 2rem;
+        margin-right: 10px;
+      }
+      .name-input-group input {
+        font-family: "Rye";
+        font-size: 2rem;
+        background: rgba(0, 0, 0, 0.1);
+        border: none;
+        border-bottom: 3px solid var(--ink);
+        width: 100%;
+        max-width: 300px;
+        color: var(--ink);
+      }
+
+      /* FOTO DA MONTARIA (NOVA) */
+      .mount-photo-frame {
+        width: 150px;
+        height: 150px;
+        border: 4px solid var(--ink);
+        background: #ccc;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.3);
+        cursor: pointer; /* Para indicar que pode mudar a foto */
+      }
+      .mount-photo-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .mount-photo-frame:hover::after {
+        content: "ALTERAR URL";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        font-size: 0.7rem;
+        text-align: center;
+        padding: 5px;
+      }
+
+      /* LAYOUT DUAS COLUNAS */
+      .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+      }
+
+      /* COLUNA ESQUERDA - ATRIBUTOS */
+      .stat-box {
+        border: 3px solid var(--ink);
+        padding: 10px;
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.3);
+        position: relative;
+      }
+
+      .stat-label {
+        font-family: "Rye";
+        font-size: 2rem;
+        text-transform: uppercase;
+        background: var(--paper); /* "Corta" a borda */
+        position: absolute;
+        top: -25px;
+        left: 10px;
+        padding: 0 10px;
+        text-shadow: 2px 2px 0 #fff;
+      }
+
+      .stat-input {
+        width: 100%;
+        font-family: "Rye";
+        font-size: 2.5rem;
+        text-align: center;
+        border: none;
+        background: transparent;
+        color: #b71c1c; /* Vermelho destaque */
+      }
+
+      .track-section h3 {
+        font-family: "Rye";
+        font-size: 1.5rem;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+        border-bottom: 2px dashed var(--ink);
+      }
+
+      .track-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      .track-row img {
+        width: 40px;
+        opacity: 0.2;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .track-row img:hover {
+        transform: scale(1.1);
+      }
+      .track-row img.active {
+        opacity: 1;
+      }
+
+      /* COLUNA DIREITA - FIDELIDADE (CAIXA PRETA) */
+      .fidelity-panel {
+        background: var(--ink);
+        color: var(--paper);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.4);
+      }
+
+      .fidelity-panel h2 {
+        font-family: "Rye";
+        text-align: center;
+        font-size: 2rem;
+        margin: 0 0 20px 0;
+        border-bottom: 2px solid var(--paper);
+      }
+
+      .fidelity-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .fidelity-item {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #444;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .fidelity-item:hover {
+        background: #333;
+      }
+
+      .fid-num {
+        font-family: "Rye";
+        font-size: 1.5rem;
+        border: 2px solid var(--paper);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      /* MODAL DE CROP */
+      .modal-crop-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: none; /* Escondido por padrão */
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+      }
+      .modal-crop-overlay.show {
+        display: flex;
+      }
+
+      .crop-container {
+        background: #1a1411;
+        border: 2px solid #5d4037;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
+        text-align: center;
+      }
+
+      .img-wrapper {
+        max-height: 60vh; /* Limita altura */
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+
+      /* Garante que a imagem não estoure */
+      .img-wrapper img {
+        max-width: 100%;
+      }
+
+      .crop-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      .btn-confirmar {
+        background: #2e7d32;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-family: "Rye";
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .btn-cancelar {
+        background: #c62828;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-family: "Rye";
+        cursor: pointer;
+        font-size: 1rem;
+      }
+
+      .fid-desc {
+        font-size: 0.9rem;
+        line-height: 1.2;
+      }
+
+      /* Item Ativo (Selecionado) */
+      .fidelity-item.active {
+        background: var(--paper);
+        color: var(--ink);
+      }
+      .fidelity-item.active .fid-num {
+        border-color: var(--ink);
+        font-weight: bold;
+      }
+
+      /* Responsividade Celular */
+      @media (max-width: 768px) {
         .mount-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 4px solid var(--ink);
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 20px;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+        .mount-photo-frame {
+          margin: 0 auto;
+        }
+        .content-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .western-nav {
+          flex-wrap: wrap;
+          gap: 10px;
+          padding: 10px;
+        }
+
+        .western-nav a {
+          font-size: 0.85rem;
+          padding: 5px 8px;
+        }
+      }
+
+      /* Celulares pequenos */
+      @media (max-width: 480px) {
+        .mount-sheet {
+          width: 98%;
+          padding: 15px;
+          margin-top: 15px;
         }
 
         .title-block h1 {
-            font-family: 'Rye';
-            font-size: 4rem;
-            margin: 0;
-            line-height: 0.8;
-            text-transform: uppercase;
-        }
-        .title-block span { font-size: 1rem; font-weight: bold; }
-
-        .name-input-group {
-            flex-grow: 1;
-            margin-top: 10px;
-        }
-        .name-input-group label { font-family: 'Rye'; font-size: 2rem; margin-right: 10px; }
-        .name-input-group input {
-            font-family: 'Rye'; font-size: 2rem;
-            background: rgba(0,0,0,0.1); border: none; border-bottom: 3px solid var(--ink);
-            width: 100%; max-width: 300px; color: var(--ink);
+          font-size: 1.5rem;
         }
 
-        /* FOTO DA MONTARIA (NOVA) */
         .mount-photo-frame {
-            width: 150px;
-            height: 150px;
-            border: 4px solid var(--ink);
-            background: #ccc;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 5px 5px 0 rgba(0,0,0,0.3);
-            cursor: pointer; /* Para indicar que pode mudar a foto */
-        }
-        .mount-photo-frame img { width: 100%; height: 100%; object-fit: cover; }
-        .mount-photo-frame:hover::after {
-            content: 'ALTERAR URL';
-            position: absolute; bottom: 0; left: 0; right: 0;
-            background: rgba(0,0,0,0.7); color: white;
-            font-size: 0.7rem; text-align: center; padding: 5px;
-        }
-
-        /* LAYOUT DUAS COLUNAS */
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-        }
-
-        /* COLUNA ESQUERDA - ATRIBUTOS */
-        .stat-box {
-            border: 3px solid var(--ink);
-            padding: 10px;
-            margin-bottom: 20px;
-            background: rgba(255,255,255,0.3);
-            position: relative;
-        }
-        
-        .stat-label {
-            font-family: 'Rye';
-            font-size: 2rem;
-            text-transform: uppercase;
-            background: var(--paper); /* "Corta" a borda */
-            position: absolute;
-            top: -25px; left: 10px;
-            padding: 0 10px;
-            text-shadow: 2px 2px 0 #fff;
+          width: 150px;
+          height: 150px;
         }
 
         .stat-input {
-            width: 100%;
-            font-family: 'Rye'; font-size: 2.5rem;
-            text-align: center; border: none; background: transparent;
-            color: #b71c1c; /* Vermelho destaque */
+          font-size: 1.5rem;
+          width: 50px;
         }
 
-        .track-section h3 {
-            font-family: 'Rye'; font-size: 1.5rem;
-            text-transform: uppercase; margin-bottom: 5px;
-            border-bottom: 2px dashed var(--ink);
+        .western-nav a {
+          font-size: 0.85rem;
+          padding: 5px 8px;
         }
+      }
 
-        .track-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-        .track-row img {
-            width: 40px; opacity: 0.2; cursor: pointer; transition: 0.2s;
-        }
-        .track-row img:hover { transform: scale(1.1); }
-        .track-row img.active { opacity: 1; }
+      #status {
+        text-align: center;
+        margin-top: 20px;
+        opacity: 0.6;
+      }
 
-        /* COLUNA DIREITA - FIDELIDADE (CAIXA PRETA) */
-        .fidelity-panel {
-            background: var(--ink);
-            color: var(--paper);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 5px 5px 0 rgba(0,0,0,0.4);
-        }
-
-        .fidelity-panel h2 {
-            font-family: 'Rye'; text-align: center;
-            font-size: 2rem; margin: 0 0 20px 0;
-            border-bottom: 2px solid var(--paper);
-        }
-
-        .fidelity-list { list-style: none; padding: 0; }
-        
-        .fidelity-item {
-            display: flex; gap: 10px; align-items: center;
-            padding: 10px; border-bottom: 1px solid #444;
-            cursor: pointer; transition: 0.2s;
-        }
-        .fidelity-item:hover { background: #333; }
-        
-        .fid-num {
-            font-family: 'Rye'; font-size: 1.5rem;
-            border: 2px solid var(--paper); border-radius: 50%;
-            width: 40px; height: 40px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        
-
-        /* MODAL DE CROP */
-        .modal-crop-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: none; /* Escondido por padrão */
-            justify-content: center; align-items: center;
-            z-index: 10000;
-        }
-        .modal-crop-overlay.show { display: flex; }
-
-        .crop-container {
-            background: #1a1411;
-            border: 2px solid #5d4037;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%; max-width: 500px;
-            text-align: center;
-        }
-
-        .img-wrapper {
-            max-height: 60vh; /* Limita altura */
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        /* Garante que a imagem não estoure */
-        .img-wrapper img { max-width: 100%; }
-
-        .crop-buttons { display: flex; gap: 10px; justify-content: center; }
-
-        .btn-confirmar {
-            background: #2e7d32; color: white; border: none;
-            padding: 10px 20px; font-family: 'Rye'; cursor: pointer; font-size: 1rem;
-        }
-        .btn-cancelar {
-            background: #c62828; color: white; border: none;
-            padding: 10px 20px; font-family: 'Rye'; cursor: pointer; font-size: 1rem;
-        }
-
-        .fid-desc { font-size: 0.9rem; line-height: 1.2; }
-
-        /* Item Ativo (Selecionado) */
-        .fidelity-item.active { background: var(--paper); color: var(--ink); }
-        .fidelity-item.active .fid-num { border-color: var(--ink); font-weight: bold; }
-
-        /* Responsividade Celular */
-        @media (max-width: 768px) {
-            .mount-header { flex-direction: column; align-items: center; text-align: center; }
-            .mount-photo-frame { margin: 0 auto; }
-            .content-grid { grid-template-columns: 1fr; }
-            
-            .western-nav {
-                flex-wrap: wrap;
-                gap: 10px;
-                padding: 10px;
-            }
-            
-            .western-nav a {
-                font-size: 0.85rem;
-                padding: 5px 8px;
-            }
-        }
-        
-        /* Celulares pequenos */
-        @media (max-width: 480px) {
-            .mount-sheet {
-                width: 98%;
-                padding: 15px;
-                margin-top: 15px;
-            }
-            
-            .title-block h1 {
-                font-size: 1.5rem;
-            }
-            
-            .mount-photo-frame {
-                width: 150px;
-                height: 150px;
-            }
-            
-            .stat-input {
-                font-size: 1.5rem;
-                width: 50px;
-            }
-            
-            .western-nav a {
-                font-size: 0.85rem;
-                padding: 5px 8px;
-            }
-        }
-
-        #status { text-align: center; margin-top: 20px; opacity: 0.6; }
-
-
-
-        /* =========================================
+      /* =========================================
            CORREÇÃO DE VISIBILIDADE (CONTRASTE)
            ========================================= */
-        
-        /* 1. Borda clara ao redor de todos os textos escuros */
-        .mount-sheet h1, 
-        .mount-sheet label, 
-        .stat-label, 
-        .track-section h3, 
-        .stat-input,
-        .title-block span {
-            text-shadow: 
-                2px 0 0 #e6dccf, 
-                -2px 0 0 #e6dccf, 
-                0 2px 0 #e6dccf, 
-                0 -2px 0 #e6dccf, 
-                1px 1px 0 #e6dccf, 
-                -1px -1px 0 #e6dccf, 
-                1px -1px 0 #e6dccf, 
-                -1px 1px 0 #e6dccf;
-            /* Isso cria um contorno cor de papel grosso ao redor da tinta preta */
-        }
 
-        /* 2. Borda clara ao redor das Caveiras e Punhos */
-        .track-row img {
-            /* Drop-shadow age como um contorno para imagens PNG transparentes */
-            filter: drop-shadow(0 0 1px #e6dccf) drop-shadow(0 0 2px #fff);
-        }
+      /* 1. Borda clara ao redor de todos os textos escuros */
+      .mount-sheet h1,
+      .mount-sheet label,
+      .stat-label,
+      .track-section h3,
+      .stat-input,
+      .title-block span {
+        text-shadow:
+          2px 0 0 #e6dccf,
+          -2px 0 0 #e6dccf,
+          0 2px 0 #e6dccf,
+          0 -2px 0 #e6dccf,
+          1px 1px 0 #e6dccf,
+          -1px -1px 0 #e6dccf,
+          1px -1px 0 #e6dccf,
+          -1px 1px 0 #e6dccf;
+        /* Isso cria um contorno cor de papel grosso ao redor da tinta preta */
+      }
 
-        /* 3. Fundo mais sólido nas caixas de atributos */
-        .stat-box, .track-section {
-            background: rgba(230, 220, 207, 0.75); /* Cor de papel com 75% de opacidade */
-            border-radius: 4px;
-            padding: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5); /* Sombra para destacar do fundo */
-        }
+      /* 2. Borda clara ao redor das Caveiras e Punhos */
+      .track-row img {
+        /* Drop-shadow age como um contorno para imagens PNG transparentes */
+        filter: drop-shadow(0 0 1px #e6dccf) drop-shadow(0 0 2px #fff);
+      }
 
-        /* 4. Ajuste na cor do input de nome para garantir leitura */
-        #nome-montaria {
-            background: rgba(230, 220, 207, 0.6);
-            padding: 0 5px;
-        }
+      /* 3. Fundo mais sólido nas caixas de atributos */
+      .stat-box,
+      .track-section {
+        background: rgba(
+          230,
+          220,
+          207,
+          0.75
+        ); /* Cor de papel com 75% de opacidade */
+        border-radius: 4px;
+        padding: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); /* Sombra para destacar do fundo */
+      }
 
+      /* 4. Ajuste na cor do input de nome para garantir leitura */
+      #nome-montaria {
+        background: rgba(230, 220, 207, 0.6);
+        padding: 0 5px;
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div id="tela-senha">
-        <div style="background:url('assets/locked.jpg') center center/contain no-repeat, #1a1411; padding:40px; border:5px solid #2b1b12; text-align:center; max-width:400px; border-radius:8px;">
-            <h2 style="font-family:'Rye'; margin-top:0;">🔒 ACESSO RESTRITO</h2>
-            <p style="font-family:'Courier Prime';">Ficha de <b id="nome-lock">Personagem</b></p>
-            
-            <input type="password" id="pass-input" placeholder="Senha..." 
-                style="padding:10px; font-size:1.2rem; text-align:center; width:100%; margin-bottom:15px; font-family:'Courier Prime';"
-                onkeypress="if(event.key==='Enter') tentarDesbloquear()">
-            
-            <button onclick="tentarDesbloquear()" 
-                    style="padding:10px 30px; font-family:'Rye'; cursor:pointer; background:#5d4037; color:#fff; border:none; font-size:1.1rem;">
-                ABRIR FICHA
-            </button>
-            
-            <p id="pass-error" style="color:red; display:none; margin-top:10px;">Senha Incorreta!</p>
-        </div>
-        <script>
-            // Atualiza o nome na tela de bloqueio
-            document.getElementById('nome-lock').innerText = NOME_PERSONAGEM || 'Desconhecido';
-        </script>
+      <div
+        style="
+          background:
+            url(&quot;assets/locked.jpg&quot;) center center/contain no-repeat,
+            #1a1411;
+          padding: 40px;
+          border: 5px solid #2b1b12;
+          text-align: center;
+          max-width: 400px;
+          border-radius: 8px;
+        "
+      >
+        <h2 style="font-family: &quot;Rye&quot;; margin-top: 0">
+          🔒 ACESSO RESTRITO
+        </h2>
+        <p style="font-family: &quot;Courier Prime&quot;">
+          Ficha de <b id="nome-lock">Personagem</b>
+        </p>
+
+        <input
+          type="password"
+          id="pass-input"
+          placeholder="Senha..."
+          style="
+            padding: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 15px;
+            font-family: &quot;Courier Prime&quot;;
+          "
+          onkeypress="if (event.key === 'Enter') tentarDesbloquear();"
+        />
+
+        <button
+          onclick="tentarDesbloquear()"
+          style="
+            padding: 10px 30px;
+            font-family: &quot;Rye&quot;;
+            cursor: pointer;
+            background: #5d4037;
+            color: #fff;
+            border: none;
+            font-size: 1.1rem;
+          "
+        >
+          ABRIR FICHA
+        </button>
+
+        <p id="pass-error" style="color: red; display: none; margin-top: 10px">
+          Senha Incorreta!
+        </p>
+      </div>
+      <script>
+        // Atualiza o nome na tela de bloqueio
+        document.getElementById("nome-lock").innerText =
+          NOME_PERSONAGEM || "Desconhecido";
+      </script>
     </div>
 
     <nav class="western-nav">
-        <a href="index.html">Ficha</a>
-        <a href="habilidades.html">Habilidades</a>
-        <a href="montaria.html" class="active">Montaria</a>
-        <a href="inventario.html">Inventário</a>
-        <a href="bando.html">Bando</a>
+      <a href="index.html">Ficha</a>
+      <a href="habilidades.html">Habilidades</a>
+      <a href="montaria.html" class="active">Montaria</a>
+      <a href="inventario.html">Inventário</a>
+      <a href="bando.html">Bando</a>
     </nav>
 
     <div class="mount-sheet">
-        <div class="mount-header">
-            <div class="title-block">
-                <h1>MONTARIA</h1>
-                <span>Distribua 3 pontos entre os atributos.</span>
-                
-                <div class="name-input-group">
-                    <label>NOME</label>
-                    <input type="text" id="nome-montaria" placeholder="Pé de Pano" onchange="salvar()">
-                </div>
-            </div>
+      <div class="mount-header">
+        <div class="title-block">
+          <h1>MONTARIA</h1>
+          <span>Distribua 3 pontos entre os atributos.</span>
 
-            <div class="mount-photo-frame" onclick="mudarFoto()">
-                <img id="foto-montaria" src="assets/mount-default.png" onerror="this.src='https://placehold.co/150x150/black/white?text=FOTO'">
-            </div>
+          <div class="name-input-group">
+            <label>NOME</label>
+            <input
+              type="text"
+              id="nome-montaria"
+              placeholder="Pé de Pano"
+              onchange="salvar()"
+            />
+          </div>
         </div>
 
-        <div class="content-grid">
-            <div class="col-left">
-                <div class="stat-box">
-                    <span class="stat-label">POTÊNCIA</span>
-                    <input type="number" id="potencia" class="stat-input" value="0" onchange="salvar()">
-                </div>
-
-                <div class="stat-box">
-                    <span class="stat-label">RESISTÊNCIA</span>
-                    <input type="number" id="resistencia" class="stat-input" value="0" onchange="salvar()">
-                </div>
-
-                <div class="track-section">
-                    <h3>CÍRCULOS DE DOR</h3>
-                    <div class="track-row" id="track-dor">
-                        </div>
-                </div>
-
-                <div class="track-section">
-                    <h3>CÍRCULOS DE VIDA</h3>
-                    <div class="track-row" id="track-vida">
-                        </div>
-                    <small>+1 Vida para cada ponto de Resistência.</small>
-                </div>
-            </div>
-
-            <div class="col-right">
-                <div class="fidelity-panel">
-                    <h2>NÍVEL DE FIDELIDADE</h2>
-                    <ul class="fidelity-list" id="lista-fidelidade">
-                        <li class="fidelity-item" onclick="setFidelidade(0)">
-                            <div class="fid-num">0</div>
-                            <div class="fid-desc">Montaria estranha: sem bônus.</div>
-                        </li>
-                        <li class="fidelity-item" onclick="setFidelidade(1)">
-                            <div class="fid-num">1</div>
-                            <div class="fid-desc">Atende quando chamada pelo nome.</div>
-                        </li>
-                        <li class="fidelity-item" onclick="setFidelidade(2)">
-                            <div class="fid-num">2</div>
-                            <div class="fid-desc">Ganha +1 ponto em um atributo.</div>
-                        </li>
-                        <li class="fidelity-item" onclick="setFidelidade(3)">
-                            <div class="fid-num">3</div>
-                            <div class="fid-desc">Vem até você num raio de 500m.</div>
-                        </li>
-                        <li class="fidelity-item" onclick="setFidelidade(4)">
-                            <div class="fid-num">4</div>
-                            <div class="fid-desc">Sem penalidade para saltar obstáculos.</div>
-                        </li>
-                        <li class="fidelity-item" onclick="setFidelidade(5)">
-                            <div class="fid-num">5</div>
-                            <div class="fid-desc">Ganha +1 ponto em um atributo.</div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+        <div class="mount-photo-frame" onclick="mudarFoto()">
+          <img
+            id="foto-montaria"
+            src="assets/mount-default.png"
+            onerror="
+              this.src = 'https://placehold.co/150x150/black/white?text=FOTO'
+            "
+          />
         </div>
-        <div id="status">Sincronizando...</div>
+      </div>
+
+      <div class="content-grid">
+        <div class="col-left">
+          <div class="stat-box">
+            <span class="stat-label">POTÊNCIA</span>
+            <input
+              type="number"
+              id="potencia"
+              class="stat-input"
+              value="0"
+              onchange="salvar()"
+            />
+          </div>
+
+          <div class="stat-box">
+            <span class="stat-label">RESISTÊNCIA</span>
+            <input
+              type="number"
+              id="resistencia"
+              class="stat-input"
+              value="0"
+              onchange="salvar()"
+            />
+          </div>
+
+          <div class="track-section">
+            <h3>CÍRCULOS DE DOR</h3>
+            <div class="track-row" id="track-dor"></div>
+          </div>
+
+          <div class="track-section">
+            <h3>CÍRCULOS DE VIDA</h3>
+            <div class="track-row" id="track-vida"></div>
+            <small>+1 Vida para cada ponto de Resistência.</small>
+          </div>
+        </div>
+
+        <div class="col-right">
+          <div class="fidelity-panel">
+            <h2>NÍVEL DE FIDELIDADE</h2>
+            <ul class="fidelity-list" id="lista-fidelidade">
+              <li class="fidelity-item" onclick="setFidelidade(0)">
+                <div class="fid-num">0</div>
+                <div class="fid-desc">Montaria estranha: sem bônus.</div>
+              </li>
+              <li class="fidelity-item" onclick="setFidelidade(1)">
+                <div class="fid-num">1</div>
+                <div class="fid-desc">Atende quando chamada pelo nome.</div>
+              </li>
+              <li class="fidelity-item" onclick="setFidelidade(2)">
+                <div class="fid-num">2</div>
+                <div class="fid-desc">Ganha +1 ponto em um atributo.</div>
+              </li>
+              <li class="fidelity-item" onclick="setFidelidade(3)">
+                <div class="fid-num">3</div>
+                <div class="fid-desc">Vem até você num raio de 500m.</div>
+              </li>
+              <li class="fidelity-item" onclick="setFidelidade(4)">
+                <div class="fid-num">4</div>
+                <div class="fid-desc">
+                  Sem penalidade para saltar obstáculos.
+                </div>
+              </li>
+              <li class="fidelity-item" onclick="setFidelidade(5)">
+                <div class="fid-num">5</div>
+                <div class="fid-desc">Ganha +1 ponto em um atributo.</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div id="status">Sincronizando...</div>
     </div>
 
-    <input type="file" id="input-arquivo-foto" accept="image/*" style="display: none;" onchange="carregarImagemParaRecorte(this)">
+    <input
+      type="file"
+      id="input-arquivo-foto"
+      accept="image/*"
+      style="display: none"
+      onchange="carregarImagemParaRecorte(this)"
+    />
 
     <div id="modal-crop" class="modal-crop-overlay">
-        <div class="crop-container">
-            <h2 style="font-family:'Rye'; color:#e6dccf; margin-top:0;">AJUSTAR RETRATO</h2>
-            <div class="img-wrapper">
-                <img id="imagem-para-cortar" src="">
-            </div>
-            <div class="crop-buttons">
-                <button class="btn-cancelar" onclick="fecharCrop()">Cancelar</button>
-                <button class="btn-confirmar" onclick="confirmarRecorte()">✂ Cortar e Salvar</button>
-            </div>
+      <div class="crop-container">
+        <h2 style="font-family: &quot;Rye&quot;; color: #e6dccf; margin-top: 0">
+          AJUSTAR RETRATO
+        </h2>
+        <div class="img-wrapper">
+          <img id="imagem-para-cortar" src="" />
         </div>
+        <div class="crop-buttons">
+          <button class="btn-cancelar" onclick="fecharCrop()">Cancelar</button>
+          <button class="btn-confirmar" onclick="confirmarRecorte()">
+            ✂ Cortar e Salvar
+          </button>
+        </div>
+      </div>
     </div>
 
-<script>
-        // CONFIG GLOBAL DO config.js É CARREGADA AUTOMATICAMENTE
-        
-        let montariaData = {
-            nome: '',
-            foto: '', 
-            potencia: 0,
-            resistencia: 0,
-            dor: 0,
-            vida: 0,
-            fidelidade: 0
-        };
+    <script>
+      // CONFIG GLOBAL DO config.js É CARREGADA AUTOMATICAMENTE
 
-        let atributosCompletos = {};
+      let montariaData = {
+        nome: "",
+        foto: "",
+        potencia: 0,
+        resistencia: 0,
+        dor: 0,
+        vida: 0,
+        fidelidade: 0,
+      };
 
-        // 1. CARREGAR
-        async function carregar() {
-            const { data } = await client
-                .from('Fichas')
-                .select('atributos')
-                .eq('nome_personagem', NOME_PERSONAGEM)
-                .single();
+      let atributosCompletos = {};
 
-            if (data) {
-                atributosCompletos = data.atributos || {};
-                
-                if(atributosCompletos.montaria) {
-                    montariaData = { ...montariaData, ...atributosCompletos.montaria };
-                }
+      // 1. CARREGAR
+      async function carregar() {
+        const { data } = await client
+          .from("Fichas")
+          .select("atributos")
+          .eq("nome_personagem", NOME_PERSONAGEM)
+          .single();
 
-                atualizarTela();
-            }
+        if (data) {
+          atributosCompletos = data.atributos || {};
+
+          if (atributosCompletos.montaria) {
+            montariaData = { ...montariaData, ...atributosCompletos.montaria };
+          }
+
+          atualizarTela();
         }
+      }
 
-        // 2. ATUALIZAR TELA (AQUI ESTÁ A MUDANÇA)
-        function atualizarTela() {
-            // Inputs Texto/Num
-            document.getElementById('nome-montaria').value = montariaData.nome;
-            document.getElementById('potencia').value = montariaData.potencia;
-            document.getElementById('resistencia').value = montariaData.resistencia;
-            
-            // Foto
-            const imgEl = document.getElementById('foto-montaria');
-            if(montariaData.foto) imgEl.src = montariaData.foto;
-            
-            // --- MUDANÇA: CÁLCULO DINÂMICO DA VIDA ---
-            // Base 6 + Valor da Resistência
-            const baseVida = 6;
-            const bonusResistencia = parseInt(montariaData.resistencia) || 0;
-            const maxVida = baseVida + bonusResistencia;
+      // 2. ATUALIZAR TELA (AQUI ESTÁ A MUDANÇA)
+      function atualizarTela() {
+        // Inputs Texto/Num
+        document.getElementById("nome-montaria").value = montariaData.nome;
+        document.getElementById("potencia").value = montariaData.potencia;
+        document.getElementById("resistencia").value = montariaData.resistencia;
 
-            // Renderiza Tracks
-            renderTracks('track-dor', 6, montariaData.dor, 'dor', 'assets/fist.png');
-            
-            // Usa a variável maxVida aqui no lugar do 6 fixo
-            renderTracks('track-vida', maxVida, montariaData.vida, 'vida', 'assets/skull.png');
+        // Foto
+        const imgEl = document.getElementById("foto-montaria");
+        if (montariaData.foto) imgEl.src = montariaData.foto;
 
-            // Renderiza Fidelidade
-            const lista = document.querySelectorAll('.fidelity-item');
-            lista.forEach((li, index) => {
-                li.classList.toggle('active', index === montariaData.fidelidade);
-            });
+        // --- MUDANÇA: CÁLCULO DINÂMICO DA VIDA ---
+        // Base 6 + Valor da Resistência
+        const baseVida = 6;
+        const bonusResistencia = parseInt(montariaData.resistencia) || 0;
+        const maxVida = baseVida + bonusResistencia;
 
-            document.getElementById('status').innerText = '• Dados Carregados •';
-        }
+        // Renderiza Tracks
+        renderTracks(
+          "track-dor",
+          6,
+          montariaData.dor,
+          "dor",
+          "assets/fist.png",
+        );
 
-        // Helper para desenhar caveiras/punhos
-        function renderTracks(containerId, max, atual, tipo, iconSrc) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            for(let i = 0; i < max; i++) {
-                const img = document.createElement('img');
-                img.src = iconSrc;
-                img.onerror = function() { this.src = 'assets/skull.png'; }; 
-                
-                if(i < atual) img.classList.add('active');
-                
-                // Clique para alterar valor
-                img.onclick = () => {
-                    const novoValor = i + 1;
-                    montariaData[tipo] = (montariaData[tipo] === novoValor) ? 0 : novoValor;
-                    salvar();
-                };
-                container.appendChild(img);
-            }
-        }
+        // Usa a variável maxVida aqui no lugar do 6 fixo
+        renderTracks(
+          "track-vida",
+          maxVida,
+          montariaData.vida,
+          "vida",
+          "assets/skull.png",
+        );
 
-        // 3. SETTERS E SALVAR
-        function setFidelidade(nivel) {
-            montariaData.fidelidade = nivel;
+        // Renderiza Fidelidade
+        const lista = document.querySelectorAll(".fidelity-item");
+        lista.forEach((li, index) => {
+          li.classList.toggle("active", index === montariaData.fidelidade);
+        });
+
+        document.getElementById("status").innerText = "• Dados Carregados •";
+      }
+
+      // Helper para desenhar caveiras/punhos
+      function renderTracks(containerId, max, atual, tipo, iconSrc) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        for (let i = 0; i < max; i++) {
+          const img = document.createElement("img");
+          img.src = iconSrc;
+          img.onerror = function () {
+            this.src = "assets/skull.png";
+          };
+
+          if (i < atual) img.classList.add("active");
+
+          // Clique para alterar valor
+          img.onclick = () => {
+            const novoValor = i + 1;
+            montariaData[tipo] =
+              montariaData[tipo] === novoValor ? 0 : novoValor;
             salvar();
+          };
+          container.appendChild(img);
         }
+      }
 
-        let cropper = null; // Variável global para o cortador
+      // 3. SETTERS E SALVAR
+      function setFidelidade(nivel) {
+        montariaData.fidelidade = nivel;
+        salvar();
+      }
 
-        // Função chamada ao clicar na foto
-        function mudarFoto() {
-            // Pergunta simples ao usuário
-            if (confirm("Deseja enviar uma foto do seu dispositivo?\n\n[OK] Enviar Arquivo\n[CANCELAR] Usar Link da Internet")) {
-                // Clica no input invisível
-                document.getElementById('input-arquivo-foto').click();
-            } else {
-                // Lógica antiga de URL
-                const url = prompt("Cole a URL da imagem da montaria:", montariaData.foto);
-                if(url !== null) {
-                    montariaData.foto = url;
-                    salvar();
-                }
-            }
-        }
+      let cropper = null; // Variável global para o cortador
 
-        // Quando o usuário seleciona um arquivo
-        function carregarImagemParaRecorte(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                
-                reader.onload = function (e) {
-                    const image = document.getElementById('imagem-para-cortar');
-                    image.src = e.target.result;
-                    
-                    // Abre o modal
-                    document.getElementById('modal-crop').classList.add('show');
-                    
-                    // Se já existir um cropper, destrói o anterior
-                    if (cropper) { cropper.destroy(); }
-
-                    // Inicia o Cropper.js
-                    cropper = new Cropper(image, {
-                        aspectRatio: 1, // Força quadrado (1:1)
-                        viewMode: 1,    // Restringe o corte dentro da imagem
-                        autoCropArea: 1,
-                    });
-                };
-                
-                reader.readAsDataURL(input.files[0]);
-            }
-            // Reseta o input para permitir selecionar a mesma foto se errar
-            input.value = '';
-        }
-
-        // Botão Confirmar Recorte
-        function confirmarRecorte() {
-            if (!cropper) return;
-
-            // Pega o resultado cortado e redimensiona para 300x300 (para não pesar o banco de dados)
-            const canvas = cropper.getCroppedCanvas({
-                width: 300,
-                height: 300,
-            });
-
-            // Converte para texto (Base64)
-            const imagemBase64 = canvas.toDataURL('image/jpeg', 0.8); // Qualidade 0.8 (JPG)
-
-            // Salva na ficha
-            montariaData.foto = imagemBase64;
+      // Função chamada ao clicar na foto
+      function mudarFoto() {
+        // Pergunta simples ao usuário
+        if (
+          confirm(
+            "Deseja enviar uma foto do seu dispositivo?\n\n[OK] Enviar Arquivo\n[CANCELAR] Usar Link da Internet",
+          )
+        ) {
+          // Clica no input invisível
+          document.getElementById("input-arquivo-foto").click();
+        } else {
+          // Lógica antiga de URL
+          const url = prompt(
+            "Cole a URL da imagem da montaria:",
+            montariaData.foto,
+          );
+          if (url !== null) {
+            montariaData.foto = url;
             salvar();
-
-            fecharCrop();
+          }
         }
+      }
 
-        // Botão Cancelar
-        function fecharCrop() {
-            document.getElementById('modal-crop').classList.remove('show');
+      // Quando o usuário seleciona um arquivo
+      function carregarImagemParaRecorte(input) {
+        if (input.files && input.files[0]) {
+          const reader = new FileReader();
+
+          reader.onload = function (e) {
+            const image = document.getElementById("imagem-para-cortar");
+            image.src = e.target.result;
+
+            // Abre o modal
+            document.getElementById("modal-crop").classList.add("show");
+
+            // Se já existir um cropper, destrói o anterior
             if (cropper) {
-                cropper.destroy();
-                cropper = null;
+              cropper.destroy();
             }
+
+            // Inicia o Cropper.js
+            cropper = new Cropper(image, {
+              aspectRatio: 1, // Força quadrado (1:1)
+              viewMode: 1, // Restringe o corte dentro da imagem
+              autoCropArea: 1,
+            });
+          };
+
+          reader.readAsDataURL(input.files[0]);
         }
+        // Reseta o input para permitir selecionar a mesma foto se errar
+        input.value = "";
+      }
 
-        async function salvar() {
-            // Atualiza objeto local com inputs
-            montariaData.nome = document.getElementById('nome-montaria').value;
-            montariaData.potencia = parseInt(document.getElementById('potencia').value) || 0;
-            
-            // Garante que a resistência seja salva como número para o cálculo funcionar
-            montariaData.resistencia = parseInt(document.getElementById('resistencia').value) || 0;
+      // Botão Confirmar Recorte
+      function confirmarRecorte() {
+        if (!cropper) return;
 
-            // Atualiza o visual imediatamente (Para as bolinhas aparecerem na hora)
-            atualizarTela();
-            
-            document.getElementById('status').innerText = 'Salvando...';
+        // Pega o resultado cortado e redimensiona para 300x300 (para não pesar o banco de dados)
+        const canvas = cropper.getCroppedCanvas({
+          width: 300,
+          height: 300,
+        });
 
-            atributosCompletos.montaria = montariaData;
+        // Converte para texto (Base64)
+        const imagemBase64 = canvas.toDataURL("image/jpeg", 0.8); // Qualidade 0.8 (JPG)
 
-            const { error } = await client
-                .from('Fichas')
-                .update({ atributos: atributosCompletos })
-                .eq('nome_personagem', NOME_PERSONAGEM);
+        // Salva na ficha
+        montariaData.foto = imagemBase64;
+        salvar();
 
-            if(!error) document.getElementById('status').innerText = '• Salvo •';
+        fecharCrop();
+      }
+
+      // Botão Cancelar
+      function fecharCrop() {
+        document.getElementById("modal-crop").classList.remove("show");
+        if (cropper) {
+          cropper.destroy();
+          cropper = null;
         }
+      }
 
-        // 4. REALTIME
-        client.channel('montaria-room')
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Fichas' }, 
-            (payload) => {
-                if(payload.new.nome_personagem === NOME_PERSONAGEM) {
-                    atributosCompletos = payload.new.atributos;
-                    if(atributosCompletos.montaria) {
-                        montariaData = atributosCompletos.montaria;
-                        atualizarTela();
-                    }
-                }
-            })
-            .subscribe();
+      async function salvar() {
+        // Atualiza objeto local com inputs
+        montariaData.nome = document.getElementById("nome-montaria").value;
+        montariaData.potencia =
+          parseInt(document.getElementById("potencia").value) || 0;
 
-        // Start
-        carregar();
+        // Garante que a resistência seja salva como número para o cálculo funcionar
+        montariaData.resistencia =
+          parseInt(document.getElementById("resistencia").value) || 0;
 
+        // Atualiza o visual imediatamente (Para as bolinhas aparecerem na hora)
+        atualizarTela();
+
+        document.getElementById("status").innerText = "Salvando...";
+
+        atributosCompletos.montaria = montariaData;
+
+        const { error } = await client
+          .from("Fichas")
+          .update({ atributos: atributosCompletos })
+          .eq("nome_personagem", NOME_PERSONAGEM);
+
+        if (!error) document.getElementById("status").innerText = "• Salvo •";
+      }
+
+      // 4. REALTIME
+      client
+        .channel("montaria-room")
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "Fichas" },
+          (payload) => {
+            if (payload.new.nome_personagem === NOME_PERSONAGEM) {
+              atributosCompletos = payload.new.atributos;
+              if (atributosCompletos.montaria) {
+                montariaData = atributosCompletos.montaria;
+                atualizarTela();
+              }
+            }
+          },
+        )
+        .subscribe();
+
+      // Start
+      carregar();
     </script>
 
-<script>
-    // MANTÉM O USUÁRIO AO NAVEGAR
-    // Se eu sou a Trinity, clico no inventário e vou para inventario.html?nome=Trinity
-    const paramsURL = new URLSearchParams(window.location.search);
-    const nomeAtual = paramsURL.get('nome');
+    <script>
+      // MANTÉM O USUÁRIO AO NAVEGAR
+      // Se eu sou a Trinity, clico no inventário e vou para inventario.html?nome=Trinity
+      const paramsURL = new URLSearchParams(window.location.search);
+      const nomeAtual = paramsURL.get("nome");
 
-    if (nomeAtual) {
-        document.querySelectorAll('a').forEach(link => {
-            const href = link.getAttribute('href');
-            // Se o link é interno e não tem ?nome ainda
-            if (href && !href.startsWith('http') && !href.includes('?')) {
-                link.setAttribute('href', `${href}?nome=${nomeAtual}`);
-            }
+      if (nomeAtual) {
+        document.querySelectorAll("a").forEach((link) => {
+          const href = link.getAttribute("href");
+          // Se o link é interno e não tem ?nome ainda
+          if (href && !href.startsWith("http") && !href.includes("?")) {
+            link.setAttribute("href", `${href}?nome=${nomeAtual}`);
+          }
         });
-    }
-</script>
+      }
+    </script>
 
-<!-- BOTÃO FLUTUANTE DE FEEDBACK -->
-<style>
-    .feedback-btn {
+    <!-- BOTÃO FLUTUANTE DE FEEDBACK -->
+    <style>
+      .feedback-btn {
         position: fixed !important;
         bottom: 20px;
         right: 20px;
@@ -857,9 +1097,11 @@
         color: #140d0a;
         font-size: 1.5em;
         cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         z-index: 99999;
-        transition: transform 0.3s, box-shadow 0.3s;
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -868,23 +1110,27 @@
         -webkit-transform: translateZ(0);
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
-    }
-    .feedback-btn:hover {
+      }
+      .feedback-btn:hover {
         transform: translateZ(0) scale(1.1);
-        box-shadow: 0 6px 20px rgba(255,204,128,0.4);
-    }
-    .feedback-modal {
+        box-shadow: 0 6px 20px rgba(255, 204, 128, 0.4);
+      }
+      .feedback-modal {
         display: none;
         position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
         z-index: 10000;
         justify-content: center;
         align-items: center;
-    }
-    .feedback-modal.ativo { display: flex; }
-    .feedback-box {
+      }
+      .feedback-modal.ativo {
+        display: flex;
+      }
+      .feedback-box {
         background: rgba(30, 20, 15, 0.98);
         border: 2px solid #8b6914;
         border-radius: 8px;
@@ -892,138 +1138,188 @@
         width: 90%;
         max-width: 450px;
         position: relative;
-    }
-    .feedback-box::before {
-        content: '';
-        position: absolute; top: -2px; left: -2px;
-        width: 15px; height: 15px;
-        border-top: 2px solid #ffcc80; border-left: 2px solid #ffcc80;
-    }
-    .feedback-box::after {
-        content: '';
-        position: absolute; bottom: -2px; right: -2px;
-        width: 15px; height: 15px;
-        border-bottom: 2px solid #ffcc80; border-right: 2px solid #ffcc80;
-    }
-    .feedback-box h3 {
-        font-family: 'Rye', serif;
+      }
+      .feedback-box::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        width: 15px;
+        height: 15px;
+        border-top: 2px solid #ffcc80;
+        border-left: 2px solid #ffcc80;
+      }
+      .feedback-box::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 15px;
+        height: 15px;
+        border-bottom: 2px solid #ffcc80;
+        border-right: 2px solid #ffcc80;
+      }
+      .feedback-box h3 {
+        font-family: "Rye", serif;
         color: #ffcc80;
         margin: 0 0 20px;
         text-align: center;
-    }
-    .feedback-box select,
-    .feedback-box textarea {
+      }
+      .feedback-box select,
+      .feedback-box textarea {
         width: 100%;
         padding: 12px;
         margin-bottom: 15px;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
         border: 1px solid #8b6914;
         border-radius: 4px;
         color: #e6dccf;
-        font-family: 'Courier Prime', monospace;
+        font-family: "Courier Prime", monospace;
         font-size: 1em;
         box-sizing: border-box;
-    }
-    .feedback-box textarea {
+      }
+      .feedback-box textarea {
         min-height: 120px;
         resize: vertical;
-    }
-    .feedback-box select:focus,
-    .feedback-box textarea:focus {
+      }
+      .feedback-box select:focus,
+      .feedback-box textarea:focus {
         outline: none;
         border-color: #ffcc80;
-    }
-    .feedback-box button[type="submit"] {
+      }
+      .feedback-box button[type="submit"] {
         width: 100%;
         padding: 12px;
         background: linear-gradient(135deg, #8b6914, #d4a84b);
         border: none;
         border-radius: 4px;
         color: #140d0a;
-        font-family: 'Rye', serif;
+        font-family: "Rye", serif;
         font-size: 1em;
         cursor: pointer;
         transition: all 0.3s;
-    }
-    .feedback-box button[type="submit"]:hover {
+      }
+      .feedback-box button[type="submit"]:hover {
         transform: scale(1.02);
-    }
-    .feedback-fechar {
+      }
+      .feedback-fechar {
         position: absolute;
-        top: 10px; right: 15px;
+        top: 10px;
+        right: 15px;
         background: none;
         border: none;
         color: #ffcc80;
         font-size: 1.3em;
         cursor: pointer;
-    }
-    .feedback-sucesso {
+      }
+      .feedback-sucesso {
         text-align: center;
         color: #4caf50;
         padding: 20px;
-    }
-</style>
+      }
+    </style>
 
-<button class="feedback-btn" onclick="document.getElementById('feedbackModal').classList.add('ativo')" title="Enviar Feedback">
-    💬
-</button>
+    <button
+      class="feedback-btn"
+      onclick="document.getElementById('feedbackModal').classList.add('ativo')"
+      title="Enviar Feedback"
+    >
+      💬
+    </button>
 
-<div class="feedback-modal" id="feedbackModal">
-    <div class="feedback-box">
-        <button class="feedback-fechar" onclick="document.getElementById('feedbackModal').classList.remove('ativo')">✕</button>
+    <div class="feedback-modal" id="feedbackModal">
+      <div class="feedback-box">
+        <button
+          class="feedback-fechar"
+          onclick="
+            document.getElementById('feedbackModal').classList.remove('ativo')
+          "
+        >
+          ✕
+        </button>
         <h3>📝 Enviar Feedback</h3>
         <form id="feedbackForm">
-            <select id="feedbackTipo" required>
-                <option value="">Selecione o tipo...</option>
-                <option value="bug">🐛 Bug / Erro</option>
-                <option value="sugestao">💡 Sugestão</option>
-                <option value="duvida">❓ Dúvida</option>
-                <option value="outro">📌 Outro</option>
-            </select>
-            <textarea id="feedbackMsg" placeholder="Descreva aqui seu feedback..." required></textarea>
-            <button type="submit">Enviar</button>
+          <select id="feedbackTipo" required>
+            <option value="">Selecione o tipo...</option>
+            <option value="bug">🐛 Bug / Erro</option>
+            <option value="sugestao">💡 Sugestão</option>
+            <option value="duvida">❓ Dúvida</option>
+            <option value="outro">📌 Outro</option>
+          </select>
+          <textarea
+            id="feedbackMsg"
+            placeholder="Descreva aqui seu feedback..."
+            required
+          ></textarea>
+          <button type="submit">Enviar</button>
         </form>
-        <div class="feedback-sucesso" id="feedbackSucesso" style="display:none;">
-            ✅ Feedback enviado com sucesso!<br>Obrigado pela contribuição!
+        <div
+          class="feedback-sucesso"
+          id="feedbackSucesso"
+          style="display: none"
+        >
+          ✅ Feedback enviado com sucesso!<br />Obrigado pela contribuição!
         </div>
+      </div>
     </div>
-</div>
 
-<script>
-    document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const tipo = document.getElementById('feedbackTipo').value;
-        const mensagem = document.getElementById('feedbackMsg').value;
-        const pagina = window.location.pathname.split('/').pop();
-        
-        try {
-            await client.from('feedbacks').insert({
-                tipo: tipo,
-                mensagem: mensagem,
-                pagina: pagina,
-                personagem: typeof NOME_PERSONAGEM !== 'undefined' ? NOME_PERSONAGEM : 'Anônimo'
+    <script>
+      document
+        .getElementById("feedbackForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const tipo = document.getElementById("feedbackTipo").value;
+          const mensagem = document.getElementById("feedbackMsg").value;
+          const pagina = window.location.pathname.split("/").pop();
+
+          try {
+            await client.from("feedbacks").insert({
+              tipo: tipo,
+              mensagem: mensagem,
+              pagina: pagina,
+              personagem:
+                typeof NOME_PERSONAGEM !== "undefined"
+                  ? NOME_PERSONAGEM
+                  : "Anônimo",
             });
-            
-            document.getElementById('feedbackForm').style.display = 'none';
-            document.getElementById('feedbackSucesso').style.display = 'block';
-            
-            setTimeout(() => {
-                document.getElementById('feedbackModal').classList.remove('ativo');
-                document.getElementById('feedbackForm').style.display = 'block';
-                document.getElementById('feedbackSucesso').style.display = 'none';
-                document.getElementById('feedbackForm').reset();
-            }, 2000);
-        } catch (err) {
-            alert('Erro ao enviar feedback. Tente novamente.');
-        }
-    });
-    
-    document.getElementById('feedbackModal').addEventListener('click', (e) => {
-        if (e.target.id === 'feedbackModal') {
-            document.getElementById('feedbackModal').classList.remove('ativo');
-        }
-    });
-</script>
 
-</body>
+            document.getElementById("feedbackForm").style.display = "none";
+            document.getElementById("feedbackSucesso").style.display = "block";
+
+            setTimeout(() => {
+              document
+                .getElementById("feedbackModal")
+                .classList.remove("ativo");
+              document.getElementById("feedbackForm").style.display = "block";
+              document.getElementById("feedbackSucesso").style.display = "none";
+              document.getElementById("feedbackForm").reset();
+            }, 2000);
+          } catch (err) {
+            alert("Erro ao enviar feedback. Tente novamente.");
+          }
+        });
+
+      document
+        .getElementById("feedbackModal")
+        .addEventListener("click", (e) => {
+          if (e.target.id === "feedbackModal") {
+            document.getElementById("feedbackModal").classList.remove("ativo");
+          }
+        });
+    </script>
+
+    <footer
+      style="
+        text-align: center;
+        padding: 20px;
+        margin-top: 40px;
+        font-family: &quot;Courier Prime&quot;, monospace;
+        color: #8b7355;
+        font-size: 0.9em;
+        opacity: 0.8;
+      "
+    >
+      Desenvolvido por Lafuente Paulino
+    </footer>
+  </body>
 </html>

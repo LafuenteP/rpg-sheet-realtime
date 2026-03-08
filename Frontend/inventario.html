@@ -55,8 +55,9 @@
             };
         }
 
-        // VARIAVEL GLOBAL PARA O SALVAMENTO COM ATRASO
-        var acionarSalvarComDelay; 
+        // VARIÁVEIS GLOBAIS PARA CONTROLE DE SALVAMENTO
+        var salvamentoEmAndamento = false; // Mutex para evitar race conditions
+        var salvamentoPendente = false;    // Flag para saber se há salvamento aguardando
     </script>
 
     <style>
@@ -781,7 +782,14 @@
                 }
                 
                 calcularCarga();
-                salvarFicha();
+                
+                // Usa debounce para campos de texto (digitação rápida)
+                // Salvamento imediato para checkboxes e selects
+                if (campo === 'nome' || campo === 'desc') {
+                    salvarFichaComDebounce();
+                } else {
+                    salvarFicha();
+                }
             }
 
             function toggleEquipar(index) {
@@ -823,7 +831,7 @@
             };
 
             // --- FUNÇÕES DE MUNIÇÃO ---
-            function atualizarLimiteBalas() {
+            function atualizarLimiteBalas(deveSalvar = true) {
                 const bando = document.getElementById('check-bandoleira').checked;
                 const cinto = document.getElementById('check-cinturao').checked;
                 const aljava = document.getElementById('check-aljava').checked;
@@ -850,7 +858,10 @@
                 municaoData.equipados = { bandoleira: bando, cinturao: cinto, aljava: aljava };
                 municaoData.qtd = parseInt(input.value);
 
-                salvarFicha();
+                // Só salva se não estiver carregando dados
+                if (deveSalvar) {
+                    salvarFicha();
+                }
             }
 
             function salvarMunicao() {
@@ -906,15 +917,23 @@
             // 5. SUPABASE (Salvar e Carregar)
             // ==========================================
 
-            async function salvarFicha() {
+            // Função interna que executa o salvamento real
+            async function _executarSalvamento() {
                 const status = document.getElementById('status');
                 status.innerText = 'Salvando...';
                 
-                // 1. Pega dados atuais para não sobrescrever
-                const { data: current } = await client.from('Fichas').select('atributos').eq('nome_personagem', NOME_PERSONAGEM).single();
-                let payload = current ? current.atributos : {};
+                // 1. Pega dados atuais para não sobrescrever habilidades e outros dados
+                const { data: current, error: fetchError } = await client.from('Fichas').select('atributos').eq('nome_personagem', NOME_PERSONAGEM).single();
                 
-                // 2. Monta o objeto de inventário
+                if (fetchError) {
+                    console.error('Erro ao buscar dados:', fetchError);
+                    status.innerText = 'Erro ao salvar!';
+                    return false;
+                }
+                
+                let payload = current ? { ...current.atributos } : {};
+                
+                // 2. Monta o objeto de inventário (preservando todas as outras propriedades)
                 payload.inventario = {
                     items: itensData,
                     weapons: armasData,
@@ -928,11 +947,40 @@
                 if(!error) {
                     status.innerText = '• Salvo •';
                     setTimeout(() => status.innerText = '', 2000);
+                    return true;
                 } else {
-                    console.error(error);
+                    console.error('Erro ao salvar:', error);
                     status.innerText = 'Erro ao salvar!';
+                    return false;
                 }
             }
+
+            // Função com mutex para evitar race conditions
+            async function salvarFicha() {
+                // Se já tem um salvamento em andamento, marca como pendente
+                if (salvamentoEmAndamento) {
+                    salvamentoPendente = true;
+                    return;
+                }
+                
+                salvamentoEmAndamento = true;
+                salvamentoPendente = false;
+                
+                try {
+                    await _executarSalvamento();
+                    
+                    // Se houve mudanças durante o salvamento, salva novamente
+                    while (salvamentoPendente) {
+                        salvamentoPendente = false;
+                        await _executarSalvamento();
+                    }
+                } finally {
+                    salvamentoEmAndamento = false;
+                }
+            }
+            
+            // Versão com debounce para chamadas frequentes (ex: digitação)
+            const salvarFichaComDebounce = debounce(salvarFicha, 500);
 
             async function carregar() {
                 const status = document.getElementById('status');
@@ -945,21 +993,21 @@
                     itensData = inv.items || [];
                     armasData = inv.weapons || []; // Garante que lê as armas do banco
                     document.getElementById('space-max').value = inv.maxLoad || 10;
-                }
-
-                // Dentro da função carregar(), localize a parte da munição e substitua:
-                if (data.atributos.inventario.municao) {
-                    municaoData = data.atributos.inventario.municao;
                     
-                    // Seta o estado dos checkboxes
-                    document.getElementById('check-bandoleira').checked = !!municaoData.equipados?.bandoleira;
-                    document.getElementById('check-cinturao').checked = !!municaoData.equipados?.cinturao;
-                    document.getElementById('check-aljava').checked = !!municaoData.equipados?.aljava;
-                    
-                    document.getElementById('ammo-qtd').value = municaoData.qtd || 0;
-                    
-                    // Roda a lógica para definir o input.max corretamente
-                    atualizarLimiteBalas(); 
+                    // Carrega munição se existir
+                    if (inv.municao) {
+                        municaoData = inv.municao;
+                        
+                        // Seta o estado dos checkboxes
+                        document.getElementById('check-bandoleira').checked = !!municaoData.equipados?.bandoleira;
+                        document.getElementById('check-cinturao').checked = !!municaoData.equipados?.cinturao;
+                        document.getElementById('check-aljava').checked = !!municaoData.equipados?.aljava;
+                        
+                        document.getElementById('ammo-qtd').value = municaoData.qtd || 0;
+                        
+                        // Roda a lógica para definir o input.max corretamente (sem salvar)
+                        atualizarLimiteBalas(false); 
+                    }
                 }
                 
                 gerarLinhasItens();

@@ -17,7 +17,6 @@
         'Januario': 'morena<3',
         'Mateus': 'junin123',
         'Geraldo': 'ph123',
-        'Lucian': 'matheus123',
 
     };
 
@@ -41,6 +40,9 @@
     if (!checkAuth()) {
         document.documentElement.classList.add('locked');
     }
+    
+    // Adiciona classe de loading para ocultar ficha até a foto carregar
+    document.documentElement.classList.add('ficha-loading');
 
     // Função para o botão "Entrar"
     function tentarDesbloquear() {
@@ -132,6 +134,53 @@ html.locked #tela-senha {
     justify-content: center; align-items: center; flex-direction: column;
 }
 
+/* === TELA DE LOADING === */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #1a1411;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 8888;
+    transition: opacity 0.4s ease;
+}
+
+#loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#loading-screen .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 204, 128, 0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+#loading-screen p {
+    color: var(--gold);
+    font-family: 'Rye', serif;
+    margin-top: 20px;
+    font-size: 1.2rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Esconde a ficha enquanto carrega */
+.ficha-loading #ficha-container,
+.ficha-loading .western-nav {
+    visibility: hidden;
+}
+
 :root {
     --ink: #2b1b12;
     --gold: #ffcc80;
@@ -141,21 +190,15 @@ html.locked #tela-senha {
     box-sizing: border-box;
 }
 
-html {
-    overflow-x: hidden;
-}
-
 body {
     margin: 0;
     padding: 0;
-    padding-top: 60px; /* Espaço para o menu fixo */
     background: #1a1411;
     font-family: 'Courier Prime', monospace;
     display: flex;
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
-    overflow-x: hidden;
 }
 
 .painel-arma-equipada {
@@ -233,7 +276,7 @@ body {
     color: #e6dccf;
     cursor: pointer;
     border-radius: 8px;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
 .password-box button:hover {
@@ -266,14 +309,13 @@ body.locked #status {
     justify-content: center;
     gap: 15px;
     padding: 15px;
-    background: #2b1b12;
+    background: rgba(43, 27, 18, 0.95);
     border-bottom: 2px solid #5d4037;
     width: 100%;
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
     z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     flex-shrink: 0;
 }
 
@@ -284,7 +326,7 @@ body.locked #status {
     font-size: 1rem;
     padding: 5px 10px;
     border: 1px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
+    transition: all 0.2s;
     text-transform: uppercase;
 }
 
@@ -307,10 +349,9 @@ body.locked #status {
     background-size: cover;
     padding: clamp(20px, 3vw, 40px);
     gap: clamp(15px, 2vw, 25px);
-    box-shadow: 0 0 20px rgba(0,0,0,.6);
+    box-shadow: 0 0 40px rgba(0,0,0,.8);
     min-height: min(85vh, 900px);
-    contain: layout style paint;
-    will-change: transform;
+    max-height: 1200px;
 }
 
 /* ===== ESQUERDA ===== */
@@ -320,7 +361,6 @@ body.locked #status {
     gap: 20px;
     justify-content: flex-start;
     position: relative;
-    overflow: visible;
 }
 
 .portrait-frame {
@@ -328,8 +368,7 @@ body.locked #status {
     background-size: contain;
     padding: 5px;
     padding-left: 0px;
-    width: 100%;
-    max-width: 100%;
+    width: 140%;
 }
 
 .portrait-frame img {
@@ -343,8 +382,8 @@ body.locked #status {
     width: 100%;
     height: clamp(650px, 20vh, 200px);
     position: absolute;
-    bottom: clamp(-150px, -15vw, -190px);
-    left: 5%;
+    bottom: -190px;
+    left: 10%;
     z-index: 10;
     display: flex;
     align-items: center;
@@ -383,8 +422,6 @@ body.locked #status {
     flex-direction: column;
     justify-content: space-between;
     gap: clamp(10px, 2vw, 25px);
-    overflow: hidden;
-    max-width: 100%;
 }
 
 .wanted-strip {
@@ -403,24 +440,21 @@ body.locked #status {
 /* ===== ATRIBUTOS ===== */
 .attributes {
     display: flex;
-    gap: clamp(1px, 0.5vw, 8px);
-    justify-content: flex-end;
-    flex-wrap: nowrap;
-    max-width: 100%;
-    overflow: hidden;
+    gap: clamp(1px, 0.3vw, 6px);
+    justify-content: right;
+    flex-wrap: wrap;
 }
 
 .attribute-card {
     background: url("assets/wanted-card.png") no-repeat center;
     background-size: contain;
-    width: clamp(40px, 9vw, 160px);
+    width: clamp(40px, 10vw, 200px);
     aspect-ratio: 3 / 4;
     text-align: center;
     padding-top: 5%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex-shrink: 0;
 }
 
 .attribute-card:nth-child(1) {
@@ -443,7 +477,7 @@ body.locked #status {
     display: block;
     font-family: 'Rye';
     font-size: clamp(1rem, 2vw, 1.6rem);
-    margin-top: 5%;
+    margin-top: -50px;
 }
 
 .attribute-card input {
@@ -463,8 +497,7 @@ body.locked #status {
     display: flex;
     flex-direction: column;
     gap: clamp(1px, 1.5vw, 15px);
-    padding: 0px clamp(20px, 8vw, 130px);
-    padding-left: clamp(40px, 10vw, 160px);
+    padding: 0px 130px;
     flex-shrink: 0;
 }
 
@@ -483,7 +516,6 @@ body.locked #status {
     text-transform: uppercase;
     white-space: nowrap;
     flex-shrink: 0;
-    padding-left: clamp(20px, 5vw, 80px);
 }
 
 .track {
@@ -813,12 +845,12 @@ body.locked #status {
     height: 55px;
     border-radius: 50%;
     border: 2px solid #5d4037;
-    background: #2b1b12;
+    background: rgba(43, 27, 18, 0.95);
     color: #e6dccf;
     font-size: 1.5rem;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-    transition: transform 0.2s, background 0.2s, border-color 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -900,7 +932,7 @@ body.locked #status {
     height: 35px;
     border-radius: 50%;
     cursor: pointer;
-    transition: transform 0.2s, background 0.2s;
+    transition: all 0.2s;
 }
 
 .btn-close-popup:hover {
@@ -956,7 +988,7 @@ body.locked #status {
     color: #fff;
     cursor: pointer;
     border-radius: 8px;
-    transition: transform 0.2s, background 0.2s;
+    transition: all 0.2s;
     margin-top: 10px;
 }
 
@@ -1137,7 +1169,7 @@ body.locked #status {
     padding: 12px 15px;
     border-radius: 8px;
     border: 2px solid transparent;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
     cursor: pointer;
 }
 
@@ -1166,7 +1198,7 @@ body.locked #status {
     justify-content: center;
     font-size: 1.2rem;
     background: rgba(255,250,240,0.9);
-    transition: background 0.2s, border-color 0.2s;
+    transition: all 0.2s;
 }
 
 .passo-item.completo .passo-checkbox {
@@ -1377,7 +1409,7 @@ body.faminto {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s, box-shadow 0.2s;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efeito elástico */
     box-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.3);
     position: relative;
     border: 2px dashed rgba(0,0,0,0.3);
@@ -1431,85 +1463,6 @@ body.faminto {
 }
 
 /* =========================================
-   TELAS GRANDES (1920x1080 e similares)
-   ========================================= */
-@media (min-width: 1025px) {
-    .sheet {
-        width: min(95%, 1400px); /* Limita largura máxima */
-    }
-    
-    .sheet-left {
-        overflow: visible;
-    }
-    
-    .portrait-frame {
-        width: 100%; /* Mantém dentro do container */
-        max-width: 100%;
-    }
-    
-    .name-banner {
-        width: 100%;
-        left: 0%;
-        bottom: -150px;
-    }
-    
-    .vitals-section {
-        padding: 0px clamp(20px, 5vw, 80px); /* Padding responsivo */
-    }
-    
-    .acoes-banner {
-        width: clamp(45%, 50vw, 55%);
-        margin-left: 3%;
-    }
-    
-    .attributes {
-        gap: clamp(8px, 2vw, 25px); /* Gap menor para caber na tela */
-        justify-content: flex-end;
-        flex-wrap: nowrap; /* Impede quebra de linha */
-    }
-    
-    .attribute-card {
-        width: clamp(90px, 8vw, 150px); /* Tamanho menor para caber */
-        flex-shrink: 0;
-    }
-
-    .attribute-card input {
-        margin-top: 10%; /* Subir o input */
-    }
-
-    .attribute-card label {
-        margin-top: -35%;
-    }
-}
-
-/* Telas muito grandes (1920px+) */
-@media (min-width: 1920px) {
-    .sheet {
-        width: min(90%, 1500px);
-    }
-    
-    .attributes {
-        gap: 20px;
-    }
-    
-    .attribute-card {
-        width: 140px; /* Tamanho fixo para telas grandes */
-    }
-    
-    .attribute-card label {
-        font-size: 1.3rem;
-    }
-    
-    .attribute-card input {
-        font-size: 2.8rem;
-    }
-
-    .attribute-card input {
-        margin-top: 27%; /* Subir o input */
-    }
-}
-
-/* =========================================
    RESPONSIVIDADE MOBILE
    ========================================= */
 
@@ -1520,12 +1473,6 @@ body.faminto {
         grid-template-columns: 35% 65%;
         background: url("assets/fundomob.jpg") no-repeat center;
         background-size: cover;
-        contain: layout style paint;
-        will-change: transform;
-    }
-    
-    .western-nav {
-        background: #2b1b12;
     }
     
     .acoes-banner {
@@ -1540,22 +1487,12 @@ body.faminto {
         margin-bottom: 10px;       /* Mantém um espaçamento embaixo */
     }
 
-    .attribute-card input {
-        margin-top: -30%; /* Subir o input para centralizar melhor */
-    }
+    
+
 }
 
 /* Celulares */
 @media (max-width: 768px) {
-    
-    /* Evita scroll interno que trava */
-    .lista-alimentos-container {
-        max-height: 150px;
-    }
-    
-    .western-nav {
-        background: #2b1b12;
-    }
     
     /* Layout geral - coluna única */
     .sheet {
@@ -1568,9 +1505,6 @@ body.faminto {
         gap: 20px;
         background: url("assets/fundomob.jpg") no-repeat center;
         background-size: cover;
-        overflow: visible;
-        contain: layout style paint;
-        will-change: transform;
     }
 
     /* Seção esquerda (foto e nome) */
@@ -1625,7 +1559,7 @@ body.faminto {
     
     .attribute-card label {
         font-size: 1.1rem;
-        margin-top: -10px;
+        margin-top: -20px;
     }
     
 /* O AJUSTE DOS NÚMEROS */
@@ -1634,7 +1568,7 @@ body.faminto {
         text-align: center;
         border: none;
         background: transparent;
-        margin-top: -23px; 
+        margin: 0; 
         
         /* TRUQUE 1: Tamanho da fonte baseado na largura da tela (vw) */
         /* Isso garante que o número sempre caiba na caixa de 1/4 da tela */
@@ -1873,6 +1807,11 @@ body.faminto {
     </script>
 </div>
 
+<div id="loading-screen">
+    <div class="spinner"></div>
+    <p>Carregando ficha...</p>
+</div>
+
 <div id="aviso-fragil" class="dor-limit-indicator">
     💀 FOME 💀<br>
     <span style="font-size:1rem; font-family:'Courier Prime'; color:#ccc;">
@@ -1885,7 +1824,6 @@ body.faminto {
     <a href="habilidades.html">Habilidades</a>
     <a href="montaria.html">Montaria</a>
     <a href="inventario.html">Inventário</a>
-    <a href="bando.html">Bando</a>
 </nav>
 
 <div class="sheet" id="ficha-container">
@@ -2453,11 +2391,28 @@ function preencherTela(attr) {
 
     // === NOVO CÓDIGO DA FOTO ===
     const imgEl = document.getElementById('char-photo');
-    if (attr.fotoUrl) {
-        imgEl.src = attr.fotoUrl;
-    } else {
-        imgEl.src = `assets/${NOME_PERSONAGEM}.png`;
-    }
+    const novaFotoUrl = attr.fotoUrl || `assets/${NOME_PERSONAGEM}.png`;
+    
+    // Aguarda a foto carregar antes de mostrar a ficha
+    imgEl.onload = function() {
+        // Remove a tela de loading
+        document.documentElement.classList.remove('ficha-loading');
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => loadingScreen.remove(), 500);
+        }
+    };
+    imgEl.onerror = function() {
+        // Se der erro, mostra a ficha mesmo assim após um breve delay
+        this.src = 'assets/portrait.png';
+        setTimeout(() => {
+            document.documentElement.classList.remove('ficha-loading');
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) loadingScreen.classList.add('hidden');
+        }, 300);
+    };
+    imgEl.src = novaFotoUrl;
 
     if (attr.inventario) {
         // Garante que sempre haja um array de items, weapons e objeto municao
@@ -2544,7 +2499,7 @@ function preencherTela(attr) {
                 div.className = "painel-arma-equipada";
                 
                 // MUDANÇA AQUI: justify-content: flex-start (para alinhar tudo na esquerda)
-                div.style.cssText = "background: #2b1b12; padding: 5px 8px; border: 2px solid #ffcc80; border-radius: 8px; display: flex; justify-content: flex-start; align-items: center; color: #fff; gap: 10px; max-width: 750px; width: 100%; min-width: 0; box-sizing: border-box; margin-bottom: 5px;";
+                div.style.cssText = "background: rgba(43,27,18,0.92); padding: 5px 8px; border: 2px solid #ffcc80; border-radius: 8px; display: flex; justify-content: flex-start; align-items: center; color: #fff; gap: 10px; max-width: 750px; width: 100%; min-width: 0; box-sizing: border-box; margin-bottom: 5px;";
                 
                 let painelBotoes = ''; // Mudei o nome de painelDireito para painelBotoes
                 
@@ -3545,180 +3500,6 @@ if (!document.documentElement.classList.contains('locked')) {
             }
         });
     }
-</script>
-
-<!-- BOTÃO FLUTUANTE DE FEEDBACK -->
-<style>
-    .feedback-btn {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 55px;
-        height: 55px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #8b6914, #d4a84b);
-        border: 2px solid #ffcc80;
-        color: #140d0a;
-        font-size: 1.5em;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        z-index: 999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .feedback-btn:hover {
-        filter: brightness(1.1);
-    }
-    .feedback-modal {
-        display: none;
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85);
-        z-index: 10000;
-        justify-content: center;
-        align-items: center;
-    }
-    .feedback-modal.ativo { display: flex; }
-    .feedback-box {
-        background: rgba(30, 20, 15, 0.98);
-        border: 2px solid #8b6914;
-        border-radius: 8px;
-        padding: 25px;
-        width: 90%;
-        max-width: 450px;
-        position: relative;
-    }
-    .feedback-box::before {
-        content: '';
-        position: absolute; top: -2px; left: -2px;
-        width: 15px; height: 15px;
-        border-top: 2px solid #ffcc80; border-left: 2px solid #ffcc80;
-    }
-    .feedback-box::after {
-        content: '';
-        position: absolute; bottom: -2px; right: -2px;
-        width: 15px; height: 15px;
-        border-bottom: 2px solid #ffcc80; border-right: 2px solid #ffcc80;
-    }
-    .feedback-box h3 {
-        font-family: 'Rye', serif;
-        color: #ffcc80;
-        margin: 0 0 20px;
-        text-align: center;
-    }
-    .feedback-box select,
-    .feedback-box textarea {
-        width: 100%;
-        padding: 12px;
-        margin-bottom: 15px;
-        background: rgba(0,0,0,0.5);
-        border: 1px solid #8b6914;
-        border-radius: 4px;
-        color: #e6dccf;
-        font-family: 'Courier Prime', monospace;
-        font-size: 1em;
-        box-sizing: border-box;
-    }
-    .feedback-box textarea {
-        min-height: 120px;
-        resize: vertical;
-    }
-    .feedback-box select:focus,
-    .feedback-box textarea:focus {
-        outline: none;
-        border-color: #ffcc80;
-    }
-    .feedback-box button[type="submit"] {
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(135deg, #8b6914, #d4a84b);
-        border: none;
-        border-radius: 4px;
-        color: #140d0a;
-        font-family: 'Rye', serif;
-        font-size: 1em;
-        cursor: pointer;
-    }
-    .feedback-box button[type="submit"]:hover {
-        filter: brightness(1.1);
-    }
-    .feedback-fechar {
-        position: absolute;
-        top: 10px; right: 15px;
-        background: none;
-        border: none;
-        color: #ffcc80;
-        font-size: 1.3em;
-        cursor: pointer;
-    }
-    .feedback-sucesso {
-        text-align: center;
-        color: #4caf50;
-        padding: 20px;
-    }
-</style>
-
-<button class="feedback-btn" onclick="document.getElementById('feedbackModal').classList.add('ativo')" title="Enviar Feedback">
-    💬
-</button>
-
-<div class="feedback-modal" id="feedbackModal">
-    <div class="feedback-box">
-        <button class="feedback-fechar" onclick="document.getElementById('feedbackModal').classList.remove('ativo')">✕</button>
-        <h3>📝 Enviar Feedback</h3>
-        <form id="feedbackForm">
-            <select id="feedbackTipo" required>
-                <option value="">Selecione o tipo...</option>
-                <option value="bug">🐛 Bug / Erro</option>
-                <option value="sugestao">💡 Sugestão</option>
-                <option value="duvida">❓ Dúvida</option>
-                <option value="outro">📌 Outro</option>
-            </select>
-            <textarea id="feedbackMsg" placeholder="Descreva aqui seu feedback..." required></textarea>
-            <button type="submit">Enviar</button>
-        </form>
-        <div class="feedback-sucesso" id="feedbackSucesso" style="display:none;">
-            ✅ Feedback enviado com sucesso!<br>Obrigado pela contribuição!
-        </div>
-    </div>
-</div>
-
-<script>
-    document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const tipo = document.getElementById('feedbackTipo').value;
-        const mensagem = document.getElementById('feedbackMsg').value;
-        const pagina = window.location.pathname.split('/').pop();
-        
-        try {
-            await client.from('feedbacks').insert({
-                tipo: tipo,
-                mensagem: mensagem,
-                pagina: pagina,
-                personagem: typeof NOME_PERSONAGEM !== 'undefined' ? NOME_PERSONAGEM : 'Anônimo'
-            });
-            
-            document.getElementById('feedbackForm').style.display = 'none';
-            document.getElementById('feedbackSucesso').style.display = 'block';
-            
-            setTimeout(() => {
-                document.getElementById('feedbackModal').classList.remove('ativo');
-                document.getElementById('feedbackForm').style.display = 'block';
-                document.getElementById('feedbackSucesso').style.display = 'none';
-                document.getElementById('feedbackForm').reset();
-            }, 2000);
-        } catch (err) {
-            alert('Erro ao enviar feedback. Tente novamente.');
-        }
-    });
-    
-    document.getElementById('feedbackModal').addEventListener('click', (e) => {
-        if (e.target.id === 'feedbackModal') {
-            document.getElementById('feedbackModal').classList.remove('ativo');
-        }
-    });
 </script>
 
 </body>

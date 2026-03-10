@@ -648,6 +648,20 @@
         color: #ff5555;
       }
 
+      .btn-edit {
+        position: absolute;
+        top: 10px;
+        right: 35px;
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        font-size: 1.1rem;
+      }
+      .btn-edit:hover {
+        color: var(--gold);
+      }
+
       /* TABELAS RENDERIZADAS */
       .mini-table {
         width: 100%;
@@ -1059,7 +1073,9 @@
 
     <div class="modal-overlay" id="modal-creator">
       <div class="creator-box">
-        <h2 style="margin-bottom: 0">Gerenciar Habilidades</h2>
+        <h2 id="modal-titulo" style="margin-bottom: 0">
+          Gerenciar Habilidades
+        </h2>
 
         <div class="modal-tabs">
           <button class="tab-btn active" onclick="mudarAba('biblioteca')">
@@ -1193,7 +1209,11 @@
             <button class="btn-cancel" onclick="fecharCriador()">
               Cancelar
             </button>
-            <button class="btn-confirm" onclick="salvarNovaHabilidade()">
+            <button
+              class="btn-confirm"
+              id="btn-salvar"
+              onclick="salvarNovaHabilidade()"
+            >
               Criar
             </button>
           </div>
@@ -1204,6 +1224,7 @@
     <script>
       // CONFIG GLOBAL
       let fichaCache = {};
+      let editandoTitulo = null;
 
       // Estado da Biblioteca (Paginação e Filtros)
       let libState = {
@@ -1284,6 +1305,7 @@
                         <span class="skill-type-badge">${tipo}</span>
                     </h3>
                     <div style="white-space: pre-wrap;">${skill.descricao}</div>
+                    <button class="btn-edit" onclick="editarHabilidade('${skill.titulo}')" title="Editar">✎</button>
                     <button class="btn-delete" onclick="removerUma('${skill.titulo}')" title="Remover uma">×</button>
                 `;
           container.appendChild(card);
@@ -1292,6 +1314,11 @@
 
       // 3. LÓGICA DO MODAL
       function abrirCriador() {
+        editandoTitulo = null;
+        document.getElementById("modal-titulo").innerText =
+          "Gerenciar Habilidades";
+        document.getElementById("btn-salvar").innerText = "Criar";
+
         // Reseta modal manual
         document.getElementById("new-title").value = "";
         document.getElementById("new-desc").value = "";
@@ -1313,6 +1340,55 @@
 
       function fecharCriador() {
         document.getElementById("modal-creator").style.display = "none";
+      }
+
+      function parseDescricao(descricao) {
+        const tableIndex = descricao.indexOf("<table");
+        if (tableIndex === -1) {
+          return { texto: descricao, tabela: [] };
+        }
+        const texto = descricao.substring(0, tableIndex).trim();
+        const tabela = [];
+        const rowRegex = /<tr><td>(.*?)<\/td><td>(.*?)<\/td><\/tr>/g;
+        let match;
+        while ((match = rowRegex.exec(descricao)) !== null) {
+          tabela.push({ col1: match[1], col2: match[2] });
+        }
+        return { texto, tabela };
+      }
+
+      function editarHabilidade(titulo) {
+        const skill = fichaCache.habilidades.find((h) => h.titulo === titulo);
+        if (!skill) return;
+
+        editandoTitulo = titulo;
+
+        const parsed = parseDescricao(skill.descricao);
+
+        document.getElementById("new-title").value = skill.titulo;
+        document.getElementById("new-desc").value = parsed.texto;
+        document.getElementById("new-type").value = skill.tipo || "outros";
+
+        const container = document.getElementById("table-rows-container");
+        container.innerHTML = "";
+
+        if (parsed.tabela.length > 0) {
+          document.getElementById("check-table").checked = true;
+          document.getElementById("table-builder-area").classList.add("show");
+          parsed.tabela.forEach((row) => addTableRowInput(row.col1, row.col2));
+        } else {
+          document.getElementById("check-table").checked = false;
+          document
+            .getElementById("table-builder-area")
+            .classList.remove("show");
+          addTableRowInput();
+        }
+
+        document.getElementById("modal-titulo").innerText = "Editar Habilidade";
+        document.getElementById("btn-salvar").innerText = "Salvar";
+
+        mudarAba("manual");
+        document.getElementById("modal-creator").style.display = "flex";
       }
 
       function mudarAba(aba) {
@@ -1570,11 +1646,22 @@
           }
         }
 
-        fichaCache.habilidades.push({
-          titulo: titulo,
-          tipo: tipo,
-          descricao: descricaoFinal,
-        });
+        if (editandoTitulo) {
+          fichaCache.habilidades.forEach((h) => {
+            if (h.titulo === editandoTitulo) {
+              h.titulo = titulo;
+              h.tipo = tipo;
+              h.descricao = descricaoFinal;
+            }
+          });
+          editandoTitulo = null;
+        } else {
+          fichaCache.habilidades.push({
+            titulo: titulo,
+            tipo: tipo,
+            descricao: descricaoFinal,
+          });
+        }
 
         fecharCriador();
         renderizar();

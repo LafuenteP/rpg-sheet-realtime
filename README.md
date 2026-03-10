@@ -13,7 +13,17 @@ Ficha de personagem minimalista e reativa para sessões de RPG de Mesa (TTRPG). 
 </div>
 
 <div align="center">
-  <img src="Frontend/assets/Screenshots/Inventario.png" alt="Inventário" width="600"/>
+  <img src="Frontend/assets/Screenshots/Habilidades.png" alt="Habilidades" width="600"/>
+  <p><em>Árvore de habilidades do personagem</em></p>
+</div>
+
+<div align="center">
+  <img src="Frontend/assets/Screenshots/Montaria.png" alt="Montaria" width="600"/>
+  <p><em>Gestão da montaria do personagem</em></p>
+</div>
+
+<div align="center">
+  <img src="Frontend/assets/Screenshots/Inventário.png" alt="Inventário" width="600"/>
   <p><em>Sistema de inventário do personagem</em></p>
 </div>
 

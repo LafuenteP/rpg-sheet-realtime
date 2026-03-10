@@ -32,6 +32,11 @@ Ficha de personagem minimalista e reativa para sessões de RPG de Mesa (TTRPG). 
   <p><em>Tela para os jogadores acomaparanhem a evolução do bando, e votar em melhorias.</em></p>
 </div>
 
+<div align="center">
+  <img src="Frontend/assets/Screenshots/Dashboard.png" alt="Tela do dashboard do mestre" width="600"/>
+  <p><em>Tela para o Mestre gerir seus players, membros do bando, notícias, melhorias do bando, honra/caixa do bando, e eventos aleatórios.</em></p>
+</div>
+
 ## �🚀 Tecnologias
 
 - **Frontend:** HTML5, CSS3 e Javascript (Vanilla).
